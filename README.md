@@ -16,6 +16,14 @@ pnpm dev                      # http://localhost:3000
 
 Sem chaves do Supabase o mapa abre mesmo assim (cidade padrão), sem dados.
 
+### Supabase
+
+1. Crie um projeto (região São Paulo) e preencha `.env.local`, incluindo `SUPABASE_DB_URL` (Connect → Session pooler).
+2. Em Authentication → URL Configuration: Site URL `http://localhost:3000` e Redirect URL `http://localhost:3000/**`.
+3. `pnpm db:reset` aplica migrações e seed (apaga os dados das tabelas do app).
+4. Para tornar sua conta admin, entre uma vez no app e rode no SQL Editor:
+   `update profiles set role = 'admin', verified = true where id = (select id from auth.users where email = 'seu@email');`
+
 ## Comandos
 
 | Comando | O que faz |

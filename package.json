@@ -9,7 +9,7 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "db:reset": "supabase db reset",
+    "db:reset": "node scripts/db-reset.mjs",
     "import:osm": "tsx scripts/import-osm.ts"
   },
   "dependencies": {
