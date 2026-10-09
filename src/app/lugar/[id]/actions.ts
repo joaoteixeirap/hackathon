@@ -8,12 +8,12 @@ import { redeemErrorMessage } from "@/lib/offers";
 import { toPlaceTrust, type PlaceTrust } from "@/lib/placeTrust";
 import { createClient } from "@/lib/supabase/server";
 import type { FactField } from "@/lib/trust";
-import { logEvent } from "@/lib/events";
+import { logEvent, sessionProps } from "@/lib/events";
 
 export type RedeemResult = { ok: true; code: string; expiresAt: string } | { ok: false; message: string };
 
 /** "Usar oferta" (F11): records the redemption and reveals the code for 10 minutes. */
-export async function redeemOffer(offerId: string, activityId?: string): Promise<RedeemResult> {
+export async function redeemOffer(offerId: string, activityId?: string, sid?: string): Promise<RedeemResult> {
   if (!/^[0-9a-f-]{36}$/i.test(offerId)) return { ok: false, message: "Oferta inválida." };
   const user = await ensureUser();
   if (!user) return { ok: false, message: "Não foi possível abrir sua sessão de visitante. Recarregue a página." };
@@ -22,7 +22,7 @@ export async function redeemOffer(offerId: string, activityId?: string): Promise
   const { data, error } = await supabase.rpc("redeem_offer", { p_offer_id: offerId, p_activity_id: activityId ?? null });
   if (error || !data) return { ok: false, message: redeemErrorMessage(error?.message) };
   const r = data as { code: string; expires_at: string };
-  if (activityId) await logEvent("offer_group_redeem", { activity_id: activityId, offer_id: offerId });
+  if (activityId) await logEvent("offer_group_redeem", { ...sessionProps(sid), activity_id: activityId, offer_id: offerId });
   return { ok: true, code: r.code, expiresAt: r.expires_at };
 }
 

@@ -15,6 +15,7 @@ export type PlaceSummary = {
   neighborhood: string | null;
   address: string | null;
   opening_hours: string | null;
+  stay_policy?: string;
   wifi_mbps: number | null;
   wifi_source: "osm" | "partner" | "user_test" | null;
   has_power_outlets: boolean | null;

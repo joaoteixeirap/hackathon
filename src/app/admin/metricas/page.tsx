@@ -8,6 +8,7 @@ import { card } from "@/components/ui/styles";
 import { AUDIENCE_LABELS, BLOCK_LABELS, BLOCKS, funnel, percent, type EventRow, type SignupRow } from "@/lib/analytics";
 import { getMyProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { EngagementPanel } from "@/components/stay/EngagementPanel";
 
 export const metadata: Metadata = { title: "Métricas · SoloRota" };
 export const dynamic = "force-dynamic";
@@ -170,7 +171,7 @@ export default async function MetricsPage({ searchParams }: Props) {
               {f.noBlock > 0 && (
                 <tr>
                   <th scope="row" className="py-2.5 pr-2 text-left font-normal text-muted">
-                    Sem bloco escolhido
+                    Sem bloco atual ou proposta anterior
                   </th>
                   <td className="py-2.5 pr-2 text-right text-muted">—</td>
                   <td className="py-2.5 pr-2 text-right">{f.noBlock}</td>
@@ -246,6 +247,7 @@ export default async function MetricsPage({ searchParams }: Props) {
         <p className="text-sm break-all text-muted">{qrUrl}</p>
         <p className="text-xs text-muted">Cadastros por este QR aparecem como origem “qr · pitch”.</p>
       </section>
+      <EngagementPanel since={since}/>
     </PageShell>
   );
 }

@@ -1,7 +1,8 @@
 "use client";
 
 import { ShieldCheck } from "lucide-react";
-import { useActionState, useMemo, useState } from "react";
+import { useActionState, useEffect, useMemo, useState } from "react";
+import { visitorId } from "@/lib/track";
 import { LocationPicker } from "@/components/map/LocationPicker";
 import { ActivityIcon } from "@/components/ui/CategoryIcon";
 import { buttonPrimary, field, label } from "@/components/ui/styles";
@@ -34,6 +35,8 @@ export function CreateActivityForm({ citySlug, bbox, prefill, stayNotice }: { ci
   const [cost, setCost] = useState("");
   const [split, setSplit] = useState(true);
   const [repeat, setRepeat] = useState(false);
+  const [sid, setSid] = useState("");
+  useEffect(() => setSid(visitorId()), []);
   const defaultDate = useMemo(tomorrowInBrasilia, []);
 
   const costCents = parseBRL(cost);
@@ -42,6 +45,7 @@ export function CreateActivityForm({ citySlug, bbox, prefill, stayNotice }: { ci
   return (
     <form action={action} className="space-y-6" noValidate>
       <input type="hidden" name="city" value={citySlug} />
+      <input type="hidden" name="sid" value={sid} />
       <input type="hidden" name="lat" value={point.lat} />
       <input type="hidden" name="lng" value={point.lng} />
       <input type="hidden" name="place_id" value={prefill.placeId ?? ""} />

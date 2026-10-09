@@ -2,18 +2,19 @@
 // cookies; visitors are counted by a random id kept in this device's localStorage.
 
 /** The three value-proposition blocks of the /espera fake door. */
-export const BLOCKS = ["comunidade", "trabalho", "saude_moradia"] as const;
+export const BLOCKS = ["work", "bonds", "week"] as const;
 export type Block = (typeof BLOCKS)[number];
 
 export const BLOCK_LABELS: Record<Block, string> = {
-  comunidade: "Comunidade",
-  trabalho: "Onde trabalhar e comer",
-  saude_moradia: "Saúde e moradia",
+  work: "Trabalhar com confiança",
+  bonds: "Vínculos durante a estadia",
+  week: "Sua semana numa jornada",
 };
 
 export const EVENT_NAMES = [
   "view_espera",
   ...BLOCKS.map((b) => `click_block_${b}` as const),
+  "click_block_comunidade", "click_block_trabalho", "click_block_saude_moradia",
   "submit_waitlist",
   "view_map",
   "open_place",

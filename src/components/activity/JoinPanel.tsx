@@ -6,6 +6,7 @@ import { useState, useTransition } from "react";
 import { leaveActivity, requestJoin, type ActionResult } from "@/app/atividade/[id]/actions";
 import { buttonPrimary, buttonSecondary } from "@/components/ui/styles";
 import type { ViewerRole } from "@/lib/membership";
+import { visitorId } from "@/lib/track";
 
 type Props = {
   activityId: string;
@@ -81,7 +82,7 @@ export function JoinPanel({ activityId, role, status, started }: Props) {
     body = (
       <>
         <p className="text-sm text-muted">Quem organiza vê seu nome, se você é verificado e sua nota antes de aprovar.</p>
-        <button type="button" disabled={pending} onClick={() => run(() => requestJoin(activityId))} className={`${buttonPrimary} gap-2`}>
+        <button type="button" disabled={pending} onClick={() => run(() => requestJoin(activityId, visitorId()))} className={`${buttonPrimary} gap-2`}>
           <Hand size={18} aria-hidden /> {pending ? "Enviando…" : "Pedir para entrar"}
         </button>
       </>

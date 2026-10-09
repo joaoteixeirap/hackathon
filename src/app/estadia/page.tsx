@@ -22,6 +22,9 @@ import { pendingTasks, stayProgress } from "@/lib/stay";
 import { getActiveStay, getCommitments, getCompatiblePeople, getFavorites, getPostSessionPrompts, getPublicActivitiesBy, getStayTasks, getWelcomeMeetup } from "@/lib/stayData";
 import { createClient } from "@/lib/supabase/server";
 import { CalendarDownload } from "@/components/stay/CalendarDownload";
+import { BudgetBar, BudgetPanel } from "@/components/stay/BudgetPanel";
+import { EssentialsGrid } from "@/components/stay/EssentialsGrid";
+import type { Expense } from "@/lib/budget";
 
 export const metadata: Metadata = { title: "Minha estadia · SoloRota" };
 export const dynamic = "force-dynamic";
@@ -31,6 +34,7 @@ const TABS = [
   ["tarefas", "Tarefas"],
   ["agenda", "Agenda"],
   ["favoritos", "Favoritos"],
+  ["gastos", "Gastos"],
   ["pessoas", "Pessoas"],
 ] as const;
 type Tab = (typeof TABS)[number][0];
@@ -111,6 +115,9 @@ export default async function StayPage({ searchParams }: Props) {
     .sort((a, b) => b.near - a.near || b.score - a.score);
   const bestCall = callPlaces[0];
   const pending = pendingTasks(tasks);
+  const [budgetRow, expenseRows] = tab === "hoje" || tab === "gastos" ? await Promise.all([supabase.from("stay_budgets").select("monthly_budget_cents").eq("stay_id",stay.id).maybeSingle(),supabase.from("stay_expenses").select("id,category,amount_cents,spent_on,note").eq("stay_id",stay.id).order("spent_on",{ascending:false})]) : [{data:null},{data:[]}];
+  const expenses=(expenseRows.data ?? []) as Expense[];
+  const monthly=budgetRow.data?.monthly_budget_cents ?? null;
 
   return (
     <PageShell title="Minha estadia">
@@ -227,12 +234,14 @@ export default async function StayPage({ searchParams }: Props) {
           </section>
 
           <MicroSurvey origin="estadia" citySlug={stay.city.slug} />
+          <section className={`${card} space-y-3 p-5`} aria-label="Status do orçamento"><h2 className="font-display text-lg font-bold">Seu orçamento</h2><BudgetBar stay={stay} expenses={expenses} monthly={monthly} today={todayInBrasilia()}/><Link href="/estadia?aba=gastos" className="inline-flex min-h-11 items-center font-semibold text-primary">Ver gastos</Link></section>
         </div>
       )}
 
       {tab === "tarefas" && (
         <section className={`${card} p-5`} aria-label="Checklist da estadia">
           <TaskList tasks={tasks} citySlug={stay.city.slug} />
+          <EssentialsGrid cityId={stay.city_id} citySlug={stay.city.slug} neighborhood={routine.neighborhood}/>
         </section>
       )}
 
@@ -247,6 +256,7 @@ export default async function StayPage({ searchParams }: Props) {
         <CalendarDownload events={commitments} />
         {commitments.length === 0 ? <p className="text-sm text-muted">Nada marcado. Entre numa roda para montar sua agenda.</p> : <ul className="divide-y divide-line">{commitments.map(a => <li key={a.id}><Link href={`/atividade/${a.id}`} className="block min-h-11 py-3"><span className="block font-semibold">{a.title}</span><span className="text-sm text-muted">{when(a.starts_at)} · {a.meeting_label}</span></Link></li>)}</ul>}
       </section>}
+      {tab === "gastos" && <section className={`${card} p-5`} aria-label="Gastos privados"><BudgetPanel stay={stay} expenses={expenses} monthly={monthly}/></section>}
 
       {tab === "favoritos" && (
         <section className={`${card} p-5`} aria-label="Favoritos">

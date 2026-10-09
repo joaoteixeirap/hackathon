@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { ensureUser } from "@/lib/auth";
 import { parseActivityForm, type ActivityErrors } from "@/lib/activityForm";
 import { getCity } from "@/lib/cities";
-import { logEvent } from "@/lib/events";
+import { logEvent, sessionProps } from "@/lib/events";
 import { MAP_DATA_TAG } from "@/lib/mapData";
 import { seriesSlot } from "@/lib/series";
 import { createClient } from "@/lib/supabase/server";
@@ -25,6 +25,7 @@ export async function createActivity(_prev: CreateActivityState, formData: FormD
   }
 
   const supabase = await createClient();
+  const session = sessionProps(formData.get("sid"));
   const offerRaw = String(formData.get("offer_id") ?? "");
   const offer_id = /^[0-9a-f-]{36}$/i.test(offerRaw) ? offerRaw : null;
 
@@ -56,8 +57,8 @@ export async function createActivity(_prev: CreateActivityState, formData: FormD
     if (seriesError || !series) return { status: "error", message: "Não foi possível criar a série agora. Tente de novo." };
     await supabase.rpc("refresh_series", { p_series_id: series.id });
     revalidateTag(MAP_DATA_TAG);
-    await logEvent("series_create", { series_id: series.id, city: city.slug });
-    if (d.place_id) await logEvent("session_from_place", { place_id: d.place_id, series_id: series.id });
+    await logEvent("series_create", { ...session, series_id: series.id, city: city.slug });
+    if (d.place_id) await logEvent("session_from_place", { ...session, place_id: d.place_id, series_id: series.id });
     redirect(`/serie/${series.id}?nova=1`);
   }
 
@@ -71,7 +72,7 @@ export async function createActivity(_prev: CreateActivityState, formData: FormD
     return { status: "error", message: "Não foi possível criar a atividade agora. Tente de novo." };
   }
   revalidateTag(MAP_DATA_TAG);
-  await logEvent("create_activity", { activity_id: data.id, city: city.slug });
-  if (parsed.data.place_id) await logEvent("session_from_place", { place_id: parsed.data.place_id, activity_id: data.id });
+  await logEvent("create_activity", { ...session, activity_id: data.id, city: city.slug });
+  if (parsed.data.place_id) await logEvent("session_from_place", { ...session, place_id: parsed.data.place_id, activity_id: data.id });
   redirect(`/atividade/${data.id}?nova=1`);
 }

@@ -209,12 +209,14 @@ export function MapExperience({
   activities: initialActivities,
   initialSelection = null,
   initialChip = null,
+  initialEssential = null,
 }: {
   city: City;
   places: PlaceSummary[];
   activities: ActivitySummary[];
   initialSelection?: Selection;
   initialChip?: ChipKey | null;
+  initialEssential?: { sub: string; always: boolean; pass: boolean } | null;
 }) {
   const activities = useLiveActivities(city.id, initialActivities);
   const mapRef = useRef<MapViewHandle>(null);
@@ -224,6 +226,7 @@ export function MapExperience({
   const [chip, setChip] = useState<ChipKey | null>(initialChip);
   const [filters, setFilters] = useState<PlaceFilters>(EMPTY_FILTERS);
   const [query, setQuery] = useState("");
+  const [essential, setEssential] = useState(initialEssential);
   const [selection, setSelection] = useState<Selection>(initialSelection);
   const [snap, setSnap] = useState<Snap>(initialSelection ? "half" : "collapsed");
   const [sheetPx, setSheetPx] = useState(92);
@@ -248,8 +251,8 @@ export function MapExperience({
 
   const shownPlaces = useMemo(() => {
     if (!showPlaces || chip === "activities") return [];
-    return filterPlaces(places, { ...filters, category: chip as PlaceCategory | null, query }, isOpen);
-  }, [places, filters, chip, query, isOpen, showPlaces]);
+    return filterPlaces(places, { ...filters, category: chip as PlaceCategory | null, query }, isOpen).filter(p => !essential || (p.subcategory === essential.sub && (!essential.always || p.opening_hours === "24/7") && (!essential.pass || p.stay_policy === "pass_required")));
+  }, [places, filters, chip, query, isOpen, showPlaces, essential]);
 
   const shownActivities = useMemo(() => {
     if (!showActivities || (chip !== null && chip !== "activities")) return [];
@@ -355,6 +358,8 @@ export function MapExperience({
       <div className="min-w-0">
         <p className="font-display text-[17px] leading-tight font-bold">{selection ? "Detalhes" : `Explorar ${city.name}`}</p>
         <p className="truncate text-[13px] text-muted tabular-nums">{countLine}</p>
+        {essential && <button type="button" className="min-h-11 text-sm font-semibold text-primary" onClick={() => setEssential(null)}>Limpar filtro de serviços essenciais</button>}
+        <Link href={`/estadia?aba=pessoas`} className="inline-flex min-h-11 items-center text-xs font-semibold text-primary">Pessoas compatíveis</Link>
       </div>
       {selection && (
         <button

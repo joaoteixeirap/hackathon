@@ -2,6 +2,7 @@
 
 import { Check, X } from "lucide-react";
 import { useState, useTransition } from "react";
+import { visitorId } from "@/lib/track";
 import { buttonPrimary, buttonSecondary } from "@/components/ui/styles";
 import { decideSeriesMember, followSeries, leaveSeries, type SeriesResult } from "./actions";
 
@@ -46,7 +47,7 @@ export function FollowPanel({ seriesId, status }: { seriesId: string; status: St
       ) : (
         <>
           <p className="text-sm text-muted">Siga para entrar em todas as próximas datas de uma vez, sem pedir de novo a cada semana.</p>
-          <button type="button" disabled={pending} onClick={() => run(() => followSeries(seriesId))} className={buttonPrimary}>
+          <button type="button" disabled={pending} onClick={() => run(() => followSeries(seriesId, visitorId()))} className={buttonPrimary}>
             {pending ? "Enviando…" : "Seguir a série"}
           </button>
         </>

@@ -28,7 +28,7 @@ function TaskItem({ task, citySlug }: { task: StayTaskRow; citySlug: string }) {
           startTransition(async () => {
             const res = await toggleTask(task.id, v);
             if (!res.ok) setDone(!v);
-            else track("stay_task_toggle", { area: task.area, done: String(v) });
+            else track("stay_task_toggle", { task_id: task.id, area: task.area, done: String(v) });
           });
         }}
         className="mt-1 size-5 shrink-0 accent-[var(--primary)]"

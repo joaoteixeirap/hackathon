@@ -32,20 +32,21 @@ export default async function AboutPage() {
       <p className="-mt-2 mb-6 text-lg">
         Um mapa para quem trabalha remoto e muda de cidade: encontrar gente, um lugar com Wi-Fi bom e ajuda local sem depender de dez grupos de WhatsApp. Piloto em {cityName}.
       </p>
+      <p className="mb-5 font-semibold text-primary">100% gratuito para nômades. A receita vem dos parceiros locais; cobrança simulada no piloto.</p>
 
       <section className={`${card} p-5`} aria-labelledby="como">
         <h2 id="como" className="mb-4 font-display text-xl font-bold">
           Como funciona
         </h2>
         <ul className="space-y-4">
-          <Item icon={<Users size={20} aria-hidden />} title="Rodas em grupo">
-            Alguém marca uma atividade no mapa; quem quer ir pede para entrar, quem organiza aprova, e o grupo conversa no chat. Custos podem ser divididos.
+          <Item icon={<Users size={20} aria-hidden />} title="Vínculos durante a estadia">
+            Encontros pequenos e recorrentes com quem fica nas mesmas semanas. Seguir uma série permite pedir aprovação uma vez; o contato acontece no grupo, sem mensagens diretas.
           </Item>
-          <Item icon={<Laptop size={20} aria-hidden />} title="Onde trabalhar e comer">
-            Cafés e coworkings com Wi-Fi medido por quem usa, tomadas e o Selo Amigo do Nômade (Wi-Fi forte confirmado por 2 medições e tomadas).
+          <Item icon={<Laptop size={20} aria-hidden />} title="Trabalhar com confiança">
+            O Radar mostra Wi-Fi, tomadas e ruído com fonte, data e confirmações. Os selos têm validade de 60 dias. A medição vai até o servidor e varia com horário e dispositivo; os critérios são hipóteses do piloto.
           </Item>
-          <Item icon={<HeartPulse size={20} aria-hidden />} title="Saúde e moradia">
-            Clínicas, farmácias e hospedagens da cidade, com quem atende sem plano e em quais idiomas, quando informado.
+          <Item icon={<HeartPulse size={20} aria-hidden />} title="Sua semana numa jornada">
+            Checklist, favoritos, agenda e gastos privados da estadia; farmácias, atendimento e outros serviços essenciais no mapa. Nenhum preço de referência é inventado.
           </Item>
           <Item icon={<Store size={20} aria-hidden />} title="Parceiros locais">
             Negócios publicam ofertas para nômades e veem quantos resgates tiveram. No piloto, valores de planos e destaque são hipóteses e a cobrança é simulada.
@@ -68,6 +69,9 @@ export default async function AboutPage() {
           <li>
             <span className="font-semibold">Chat só do grupo:</span> mensagens de uma roda são lidas apenas por quem organiza e por quem foi aprovado.
           </li>
+          <li>Descoberta de pessoas é uma escolha separada da presença. Só perfis verificados que ativaram a opção, com datas sobrepostas, aparecem; bloqueios valem nos dois sentidos.</li>
+          <li>Check-ins são anônimos para outras pessoas: só aparecem medidas agregadas. Geolocalização opcional serve para confirmar proximidade; suas coordenadas são descartadas, e não usamos microfone.</li>
+          <li>Tarefas, favoritos, estadias, orçamento e gastos ficam privados.</li>
           <li>
             <span className="font-semibold">Verificação:</span> a selfie com documento fica em área privada, só a equipe vê, e é apagada logo após a decisão.
           </li>
@@ -122,6 +126,7 @@ export default async function AboutPage() {
       </section>
 
       <div className="mt-8 flex flex-wrap gap-3">
+        <Link href={`/cidade/${defaultCitySlug}`} className={buttonSecondary}>Ver dados da cidade</Link>
         <Link href="/espera" className={buttonPrimary}>
           Entrar na lista de espera
         </Link>

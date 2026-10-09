@@ -10,7 +10,7 @@ import { createClient } from "./supabase/server";
 export const MAP_DATA_TAG = "map-data";
 
 const PLACE_COLUMNS =
-  "id, name, category, subcategory, lat, lng, neighborhood, address, opening_hours, wifi_mbps, wifi_source, has_power_outlets, quiet_level, price_hint, accepts_without_plan, languages, wheelchair, seal_valid_until, call_ready_valid_until, last_verified_at, wifi_fact:facts_meta->wifi, featured_until, is_demo";
+  "id, name, category, subcategory, lat, lng, neighborhood, address, opening_hours, stay_policy, wifi_mbps, wifi_source, has_power_outlets, quiet_level, price_hint, accepts_without_plan, languages, wheelchair, seal_valid_until, call_ready_valid_until, last_verified_at, wifi_fact:facts_meta->wifi, featured_until, is_demo";
 
 type PlaceRow = Omit<PlaceSummary, "featured" | "offers" | "wifi_mbps"> & {
   featured_until: string | null;

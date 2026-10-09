@@ -1,6 +1,7 @@
 "use client";
 
-import { Check, HeartPulse, Laptop, MessageCircle, Users } from "lucide-react";
+import { Check, CalendarDays, Laptop, MessageCircle, Users } from "lucide-react";
+import { MicroSurvey } from "@/components/stay/MicroSurvey";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { buttonPrimary, buttonSecondary, field, label } from "@/components/ui/styles";
 import { AUDIENCE_LABELS, AUDIENCES, BLOCKS, type Block } from "@/lib/analytics";
@@ -8,26 +9,26 @@ import { track, visitorId } from "@/lib/track";
 import { joinWaitlist, type WaitlistState } from "./actions";
 
 const COPY: Record<Block, { icon: React.ReactNode; tone: string; title: string; lead: string; points: string[] }> = {
-  comunidade: {
+  bonds: {
     icon: <Users size={22} aria-hidden />,
     tone: "bg-accent",
-    title: "Nunca mais trabalhar sozinho",
-    lead: "Rodas em grupo marcadas no mapa da cidade.",
-    points: ["Dia de trabalho conjunto, praia, comida, cultura", "Peça para entrar e converse no chat do grupo", "Custos divididos automaticamente"],
+    title: "Vínculos durante a estadia",
+    lead: "Encontros pequenos e recorrentes com quem fica na cidade nas mesmas semanas.",
+    points: ["Séries semanais e encontros de boas-vindas", "Rotina e interesses em comum", "Contato nas atividades, sem mensagens diretas"],
   },
-  trabalho: {
+  work: {
     icon: <Laptop size={22} aria-hidden />,
     tone: "bg-cat-work",
-    title: "Onde trabalhar e comer bem",
-    lead: "Cafés e coworkings com Wi-Fi medido por quem usa.",
-    points: ["Velocidade real do Wi-Fi e tomadas", "Selo Amigo do Nômade", "Ofertas de parceiros locais"],
+    title: "Trabalhar com confiança",
+    lead: "Veja onde trabalhar hoje, com Wi-Fi medido e a data da última verificação.",
+    points: ["Conexão, tomadas e ruído com fonte e data", "Radar com critérios para chamadas", "Selos com validade e confirmação de pessoas"],
   },
-  saude_moradia: {
-    icon: <HeartPulse size={22} aria-hidden />,
+  week: {
+    icon: <CalendarDays size={22} aria-hidden />,
     tone: "bg-cat-health",
-    title: "Saúde e moradia sem susto",
-    lead: "O que resolver quando você chega numa cidade nova.",
-    points: ["Clínicas que atendem sem plano e em outros idiomas", "Aluguel por temporada perto do que importa", "Tudo num mapa só"],
+    title: "Sua semana numa jornada",
+    lead: "Trabalho, convivência, tarefas e serviços essenciais num só lugar.",
+    points: ["Checklist, favoritos e agenda da estadia", "Gastos privados com orçamento informado por você", "Sessões em locais e benefícios de grupo"],
   },
 };
 
@@ -171,6 +172,7 @@ export function EsperaClient({ cityName, cities, defaultCity, utmSource, utmCamp
           )}
         </section>
       </div>
+      <div className="mt-6"><MicroSurvey origin="espera" citySlug={defaultCity}/></div>
     </>
   );
 }

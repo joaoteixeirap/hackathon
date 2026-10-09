@@ -20,7 +20,7 @@ test.describe("waitlist /espera (F13)", () => {
       await page.goto(`/espera?utm_source=e2e&utm_campaign=${campaign}`);
       await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 
-      const block = page.getByRole("article").filter({ hasText: "Onde trabalhar e comer bem" });
+      const block = page.getByRole("article").filter({ hasText: "Trabalhar com confiança" });
       await block.getByRole("button", { name: "Quero isso" }).click();
       await expect(block.getByRole("button", { name: "É isso que eu quero" })).toHaveAttribute("aria-pressed", "true");
 
@@ -31,23 +31,31 @@ test.describe("waitlist /espera (F13)", () => {
       await expect(page.getByRole("link", { name: "Enviar no WhatsApp" })).toHaveAttribute("href", /utm_source%3Dwhatsapp/);
 
       const { data: row } = await admin.from("waitlist").select("origin_block, utm_source, utm_campaign, audience, city_slug").eq("email", email).single();
-      expect(row).toEqual({ origin_block: "trabalho", utm_source: "e2e", utm_campaign: campaign, audience: "nomad_foreign", city_slug: "santos" });
+      expect(row).toEqual({ origin_block: "work", utm_source: "e2e", utm_campaign: campaign, audience: "nomad_foreign", city_slug: "santos" });
 
       await expect
         .poll(async () => {
           const { data } = await admin.from("events").select("name").eq("props->>utm_campaign", campaign);
           return (data ?? []).map((e) => e.name).sort();
         })
-        .toEqual(["click_block_trabalho", "submit_waitlist", "view_espera"]);
+        .toEqual(["click_block_work", "submit_waitlist", "view_espera"]);
 
       // The same e-mail again is a friendly no-op.
+      await page.getByRole("button",{name:"Internet instável, barulho ou falta de tomada"}).click();
+      await expect(page.getByRole("heading",{name:"Quanto tempo você costuma ficar em cada cidade?"})).toBeVisible();
+      const sid=await page.evaluate(()=>localStorage.getItem("sr_sid"));
+      const answers=await admin.from("micro_answers").select("question_key,answer_key").eq("session_id",sid!);
+      expect(answers.data).toEqual([{question_key:"q_pain",answer_key:"wifi"}]);
       await page.goto(`/espera?utm_source=e2e&utm_campaign=${campaign}`);
+      await expect(page.getByRole("heading",{name:"O que mais atrapalha você ao chegar numa cidade nova?"})).toHaveCount(0);
       await page.getByLabel("Seu e-mail").fill(email);
       await page.getByRole("button", { name: "Quero entrar" }).click();
       await expect(page.getByText("Você já estava na lista!")).toBeVisible({ timeout: 15_000 });
     } finally {
       await admin.from("waitlist").delete().eq("email", email);
       await admin.from("events").delete().eq("props->>utm_campaign", campaign);
+      const sid=await page.evaluate(()=>localStorage.getItem("sr_sid")).catch(()=>null);
+      if(sid){await admin.from("micro_answers").delete().eq("session_id",sid);await admin.from("events").delete().eq("session_id",sid);}
     }
   });
 
@@ -63,7 +71,7 @@ test.describe("waitlist /espera (F13)", () => {
       await page.goto("/admin/metricas?dias=todos");
       await expect(page.getByRole("heading", { name: "Conversão por bloco" })).toBeVisible();
       const blocks = page.getByRole("region", { name: "Conversão por bloco" });
-      for (const name of ["Comunidade", "Onde trabalhar e comer", "Saúde e moradia"]) {
+      for (const name of ["Trabalhar com confiança", "Vínculos durante a estadia", "Sua semana numa jornada"]) {
         await expect(blocks.getByRole("rowheader", { name })).toBeVisible();
       }
       await expect(page.getByRole("heading", { name: "Cadastros por origem" })).toBeVisible();

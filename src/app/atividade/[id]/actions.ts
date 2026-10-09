@@ -2,7 +2,7 @@
 
 import { revalidatePath, revalidateTag } from "next/cache";
 import { ensureUser, getUser } from "@/lib/auth";
-import { logEvent } from "@/lib/events";
+import { logEvent, sessionProps } from "@/lib/events";
 import { MAP_DATA_TAG } from "@/lib/mapData";
 import { joinErrorMessage, REPORT_REASONS } from "@/lib/membership";
 import { createClient } from "@/lib/supabase/server";
@@ -18,14 +18,14 @@ function done(activityId: string, mapChanged = false): ActionResult {
 }
 
 /** Ask to join (F4). Starts a guest session first when the visitor has none. */
-export async function requestJoin(activityId: string): Promise<ActionResult> {
+export async function requestJoin(activityId: string, sid?: string): Promise<ActionResult> {
   if (!UUID_RE.test(activityId)) return { ok: false, message: "Roda inválida." };
   const user = await ensureUser();
   if (!user) return { ok: false, message: "Não foi possível abrir sua sessão de visitante. Recarregue a página." };
   const supabase = await createClient();
   const { error } = await supabase.rpc("request_join", { p_activity_id: activityId });
   if (error) return { ok: false, message: joinErrorMessage(error.message) };
-  await logEvent("request_join", { activity_id: activityId });
+  await logEvent("request_join", { ...sessionProps(sid), activity_id: activityId });
   return done(activityId);
 }
 

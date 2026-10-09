@@ -69,3 +69,7 @@ export const SESSION_DEFAULT_HOUR = "14:00";
 export const SESSION_DEFAULT_CAPACITY = 6;
 export const SESSION_MIN_NOTICE_MINUTES = 15;
 export const GROUP_EARLY_MINUTES = 30;
+/** hipóteses: safe monetary input limit, city statistics and survey minimum sample */
+export const MONEY_MAX_CENTS = 100_000_000;
+export const CITY_STATS_MIN_SAMPLE = 2;
+export const SURVEY_SMALL_SAMPLE = 30;

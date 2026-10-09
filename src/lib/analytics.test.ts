@@ -3,9 +3,9 @@ import { cleanUtm, funnel, percent, sanitizeEvent } from "./analytics";
 
 describe("sanitizeEvent", () => {
   it("accepts known events and keeps short flat string props", () => {
-    expect(sanitizeEvent("click_block_trabalho", { sid: "abc", block: "trabalho", n: 3 })).toEqual({
-      name: "click_block_trabalho",
-      props: { sid: "abc", block: "trabalho", n: "3" },
+    expect(sanitizeEvent("click_block_work", { sid: "abc", block: "work", n: 3 })).toEqual({
+      name: "click_block_work",
+      props: { sid: "abc", block: "work", n: "3" },
     });
   });
   it("drops unknown events, nested values, odd keys and long strings", () => {
@@ -35,17 +35,17 @@ describe("funnel", () => {
   it("counts distinct visitors and clickers, and conversion per block", () => {
     const events = [
       view("a", "instagram"), view("a", "instagram"), view("b"), view("c"), view("d", "instagram"),
-      click("a", "comunidade"), click("a", "comunidade"), click("b", "comunidade"), click("c", "trabalho"),
+      click("a", "bonds"), click("a", "bonds"), click("b", "bonds"), click("c", "work"),
       { name: "view_map", props: { sid: "z" } },
       { name: "view_espera", props: null },
     ];
-    const f = funnel(events, [signup("comunidade", "instagram"), signup("trabalho"), signup(null, null, "partner")]);
+    const f = funnel(events, [signup("bonds", "instagram"), signup("work"), signup(null, null, "partner")]);
 
     expect(f.visitors).toBe(4);
     expect(f.signups).toBe(3);
     expect(f.conversion).toBe(0.75);
-    expect(f.blocks.find((b) => b.block === "comunidade")).toEqual({ block: "comunidade", clickers: 2, signups: 1, ofVisitors: 0.25, ofClickers: 0.5 });
-    expect(f.blocks.find((b) => b.block === "saude_moradia")).toMatchObject({ clickers: 0, signups: 0, ofClickers: null });
+    expect(f.blocks.find((b) => b.block === "bonds")).toEqual({ block: "bonds", clickers: 2, signups: 1, ofVisitors: 0.25, ofClickers: 0.5 });
+    expect(f.blocks.find((b) => b.block === "week")).toMatchObject({ clickers: 0, signups: 0, ofClickers: null });
     expect(f.noBlock).toBe(1);
     expect(f.sources[0].source).toBe("direto"); // most signups first
     expect(f.sources.find((s) => s.source === "instagram")).toEqual({ source: "instagram", campaign: null, visitors: 2, signups: 1, conversion: 0.5 });

@@ -7,12 +7,40 @@ import { getCityNeighborhoods } from "@/lib/neighborhoods";
 import { todayInBrasilia } from "@/lib/offers";
 import { parseStayForm, PHASE_ORDER, type Phase } from "@/lib/stay";
 import { createClient } from "@/lib/supabase/server";
+import { parseBRL } from "@/lib/activityForm";
+import { EXPENSE_CATEGORIES } from "@/lib/budget";
+import { MONEY_MAX_CENTS } from "@/config/nomad";
 
 export type StayFormState = { status: "idle" | "error" | "saved"; message?: string };
 export type Result = { ok: true } | { ok: false; message: string };
 
 const UUID_RE = /^[0-9a-f-]{36}$/i;
 const SESSION_LOST = "Sessão expirada. Recarregue a página.";
+
+export async function saveBudget(stayId: string, _prev: StayFormState, form: FormData): Promise<StayFormState> {
+  const amount=parseBRL(String(form.get("monthly") ?? ""));
+  if(!UUID_RE.test(stayId) || !Number.isSafeInteger(amount) || amount < 0 || amount > MONEY_MAX_CENTS) return {status:"error",message:"Informe um orçamento válido em reais."};
+  if(!(await getUser())) return {status:"error",message:SESSION_LOST};
+  const {error}=await (await createClient()).from("stay_budgets").upsert({stay_id:stayId,monthly_budget_cents:amount});
+  if(error) return {status:"error",message:"Não foi possível salvar."};
+  revalidatePath("/estadia"); return {status:"saved"};
+}
+export async function addExpense(stayId: string, _prev: StayFormState, form: FormData): Promise<StayFormState> {
+  const amount=parseBRL(String(form.get("amount") ?? "")), category=String(form.get("category")), date=String(form.get("spent_on")), note=String(form.get("note")??"").trim();
+  if(!UUID_RE.test(stayId) || !Number.isSafeInteger(amount) || amount<=0 || amount>MONEY_MAX_CENTS || !Object.hasOwn(EXPENSE_CATEGORIES,category) || !/^\d{4}-\d{2}-\d{2}$/.test(date) || Number.isNaN(Date.parse(date)) || note.length>80) return {status:"error",message:"Confira valor, categoria, data e nota."};
+  const user=await getUser(); if(!user) return {status:"error",message:SESSION_LOST};
+  const db=await createClient(); const {data:stay}=await db.from("stays").select("arrive_on,leave_on").eq("id",stayId).eq("user_id",user.id).single();
+  if(!stay || date < stay.arrive_on || date > stay.leave_on) return {status:"error",message:"A data precisa estar dentro da sua estadia."};
+  const {error}=await db.from("stay_expenses").insert({stay_id:stayId,user_id:user.id,category,amount_cents:amount,spent_on:date,note:note||null});
+  if(error) return {status:"error",message:"Não foi possível registrar."};
+  revalidatePath("/estadia"); return {status:"saved"};
+}
+export async function removeExpense(id:string):Promise<Result> {
+  const user=await getUser(); if(!user || !UUID_RE.test(id)) return {ok:false,message:SESSION_LOST};
+  const {error,data}=await (await createClient()).from("stay_expenses").delete().eq("id",id).eq("user_id",user.id).select("id");
+  if(error || !data?.length) return {ok:false,message:"Não foi possível excluir."};
+  revalidatePath("/estadia"); return {ok:true};
+}
 
 /** E1: create or update the active stay (also syncs the profile and the checklist). */
 export async function saveStay(_prev: StayFormState, formData: FormData): Promise<StayFormState> {

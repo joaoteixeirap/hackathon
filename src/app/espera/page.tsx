@@ -6,7 +6,7 @@ import { defaultCitySlug, getCity, listCities } from "@/lib/cities";
 import { EsperaClient } from "./EsperaClient";
 
 const title = "SoloRota · lista de espera";
-const description = "O mapa dos nômades digitais no Brasil: rodas em grupo, onde trabalhar com Wi-Fi bom, saúde e moradia. Entre na lista.";
+const description = "Wi-Fi medido, vínculos durante a estadia e sua semana numa jornada. 100% gratuito para nômades.";
 
 export const metadata: Metadata = {
   title,
@@ -38,6 +38,7 @@ export default async function WaitlistPage({ searchParams }: Props) {
         <p className="mt-3 mb-6 text-lg text-muted">
           O SoloRota é o mapa dos nômades digitais no Brasil. Qual destes problemas você mais quer resolver?
         </p>
+        <p className="mb-5 font-semibold text-primary">100% gratuito para nômades</p>
 
         <EsperaClient
           cityName={cityName}

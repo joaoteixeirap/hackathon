@@ -20,6 +20,7 @@ function readDone(): string[] {
 export function MicroSurvey({ origin, citySlug }: { origin: "espera" | "estadia"; citySlug?: string | null }) {
   const [done, setDone] = useState<string[] | null>(null);
   const [pending, startTransition] = useTransition();
+  const [error, setError] = useState("");
 
   useEffect(() => setDone(readDone()), []);
   if (done == null) return null;
@@ -50,8 +51,8 @@ export function MicroSurvey({ origin, citySlug }: { origin: "espera" | "estadia"
             disabled={pending}
             onClick={() =>
               startTransition(async () => {
-                await answerSurvey({ question: q.key, answer: o.key, sid: visitorId(), origin, city: citySlug ?? null });
-                mark(q.key);
+                const r=await answerSurvey({ question: q.key, answer: o.key, sid: visitorId(), origin, city: citySlug ?? null });
+                if(r.ok) {setError("");mark(q.key);} else setError("Não foi possível salvar sua resposta. Tente de novo ou pule.");
               })
             }
             className="min-h-11 rounded-2xl border border-line bg-surface px-4 py-2.5 text-left text-sm font-semibold hover:bg-surface-2 disabled:opacity-60"
@@ -60,6 +61,7 @@ export function MicroSurvey({ origin, citySlug }: { origin: "espera" | "estadia"
           </button>
         ))}
       </div>
+      <p role="status" className="text-sm text-danger empty:hidden">{error}</p>
       <button type="button" onClick={() => mark(q.key)} className="min-h-11 text-sm font-semibold text-muted">
         Pular
       </button>

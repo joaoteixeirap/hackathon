@@ -2,7 +2,7 @@
 
 import { revalidatePath, revalidateTag } from "next/cache";
 import { ensureUser, getUser } from "@/lib/auth";
-import { logEvent } from "@/lib/events";
+import { logEvent, sessionProps } from "@/lib/events";
 import { MAP_DATA_TAG } from "@/lib/mapData";
 import { joinErrorMessage } from "@/lib/membership";
 import { createClient } from "@/lib/supabase/server";
@@ -17,14 +17,14 @@ function done(seriesId: string): SeriesResult {
 }
 
 /** S3 "Seguir a série": one request; the creator decides once for all occurrences. */
-export async function followSeries(seriesId: string): Promise<SeriesResult> {
+export async function followSeries(seriesId: string, sid?: string): Promise<SeriesResult> {
   if (!UUID_RE.test(seriesId)) return { ok: false, message: "Série inválida." };
   const user = await ensureUser();
   if (!user) return { ok: false, message: "Não foi possível abrir sua sessão de visitante. Recarregue a página." };
   const supabase = await createClient();
   const { error } = await supabase.rpc("follow_series", { p_series_id: seriesId });
   if (error) return { ok: false, message: /not available/.test(error.message) ? "Esta série não está disponível para você." : joinErrorMessage(error.message) };
-  await logEvent("series_follow", { series_id: seriesId });
+  await logEvent("series_follow", { ...sessionProps(sid), series_id: seriesId });
   return done(seriesId);
 }
 
