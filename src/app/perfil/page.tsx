@@ -142,7 +142,7 @@ export default async function MyProfilePage() {
               <SectionHeader icon={<UserRound size={18} aria-hidden />} title="Sobre você" text="É assim que as pessoas te veem nas rodas e nos grupos." />
               <ProfileForm profile={profile} />
             </section>
-            <QuickLinks className="hidden lg:block lg:self-start" />
+            <QuickLinks className="hidden lg:flex" />
 
           <section className={`${card} space-y-5 p-5 sm:p-6 lg:col-span-3`} aria-labelledby="routine-title">
             <SectionHeader
@@ -194,11 +194,12 @@ const LINKS = [
 
 function QuickLinks({ className = "" }: { className?: string }) {
   return (
-    <nav aria-label="Atalhos do perfil" className={`${card} overflow-hidden ${className}`}>
-      <ul className="divide-y divide-line">
+    <nav aria-label="Atalhos do perfil" className={`${card} flex-col overflow-hidden ${className}`}>
+      {/* Rows share the card height, so on desktop it lines up with the cards beside it. */}
+      <ul className="flex flex-1 flex-col divide-y divide-line">
         {LINKS.map(({ href, icon: Icon, title, text }) => (
-          <li key={href}>
-            <Link href={href} className="flex min-h-16 items-center gap-3 px-4 py-3 transition hover:bg-surface-2">
+          <li key={href} className="flex flex-1">
+            <Link href={href} className="flex min-h-16 flex-1 items-center gap-3 px-4 py-3 transition hover:bg-surface-2">
               <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-surface-2 text-ink">
                 <Icon size={17} aria-hidden />
               </span>
