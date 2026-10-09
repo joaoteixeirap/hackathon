@@ -16,7 +16,6 @@ test("completion: city directory filters destinations and links to routine tools
   await expect(page.getByText("Nenhuma cidade encontrada. Tente outro nome.")).toBeVisible();
   await page.getByLabel("Buscar cidade").fill("florianopolis");
   await expect(page.getByRole("link",{name:"Abrir mapa de Florianópolis"})).toBeVisible();
-  await expect(page.getByRole("link",{name:/World Time Buddy/})).toHaveAttribute("href","https://www.worldtimebuddy.com/");
   await expect(page.getByRole("link",{name:"Agenda e exportação para calendário"})).toHaveAttribute("href","/estadia?aba=agenda");
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });

@@ -3,13 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { card, field } from "@/components/ui/styles";
-import { track } from "@/lib/track";
 
-const TOOLS = [
-  { id: "worldtimebuddy", name: "World Time Buddy", purpose: "Compare fusos e escolha horários para reuniões com sua equipe.", url: "https://www.worldtimebuddy.com/" },
-  { id: "timeis", name: "Time.is", purpose: "Consulte a hora local e o fuso do seu destino.", url: "https://time.is/" },
-  { id: "openstreetmap", name: "OpenStreetMap", purpose: "Explore mapas e contribua com informações dos lugares que conhece.", url: "https://www.openstreetmap.org/" },
-] as const;
 const fold = (v: string) => v.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
 export function ExploreDirectory({ cities }: { cities: { slug: string; name: string }[] }) {
@@ -43,14 +37,6 @@ export function ExploreDirectory({ cities }: { cities: { slug: string; name: str
         <Link href="/estadia?aba=tarefas" className={link}>Checklist da estadia</Link>
         <Link href="/estadia?aba=pessoas" className={link}>Pessoas nas mesmas datas</Link>
       </div>
-    </section>
-    <section aria-label="Ferramentas externas" className="mt-7">
-      <h2 className="mb-3 font-display text-xl font-bold">Ferramentas para a rotina</h2>
-      <p className="mb-3 text-sm text-muted">Links consultados em 09/10/2026. Os sites externos têm suas próprias condições de uso.</p>
-      <ul className="space-y-3">{TOOLS.map(t => <li key={t.id} className={`${card} p-4`}>
-        <a href={t.url} target="_blank" rel="noopener noreferrer" className={link} onClick={() => track("resource_open", { resource: t.id })}>{t.name} <span className="sr-only">(abre em nova aba)</span> ↗</a>
-        <p className="text-sm text-muted">{t.purpose}</p>
-      </li>)}</ul>
     </section>
   </>;
 }
