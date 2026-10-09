@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { RoutineForm, type RoutineValues } from "@/components/stay/RoutineForm";
+import { AppNav } from "@/components/ui/AppNav";
 import { DemoLogin } from "@/components/ui/DemoLogin";
 import { PageShell } from "@/components/ui/PageShell";
 import { Rating } from "@/components/ui/Rating";
 import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
 import { card } from "@/components/ui/styles";
 import { getMyProfile, getUser } from "@/lib/auth";
+import { defaultCitySlug } from "@/lib/cities";
 import { demoLoginEnabled } from "@/lib/demoAccounts";
 import { getCityNeighborhoods } from "@/lib/neighborhoods";
 import { getProfileRating } from "@/lib/ratings";
@@ -37,6 +40,17 @@ export default async function MyProfilePage() {
   ]);
 
   const cities = await Promise.all((cityRows ?? []).map(async (c) => ({ ...c, neighborhoods: await getCityNeighborhoods(c.id) })));
+
+  const p = profile as unknown as Record<string, unknown> | null;
+  const routine: RoutineValues = {
+    work_rhythm: (p?.work_rhythm as RoutineValues["work_rhythm"]) ?? "flexible",
+    work_style: (p?.work_style as RoutineValues["work_style"]) ?? "mixed",
+    interests: (p?.interests as RoutineValues["interests"]) ?? [],
+    social_goals: (p?.social_goals as RoutineValues["social_goals"]) ?? [],
+    discoverable: Boolean(p?.discoverable),
+    share_presence: Boolean(p?.share_presence),
+    neighborhood: (p?.neighborhood as string | null) ?? null,
+  };
 
   if (!profile) {
     return (
@@ -83,7 +97,21 @@ export default async function MyProfilePage() {
       )}
 
       <section className={`${card} p-5`} aria-label="Editar perfil">
-        <ProfileForm profile={profile} cities={cities} />
+        <ProfileForm profile={profile} />
+      </section>
+
+      <section className={`${card} mt-6 space-y-3 p-5`} aria-labelledby="routine-title">
+        <h2 id="routine-title" className="font-display text-xl font-bold">
+          Rotina, interesses e privacidade
+        </h2>
+        <p className="text-sm text-muted">
+          Cidade e datas ficam na{" "}
+          <Link href="/estadia" className="font-semibold text-primary underline-offset-4 hover:underline">
+            sua estadia
+          </Link>
+          .
+        </p>
+        <RoutineForm initial={routine} neighborhoods={cities.find((c) => c.id === profile.current_city_id)?.neighborhoods ?? []} />
       </section>
 
       <Link href="/parceiro" className={`${card} mt-6 flex min-h-16 items-center justify-between gap-3 p-5 hover:bg-surface-2`}>
@@ -100,6 +128,7 @@ export default async function MyProfilePage() {
         </Link>
       </p>
 
+      <AppNav active="profile" citySlug={defaultCitySlug} />
     </PageShell>
   );
 }

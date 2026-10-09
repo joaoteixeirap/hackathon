@@ -2,6 +2,7 @@
 
 import { Armchair, CalendarPlus, Gauge, Navigation, Plug, Video, Volume2, Wifi } from "lucide-react";
 import Link from "next/link";
+import { FavoriteStar } from "@/components/stay/FavoriteStar";
 import { FreshnessBadge, CallReadyBadge, SealStatus } from "@/components/trust/TrustBadges";
 import { DemoTag } from "@/components/ui/DemoTag";
 import { NOISE_LABEL, outletsText, STAY_LABEL } from "@/lib/placeTrust";
@@ -35,7 +36,7 @@ function Criterion({ icon, label, value, meta }: { icon: React.ReactNode; label:
 }
 
 /** Radar card (SPEC_V2 R4): the criteria with source and date first, the score small after. */
-export function RadarCard({ place, rank, score, onCheckin }: { place: RadarPlace; rank: number; score: RadarScore; onCheckin: () => void }) {
+export function RadarCard({ place, rank, score, onCheckin, favorite }: { place: RadarPlace; rank: number; score: RadarScore; onCheckin: () => void; favorite: boolean }) {
   const meta = place.facts_meta;
   const down = measuredDownload(place);
   const wifi = down != null ? `${down.toLocaleString("pt-BR")} Mbps` : null;
@@ -88,6 +89,7 @@ export function RadarCard({ place, rank, score, onCheckin }: { place: RadarPlace
         <a href={directionsUrl(place.lat, place.lng)} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 text-sm font-semibold text-primary">
           <Navigation size={15} aria-hidden /> Como chegar
         </a>
+        <FavoriteStar placeId={place.id} initial={favorite} compact />
       </div>
     </article>
   );

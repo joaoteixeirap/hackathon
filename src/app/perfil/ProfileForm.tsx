@@ -1,11 +1,10 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState } from "react";
 import { buttonPrimary, field, label } from "@/components/ui/styles";
 import type { MyProfile } from "@/lib/auth";
 import { updateProfile, type ProfileFormState } from "./actions";
 
-type CityOption = { id: string; name: string; neighborhoods: string[] };
 
 function Field({
   id,
@@ -36,15 +35,11 @@ function Field({
   );
 }
 
-export function ProfileForm({ profile, cities }: { profile: MyProfile; cities: CityOption[] }) {
+export function ProfileForm({ profile }: { profile: MyProfile }) {
   const [state, action, pending] = useActionState<ProfileFormState, FormData>(updateProfile, {
     status: "idle",
   });
   const e = state.errors ?? {};
-  const [cityId, setCityId] = useState(profile.current_city_id ?? "");
-  const hoods = cities.find((c) => c.id === cityId)?.neighborhoods ?? [];
-  // Keep a legacy free-text value selectable until the user picks one from the list.
-  const options = profile.neighborhood && !hoods.includes(profile.neighborhood) && cityId === profile.current_city_id ? [profile.neighborhood, ...hoods] : hoods;
 
   return (
     <form action={action} className="space-y-4" noValidate>
@@ -79,67 +74,6 @@ export function ProfileForm({ profile, cities }: { profile: MyProfile; cities: C
             className={field}
           />
         </Field>
-      </div>
-      <Field id="current_city_id" title="Cidade atual" error={e.current_city_id}>
-        <select
-          id="current_city_id"
-          name="current_city_id"
-          value={cityId}
-          onChange={(ev) => setCityId(ev.target.value)}
-          className={field}
-        >
-          <option value="">Não informar</option>
-          {cities.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
-      </Field>
-      <div className="grid grid-cols-2 gap-3">
-        <Field id="stay_from" title="Chegada" error={e.stay_from}>
-          <input id="stay_from" name="stay_from" type="date" defaultValue={profile.stay_from ?? ""} className={field} />
-        </Field>
-        <Field id="stay_to" title="Saída" error={e.stay_to}>
-          <input id="stay_to" name="stay_to" type="date" defaultValue={profile.stay_to ?? ""} className={field} />
-        </Field>
-      </div>
-      <Field
-        id="neighborhood"
-        title="Bairro"
-        error={e.neighborhood}
-        hint="Usado só na contagem por bairro, nunca como posição."
-      >
-        <select
-          key={cityId}
-          id="neighborhood"
-          name="neighborhood"
-          defaultValue={cityId === profile.current_city_id ? (profile.neighborhood ?? "") : ""}
-          disabled={!cityId}
-          className={field}
-        >
-          <option value="">{cityId ? "Não informar" : "Escolha a cidade primeiro"}</option>
-          {options.map((n) => (
-            <option key={n} value={n}>
-              {n}
-            </option>
-          ))}
-        </select>
-      </Field>
-      <div className="space-y-1.5">
-        <label className="flex min-h-11 items-center gap-3">
-          <input
-            type="checkbox"
-            name="share_presence"
-            defaultChecked={profile.share_presence}
-            className="size-5 accent-primary"
-          />
-          <span>Mostrar que estou na cidade</span>
-        </label>
-        <p className="text-xs text-muted">
-          Aparece só como número no seu bairro, e só quando há 3 ou mais pessoas.
-        </p>
-        {e.share_presence && <p className="text-sm text-danger">{e.share_presence}</p>}
       </div>
 
       <div className="flex items-center gap-3 pt-2">

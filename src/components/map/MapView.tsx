@@ -12,6 +12,7 @@ import type { City } from "@/lib/cities";
 import { isSealActive } from "@/lib/trust";
 import type { ActivitySummary, PlaceCategory, PlaceSummary } from "@/lib/places";
 import { createActivityMarker } from "./activityMarker";
+import { createFavoriteMarker, type FavoriteSpot } from "./favoriteMarker";
 import { createPresenceMarker, type PresenceSpot } from "./presenceMarker";
 import { applyTheme, type MapTheme } from "./applyTheme";
 import { addPinImages, CATEGORY_HEX, pinIconKey } from "./pins";
@@ -48,6 +49,8 @@ type Props = {
   route?: { lat: number; lng: number }[];
   /** "Quem está aqui" spots, already aggregated (F8). */
   presence?: PresenceSpot[];
+  /** "Meus favoritos" layer (SPEC_V2 E3). */
+  favorites?: FavoriteSpot[];
 };
 
 function routeGeoJSON(stops: { lat: number; lng: number }[]): FeatureCollection {
@@ -277,9 +280,10 @@ function safely(fn: () => void) {
 
 const NO_STOPS: { lat: number; lng: number }[] = [];
 const NO_PRESENCE: PresenceSpot[] = [];
+const NO_FAVORITES: FavoriteSpot[] = [];
 
 export const MapView = forwardRef<MapViewHandle, Props>(function MapView(
-  { city, theme, places, activities, selectedPlaceId, sheetFraction, leftInset, onSelectPlace, onSelectActivity, onViewChange, onReady, route = NO_STOPS, presence = NO_PRESENCE },
+  { city, theme, places, activities, selectedPlaceId, sheetFraction, leftInset, onSelectPlace, onSelectActivity, onViewChange, onReady, route = NO_STOPS, presence = NO_PRESENCE, favorites = NO_FAVORITES },
   ref,
 ) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -291,6 +295,7 @@ export const MapView = forwardRef<MapViewHandle, Props>(function MapView(
   const styleGenRef = useRef(0);
   const markersRef = useRef<maplibregl.Marker[]>([]);
   const presenceRef = useRef<maplibregl.Marker[]>([]);
+  const favoritesRef = useRef<maplibregl.Marker[]>([]);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState(false);
 
@@ -407,9 +412,10 @@ export const MapView = forwardRef<MapViewHandle, Props>(function MapView(
 
     return () => {
       cancelled = true;
-      for (const m of [...markersRef.current, ...presenceRef.current]) m.remove();
+      for (const m of [...markersRef.current, ...presenceRef.current, ...favoritesRef.current]) m.remove();
       markersRef.current = [];
       presenceRef.current = [];
+      favoritesRef.current = [];
       mapRef.current?.remove();
       mapRef.current = null;
     };
@@ -450,6 +456,16 @@ export const MapView = forwardRef<MapViewHandle, Props>(function MapView(
       new maplibregl.Marker({ element: createPresenceMarker(p), anchor: "center" }).setLngLat([p.lng, p.lat]).addTo(map),
     );
   }, [presence, ready]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !ready) return;
+    for (const m of favoritesRef.current) m.remove();
+    // Offset above the pin so the star does not cover it.
+    favoritesRef.current = favorites.map((f) =>
+      new maplibregl.Marker({ element: createFavoriteMarker(f), anchor: "bottom", offset: [0, -40] }).setLngLat([f.lng, f.lat]).addTo(map),
+    );
+  }, [favorites, ready]);
 
   useEffect(() => {
     const map = mapRef.current;

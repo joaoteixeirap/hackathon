@@ -125,19 +125,23 @@ export function LayersMenu({
   showPlaces,
   showActivities,
   showPresence,
+  showFavorites,
   theme,
   onTogglePlaces,
   onToggleActivities,
   onTogglePresence,
+  onToggleFavorites,
   onTheme,
 }: {
   showPlaces: boolean;
   showActivities: boolean;
   showPresence: boolean;
+  showFavorites: boolean;
   theme: ThemeChoice;
   onTogglePlaces: () => void;
   onToggleActivities: () => void;
   onTogglePresence: () => void;
+  onToggleFavorites: () => void;
   onTheme: (t: ThemeChoice) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -174,6 +178,7 @@ export function LayersMenu({
           <p className="mb-1 font-display text-lg font-bold">Camadas</p>
           <Switch on={showPlaces} onClick={onTogglePlaces} label="Lugares" />
           <Switch on={showActivities} onClick={onToggleActivities} label="Atividades" />
+          <Switch on={showFavorites} onClick={onToggleFavorites} label="Meus favoritos" />
           <Switch on={showPresence} onClick={onTogglePresence} label="Quem está aqui" />
           <p className="text-xs text-muted">Nômades por bairro, só onde há 3 ou mais. Nunca a posição de alguém.</p>
           <p className="mt-3 mb-2 text-xs font-semibold text-muted">Aparência</p>

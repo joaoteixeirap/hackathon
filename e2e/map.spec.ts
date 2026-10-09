@@ -87,7 +87,7 @@ test.describe("map lifecycle", () => {
     for (const name of isMobile ? ["Perfil", "Criar atividade"] : ["Perfil", "Criar roda"]) {
       await page.getByRole("link", { name, exact: true }).first().click();
       await expect(page).not.toHaveURL(/\/mapa\//);
-      await page.getByRole("link", { name: "Mapa", exact: true }).click();
+      await page.getByRole("link", { name: "Mapa", exact: true }).first().click();
       await expect(page.locator("[data-map-ready=true]")).toBeVisible({ timeout: 30_000 });
     }
 

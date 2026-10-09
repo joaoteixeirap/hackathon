@@ -311,3 +311,18 @@ body {
   box-shadow: var(--shadow-md);
   cursor: pointer;
 }
+
+/* "Meus favoritos": a star above the pin (no `position`: maplibre owns it). */
+.fav-star {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 9999px;
+  background: var(--surface);
+  color: var(--accent);
+  font-size: 15px;
+  line-height: 1;
+  box-shadow: var(--shadow-sm);
+  pointer-events: none;
+}

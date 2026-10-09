@@ -19,6 +19,8 @@ import { loadActivity } from "@/lib/mapData";
 import { costSplit, isParticipant } from "@/lib/membership";
 import { ACTIVITY_LABELS, stripDemo } from "@/lib/places";
 import { directionsUrl } from "@/lib/share";
+import { PostSessionBanner } from "@/components/stay/PostSessionBanner";
+import { getPostSessionPrompts } from "@/lib/stayData";
 import { ShareActions } from "./ShareActions";
 import { TrustedContact } from "./TrustedContact";
 
@@ -47,6 +49,8 @@ export default async function ActivityPage({ params, searchParams }: Props) {
   if (!a) notFound();
 
   const viewer = await loadActivityViewer(a.id, a.creator_id);
+  // J4: within 24 h after a session at a place, invite the participants to register it.
+  const postSession = viewer.userId && isParticipant(viewer.role) ? (await getPostSessionPrompts(viewer.userId)).find((p) => p.activity_id === a.id) : undefined;
   const title = stripDemo(a.title);
   const when = whenText(a.starts_at, a.ends_at);
   const spots = Math.max(0, a.capacity - 1 - a.approved);
@@ -150,6 +154,12 @@ export default async function ActivityPage({ params, searchParams }: Props) {
           </h2>
           <JoinQueue activityId={a.id} requests={requests} spots={spots} verificationRequired={viewer.verificationRequired} />
         </section>
+      )}
+
+      {postSession && (
+        <div className="mt-6">
+          <PostSessionBanner prompt={postSession} />
+        </div>
       )}
 
       {participant && viewer.userId && (

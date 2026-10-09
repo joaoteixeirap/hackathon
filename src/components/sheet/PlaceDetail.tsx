@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { voteFact } from "@/app/lugar/[id]/actions";
 import { ReportButton } from "@/components/activity/ReportButton";
 import { CheckinSheet } from "@/components/checkin/CheckinSheet";
+import { FavoriteStar } from "@/components/stay/FavoriteStar";
 import { PlaceOffers } from "@/components/offers/PlaceOffers";
 import { RouteButton, type RouteToggle } from "@/components/route/RouteButton";
 import { FactRow } from "@/components/trust/FactRow";
@@ -180,6 +181,7 @@ export function PlaceDetail({
         <button type="button" onClick={share} className={`${buttonSecondary} min-h-11 gap-2 px-5`}>
           <Share2 size={16} strokeWidth={2} aria-hidden /> Compartilhar
         </button>
+        <FavoriteStar placeId={place.id} compact />
         <span role="status" className="text-sm font-semibold text-success">
           {shareMsg}
         </span>

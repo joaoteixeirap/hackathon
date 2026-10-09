@@ -19,7 +19,7 @@ export function PageShell({ title, children }: { title: string; children: React.
           </Link>
         </div>
       </header>
-      <main className="mx-auto max-w-xl px-4 pb-16">
+      <main className="mx-auto max-w-xl px-4 pb-28 lg:pb-16">
         <h1 className="mt-6 mb-6 font-display text-[32px] leading-[1.1] font-bold tracking-[-0.02em] text-balance">{title}</h1>
         {children}
       </main>

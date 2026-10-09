@@ -9,34 +9,18 @@ const form = (fields: Record<string, string>) => {
 
 describe("parseProfileForm", () => {
   it("normalizes valid input", () => {
-    const res = parseProfileForm(
-      form({ display_name: "  Ana ", home_country: "pt", languages: "PT, en en", bio: "" }),
-    );
-    expect(res).toEqual({
-      ok: true,
-      data: expect.objectContaining({
-        display_name: "Ana",
-        home_country: "PT",
-        languages: ["pt", "en"],
-        bio: null,
-        share_presence: false,
-      }),
-    });
+    const res = parseProfileForm(form({ display_name: " Ana ", bio: "", home_country: "pt", languages: "PT, en en" }));
+    expect(res).toEqual({ ok: true, data: { display_name: "Ana", bio: null, home_country: "PT", languages: ["pt", "en"] } });
   });
 
-  it("rejects empty names and reversed stay dates", () => {
-    const res = parseProfileForm(
-      form({ display_name: "", stay_from: "2026-10-10", stay_to: "2026-10-01" }),
-    );
+  it("rejects empty names, bad countries and bad languages", () => {
+    const res = parseProfileForm(form({ display_name: "", home_country: "Brasil", languages: "portuguese" }));
     expect(res.ok).toBe(false);
-    if (!res.ok) {
-      expect(res.errors.display_name).toBeDefined();
-      expect(res.errors.stay_to).toBeDefined();
-    }
+    if (!res.ok) expect(Object.keys(res.errors).sort()).toEqual(["display_name", "home_country", "languages"]);
   });
 
-  it("requires city and neighborhood to share presence", () => {
-    const res = parseProfileForm(form({ display_name: "Ana", share_presence: "on" }));
-    expect(res.ok).toBe(false);
+  it("ignores stay and presence fields (they live in the stay and routine forms)", () => {
+    const res = parseProfileForm(form({ display_name: "Ana", share_presence: "on", neighborhood: "Gonzaga" }));
+    expect(res.ok && Object.keys(res.data).sort()).toEqual(["bio", "display_name", "home_country", "languages"]);
   });
 });

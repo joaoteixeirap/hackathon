@@ -40,6 +40,7 @@ import {
   type ToggleKey,
 } from "./MapChrome";
 import { MapView, type MapViewHandle, type MapViewState } from "./MapView";
+import type { FavoriteSpot } from "./favoriteMarker";
 import type { PresenceSpot } from "./presenceMarker";
 
 const LIST_LIMIT = 60;
@@ -130,6 +131,30 @@ function usePresence(cityId: string | null, enabled: boolean): PresenceSpot[] {
   return spots;
 }
 
+/** "Meus favoritos" (SPEC_V2 E3): the user's own saved places, fetched when the layer is on. */
+function useFavorites(enabled: boolean): FavoriteSpot[] {
+  const [spots, setSpots] = useState<FavoriteSpot[]>([]);
+  useEffect(() => {
+    if (!enabled || !isSupabaseConfigured()) {
+      setSpots([]);
+      return;
+    }
+    let alive = true;
+    createClient()
+      .from("place_favorites")
+      .select("place_id, places(name, lat, lng)")
+      .then(({ data }) => {
+        if (!alive) return;
+        type Row = { place_id: string; places: { name: string; lat: number; lng: number } | null };
+        setSpots(((data ?? []) as unknown as Row[]).filter((r) => r.places).map((r) => ({ id: r.place_id, ...r.places! })));
+      });
+    return () => {
+      alive = false;
+    };
+  }, [enabled]);
+  return spots;
+}
+
 /** New/changed activities from other users appear without reloading (F3: < 5 s). */
 function useLiveActivities(cityId: string | null, initial: ActivitySummary[]): ActivitySummary[] {
   const [list, setList] = useState(initial);
@@ -183,18 +208,20 @@ export function MapExperience({
   places,
   activities: initialActivities,
   initialSelection = null,
+  initialChip = null,
 }: {
   city: City;
   places: PlaceSummary[];
   activities: ActivitySummary[];
   initialSelection?: Selection;
+  initialChip?: ChipKey | null;
 }) {
   const activities = useLiveActivities(city.id, initialActivities);
   const mapRef = useRef<MapViewHandle>(null);
   const isDesktop = useMedia("(min-width: 1024px)");
   const [themeChoice, setThemeChoice, theme] = useThemeChoice();
 
-  const [chip, setChip] = useState<ChipKey | null>(null);
+  const [chip, setChip] = useState<ChipKey | null>(initialChip);
   const [filters, setFilters] = useState<PlaceFilters>(EMPTY_FILTERS);
   const [query, setQuery] = useState("");
   const [selection, setSelection] = useState<Selection>(initialSelection);
@@ -205,6 +232,8 @@ export function MapExperience({
   const [showActivities, setShowActivities] = useState(true);
   const [showPresence, setShowPresence] = useState(false);
   const presence = usePresence(city.id, showPresence);
+  const [showFavorites, setShowFavorites] = useState(false);
+  const favorites = useFavorites(showFavorites);
   const dayRoute = useDayRoute(city.slug);
   const [mapReady, setMapReady] = useState(false);
   const [isOpen, setIsOpen] = useState<((p: PlaceSummary) => boolean | null) | undefined>(undefined);
@@ -365,6 +394,7 @@ export function MapExperience({
         onReady={() => setMapReady(true)}
         route={dayRoute.stops}
         presence={presence}
+        favorites={favorites}
       />
       {!mapReady && <MapLoading cityName={city.name} />}
 
@@ -436,10 +466,12 @@ export function MapExperience({
           showPlaces={showPlaces}
           showActivities={showActivities}
           showPresence={showPresence}
+          showFavorites={showFavorites}
           theme={themeChoice}
           onTogglePlaces={() => setShowPlaces((v) => !v)}
           onToggleActivities={() => setShowActivities((v) => !v)}
           onTogglePresence={() => setShowPresence((v) => !v)}
+          onToggleFavorites={() => setShowFavorites((v) => !v)}
           onTheme={setThemeChoice}
         />
         <RecenterButton onClick={() => mapRef.current?.recenter()} />

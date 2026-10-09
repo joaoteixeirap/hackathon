@@ -18,12 +18,12 @@ test.describe("guest session", () => {
     await expect(page).toHaveURL(/\/perfil$/);
     await expect(page.getByRole("heading", { name: "Meu perfil" })).toBeVisible();
     await expect(page.getByText(/como visitante/)).toBeVisible();
-    await expect(page.getByLabel("Nome")).toHaveValue(/^Viajante [0-9A-F]{4}$/);
+    await expect(page.getByLabel("Nome", { exact: true })).toHaveValue(/^Viajante [0-9A-F]{4}$/);
 
-    await page.getByLabel("Nome").fill("Nômade E2E");
+    await page.getByLabel("Nome", { exact: true }).fill("Nômade E2E");
     await page.getByRole("button", { name: "Salvar perfil" }).click();
     await expect(page.getByText("Perfil salvo.")).toBeVisible();
     await page.reload();
-    await expect(page.getByLabel("Nome")).toHaveValue("Nômade E2E");
+    await expect(page.getByLabel("Nome", { exact: true })).toHaveValue("Nômade E2E");
   });
 });

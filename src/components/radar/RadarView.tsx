@@ -9,6 +9,7 @@ import { loadOpeningHours, makeIsOpen } from "@/lib/openingHours";
 import type { RadarPlace } from "@/lib/radarData";
 import { passesRadarFilters, RADAR_FILTER_LABEL, radarInput, type RadarFilter } from "@/lib/radarFilters";
 import { radarScore, rankForRadar } from "@/lib/radarScore";
+import { createClient } from "@/lib/supabase/client";
 import { track } from "@/lib/track";
 import { RadarCard } from "./RadarCard";
 import { RadarMap } from "./RadarMap";
@@ -29,6 +30,19 @@ export function RadarView({ city, places: initial }: { city: City; places: Radar
   const [checkin, setCheckin] = useState<RadarPlace | null>(null);
 
   useEffect(() => track("view_radar", { city: city.slug }), [city.slug]);
+
+  // The user's own favorites, read once for all cards (RLS returns only theirs).
+  const [favorites, setFavorites] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    let alive = true;
+    createClient()
+      .from("place_favorites")
+      .select("place_id")
+      .then(({ data }) => alive && setFavorites(new Set((data ?? []).map((r) => r.place_id as string))));
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (filters.includes("now") && !isOpen) {
@@ -143,7 +157,7 @@ export function RadarView({ city, places: initial }: { city: City; places: Radar
         <ol className="space-y-3">
           {ranked.map((p, i) => (
             <li key={p.id}>
-              <RadarCard place={p} rank={i + 1} score={p.score} onCheckin={() => setCheckin(p)} />
+              <RadarCard place={p} rank={i + 1} score={p.score} onCheckin={() => setCheckin(p)} favorite={favorites.has(p.id)} />
             </li>
           ))}
         </ol>
