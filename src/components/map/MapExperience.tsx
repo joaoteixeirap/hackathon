@@ -570,7 +570,8 @@ export function MapExperience({
         </>
       )}
 
-      <div className={`absolute right-4 z-20 flex flex-col gap-2.5 ${isDesktop ? "bottom-14" : "top-[140px]"}`}>
+      {/* Phones: the fully open sheet covers the map, so its floating controls would sit on top of the list. */}
+      <div className={`absolute right-4 z-20 flex flex-col gap-2.5 ${isDesktop ? "bottom-14" : "top-[140px]"} ${!isDesktop && snap === "full" ? "hidden" : ""}`}>
         <LayersMenu
           showPlaces={showPlaces}
           showActivities={showActivities}

@@ -7,7 +7,7 @@ import { track } from "@/lib/track";
 export function UseLocation({onLocated,compact=false}:{onLocated:(point:{lat:number;lng:number})=>void|Promise<void>;compact?:boolean}){
  const [status,setStatus]=useState(""),[pending,setPending]=useState(false);const alive=useRef(true);
  useEffect(()=>{alive.current=true;return()=>{alive.current=false;};},[]);
- return <div><button type="button" disabled={pending} className={`${buttonSecondary} ${compact?"min-h-11 px-3 text-xs":"w-full gap-2"}`} onClick={()=>{
+ return <div><button type="button" disabled={pending} className={compact?"inline-flex min-h-11 items-center gap-1.5 rounded-full text-sm font-semibold text-primary hover:underline disabled:opacity-60":`${buttonSecondary} w-full gap-2`} onClick={()=>{
   track("location_request");
   if(!navigator.geolocation){setStatus("Localização indisponível. Escolha uma cidade.");return;}
   setPending(true);setStatus("");
