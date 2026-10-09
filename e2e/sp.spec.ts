@@ -34,7 +34,7 @@ test("SP: plan a private flexible stay, join a city group, chat and explicitly a
   await page.getByRole("button",{name:"Entrar em 3 comunidades",exact:true}).click();await expect(page.getByText("Participação salva. Abra seus grupos para conversar.")).toBeVisible();
   const group=page.getByRole("link").filter({hasText:"Trabalho remoto e cafés"}).first();await group.click();await expect(page.getByRole("heading",{name:"Trabalho remoto e cafés em São Paulo"})).toBeVisible();
   const body=`Olá, teste temporário (Demo) ${u.id.slice(0,8)}`;await page.getByLabel("Mensagem para a comunidade").fill(body);await page.getByRole("button",{name:"Enviar mensagem",exact:true}).click();await expect(page.getByText(body,{exact:true})).toBeVisible();
-  await page.getByRole("button",{name:"Silenciar indicadores",exact:true}).click();await expect(page.getByRole("button",{name:"Mostrar mensagens novas",exact:true})).toBeVisible();
+  await page.getByRole("button",{name:"Silenciar notificações",exact:true}).click();await expect(page.getByRole("button",{name:"Mostrar mensagens novas",exact:true})).toBeVisible();
   await page.goto(`/estadias/${plans.data![0].id}`);await page.getByText("Já cheguei em São Paulo",{exact:true}).click();await page.getByLabel("Confirmo que já estou nesta cidade").check();await page.getByRole("button",{name:"Confirmar chegada e abrir minha rotina",exact:true}).click();await expect(page).toHaveURL(/\/estadia$/);
   await expect(page.getByRole("region",{name:"Progresso da estadia"})).toContainText("São Paulo");expect((await u.client.rpc("get_my_profile")).data).toMatchObject({share_presence:false,discoverable:false});
   await page.goto("/");await expect(page).toHaveURL(/\/mapa\/sp\?city=sao-paulo$/);
