@@ -178,6 +178,7 @@ export function MapExperience({
   const [view, setView] = useState<MapViewState | null>(null);
   const [showPlaces, setShowPlaces] = useState(true);
   const [showActivities, setShowActivities] = useState(true);
+  const [mapReady, setMapReady] = useState(false);
   const [isOpen, setIsOpen] = useState<((p: PlaceSummary) => boolean | null) | undefined>(undefined);
 
   useEffect(() => {
@@ -312,7 +313,9 @@ export function MapExperience({
         onSelectPlace={selectPlace}
         onSelectActivity={selectActivity}
         onViewChange={setView}
+        onReady={() => setMapReady(true)}
       />
+      {!mapReady && <MapLoading cityName={city.name} />}
 
       {isDesktop ? (
         <aside
@@ -390,5 +393,17 @@ export function MapExperience({
         <RecenterButton onClick={() => mapRef.current?.recenter()} />
       </div>
     </main>
+  );
+}
+
+/** Branded placeholder while the basemap and pins load (no blank screen). */
+function MapLoading({ cityName }: { cityName: string }) {
+  return (
+    <div className="pointer-events-none absolute inset-0 z-[1] grid place-items-center bg-canvas" role="status">
+      <div className="flex flex-col items-center gap-3">
+        <LogoMark size={56} className="motion-safe:animate-pulse" />
+        <p className="text-sm font-semibold text-muted">Carregando o mapa de {cityName}…</p>
+      </div>
+    </div>
   );
 }

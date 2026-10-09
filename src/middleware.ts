@@ -9,6 +9,10 @@ export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
   if (!isSupabaseConfigured()) return response;
 
+  // First-time visitors browsing the map have no session to refresh: skip the auth round trip.
+  const hasSession = request.cookies.getAll().some((c) => c.name.startsWith("sb-"));
+  if (!hasSession && !needsGuestSession(request.nextUrl.pathname)) return response;
+
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
       getAll() {

@@ -1,7 +1,12 @@
 import "server-only";
+import { unstable_cache } from "next/cache";
 import type { ActivitySummary, PlaceSummary } from "./places";
 import { isSupabaseConfigured } from "./supabase/env";
+import { createPublicClient } from "./supabase/public";
 import { createClient } from "./supabase/server";
+
+/** Cache tag for public map data; revalidated when activities change. */
+export const MAP_DATA_TAG = "map-data";
 
 const PLACE_COLUMNS =
   "id, name, category, subcategory, lat, lng, neighborhood, address, opening_hours, wifi_mbps, wifi_source, has_power_outlets, quiet_level, price_hint, accepts_without_plan, languages, wheelchair, nomad_seal, featured_until, is_demo";
@@ -21,13 +26,27 @@ export function toPlaceSummary(row: PlaceRow, offerCount: number, now = Date.now
   };
 }
 
-/** Everything the map needs for one city, loaded in one round of parallel queries. */
-export async function loadMapData(cityId: string | null): Promise<{
-  places: PlaceSummary[];
-  activities: ActivitySummary[];
-}> {
+type MapData = { places: PlaceSummary[]; activities: ActivitySummary[] };
+
+/**
+ * Everything the map needs for one city. Public data only, so it is cached on the server
+ * for 60 s (and invalidated by MAP_DATA_TAG when someone creates an activity); open maps
+ * receive new activities through Realtime anyway.
+ */
+export async function loadMapData(cityId: string | null): Promise<MapData> {
   if (!cityId || !isSupabaseConfigured()) return { places: [], activities: [] };
-  const supabase = await createClient();
+  try {
+    return await cachedMapData(cityId);
+  } catch {
+    // The map still opens (empty) if the database is unreachable.
+    return { places: [], activities: [] };
+  }
+}
+
+const cachedMapData = unstable_cache(fetchMapData, ["map-data-v1"], { revalidate: 60, tags: [MAP_DATA_TAG] });
+
+async function fetchMapData(cityId: string): Promise<MapData> {
+  const supabase = createPublicClient();
   const nowIso = new Date().toISOString();
 
   const [placesRes, offersRes, activitiesRes] = await Promise.all([
@@ -42,6 +61,9 @@ export async function loadMapData(cityId: string | null): Promise<{
       .order("starts_at")
       .limit(500),
   ]);
+
+  const failed = placesRes.error ?? offersRes.error ?? activitiesRes.error;
+  if (failed) throw failed;
 
   const offerCount = new Map<string, number>();
   for (const o of offersRes.data ?? []) offerCount.set(o.place_id, (offerCount.get(o.place_id) ?? 0) + 1);

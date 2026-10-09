@@ -1,9 +1,11 @@
 "use server";
 
+import { revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { ensureUser } from "@/lib/auth";
 import { parseActivityForm, type ActivityErrors } from "@/lib/activityForm";
 import { getCity } from "@/lib/cities";
+import { MAP_DATA_TAG } from "@/lib/mapData";
 import { createClient } from "@/lib/supabase/server";
 
 export type CreateActivityState = { status: "idle" | "error"; errors?: ActivityErrors; message?: string };
@@ -30,5 +32,6 @@ export async function createActivity(_prev: CreateActivityState, formData: FormD
   if (error || !data) {
     return { status: "error", message: "Não foi possível criar a atividade agora. Tente de novo." };
   }
+  revalidateTag(MAP_DATA_TAG);
   redirect(`/atividade/${data.id}?nova=1`);
 }

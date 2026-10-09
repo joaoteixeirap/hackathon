@@ -1,12 +1,11 @@
 "use client";
 
-import maplibregl, { type StyleSpecification } from "maplibre-gl";
+import maplibregl from "maplibre-gl";
 import { useEffect, useRef, useState } from "react";
 import type { BBox } from "@/lib/geo";
 import { applyTheme } from "./applyTheme";
+import { loadBaseStyle } from "./style";
 
-const STYLE_URL =
-  process.env.NEXT_PUBLIC_MAP_STYLE_URL || "https://tiles.openfreemap.org/styles/liberty";
 
 /**
  * Pan-to-pick: the meeting point is the map center, marked by a fixed crosshair pin.
@@ -36,9 +35,7 @@ export function LocationPicker({
     const forced = document.documentElement.getAttribute("data-theme");
     const theme = forced === "night" || (forced !== "day" && dark) ? "night" : "day";
 
-    fetch(STYLE_URL)
-      .then((r) => r.json() as Promise<StyleSpecification>)
-      .then((style) => {
+    loadBaseStyle().then((style) => {
         if (cancelled || !ref.current) return;
         map = new maplibregl.Map({
           container: ref.current,

@@ -16,7 +16,9 @@ export default defineConfig({
   webServer: process.env.E2E_BASE_URL
     ? undefined
     : {
+        // Separate dist dir so e2e builds never clobber a running `pnpm dev`.
         command: `pnpm build && pnpm start -p ${PORT}`,
+        env: { NEXT_DIST_DIR: ".next-e2e" },
         url: baseURL,
         timeout: 240_000,
         reuseExistingServer: !process.env.CI,

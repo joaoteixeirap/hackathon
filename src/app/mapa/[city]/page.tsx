@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { preconnect, preload } from "react-dom";
 import { MapExperience, type Selection } from "@/components/map/MapExperience";
+import { STYLE_URL } from "@/components/map/style";
 import { getCity } from "@/lib/cities";
 import { loadMapData } from "@/lib/mapData";
 
@@ -20,6 +22,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function MapPage({ params, searchParams }: Props) {
+  // Start the basemap downloads with the HTML instead of after the JS bundle runs.
+  preconnect(new URL(STYLE_URL).origin, { crossOrigin: "anonymous" });
+  preload(STYLE_URL, { as: "fetch", crossOrigin: "anonymous" });
   const [{ city: slug }, { lugar, atividade }] = await Promise.all([params, searchParams]);
   const city = await getCity(slug);
   if (!city) notFound();

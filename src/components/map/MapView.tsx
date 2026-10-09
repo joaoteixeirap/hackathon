@@ -13,9 +13,8 @@ import type { ActivitySummary, PlaceCategory, PlaceSummary } from "@/lib/places"
 import { createActivityMarker } from "./activityMarker";
 import { applyTheme, type MapTheme } from "./applyTheme";
 import { addPinImages, CATEGORY_HEX, pinIconKey } from "./pins";
+import { loadBaseStyle } from "./style";
 
-const STYLE_URL =
-  process.env.NEXT_PUBLIC_MAP_STYLE_URL || "https://tiles.openfreemap.org/styles/liberty";
 
 const CATS: PlaceCategory[] = ["work", "eat", "health", "stay", "tour", "service"];
 
@@ -42,6 +41,7 @@ type Props = {
   onSelectPlace: (id: string | null) => void;
   onSelectActivity: (id: string) => void;
   onViewChange: (view: MapViewState) => void;
+  onReady?: () => void;
 };
 
 function toGeoJSON(places: PlaceSummary[]): FeatureCollection<Point> {
@@ -179,7 +179,7 @@ async function installLayers(map: maplibregl.Map, theme: MapTheme, data: Feature
 }
 
 export const MapView = forwardRef<MapViewHandle, Props>(function MapView(
-  { city, theme, places, activities, selectedPlaceId, sheetFraction, leftInset, onSelectPlace, onSelectActivity, onViewChange },
+  { city, theme, places, activities, selectedPlaceId, sheetFraction, leftInset, onSelectPlace, onSelectActivity, onViewChange, onReady },
   ref,
 ) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -190,8 +190,8 @@ export const MapView = forwardRef<MapViewHandle, Props>(function MapView(
   const [error, setError] = useState(false);
 
   // Latest values for map callbacks registered once.
-  const latest = useRef({ theme, places, selectedPlaceId, sheetFraction, leftInset, onSelectPlace, onSelectActivity, onViewChange });
-  latest.current = { theme, places, selectedPlaceId, sheetFraction, leftInset, onSelectPlace, onSelectActivity, onViewChange };
+  const latest = useRef({ theme, places, selectedPlaceId, sheetFraction, leftInset, onSelectPlace, onSelectActivity, onViewChange, onReady });
+  latest.current = { theme, places, selectedPlaceId, sheetFraction, leftInset, onSelectPlace, onSelectActivity, onViewChange, onReady };
 
   useImperativeHandle(ref, () => ({
     recenter() {
@@ -223,11 +223,7 @@ export const MapView = forwardRef<MapViewHandle, Props>(function MapView(
       });
     };
 
-    fetch(STYLE_URL)
-      .then((r) => {
-        if (!r.ok) throw new Error(`style ${r.status}`);
-        return r.json() as Promise<StyleSpecification>;
-      })
+    loadBaseStyle()
       .then((style) => {
         if (cancelled || !containerRef.current) return;
         baseStyleRef.current = style;
@@ -259,6 +255,7 @@ export const MapView = forwardRef<MapViewHandle, Props>(function MapView(
             map.setFilter("place-selected", ["==", ["get", "id"], latest.current.selectedPlaceId ?? ""]);
             setReady(true);
             containerRef.current?.setAttribute("data-map-ready", "true");
+            latest.current.onReady?.();
           });
         });
 
