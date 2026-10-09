@@ -1,6 +1,6 @@
 // DOM markers for activities ("rodas", DESIGN.md §5): a small pin inside a pulsing sol ring.
 import { createElement, Landmark, Laptop, Mountain, Ship, Users, Utensils, type IconNode } from "lucide";
-import type { ActivityCategory, ActivitySummary } from "@/lib/places";
+import { stripDemo, type ActivityCategory, type ActivitySummary } from "@/lib/places";
 
 const ACTIVITY_ICONS: Record<ActivityCategory, IconNode> = {
   meetup: Users,
@@ -60,7 +60,7 @@ export function createActivityMarker(a: ActivitySummary, onSelect: (id: string) 
   time.textContent = `${formatDayShort(a.starts_at)} ${formatHour(a.starts_at)}`;
   const title = document.createElement("span");
   title.className = "roda__title";
-  title.textContent = a.title.replace(/\s*\(Demo\)\s*$/, "");
+  title.textContent = stripDemo(a.title);
   label.append(time, title);
 
   root.append(ring, core, label);

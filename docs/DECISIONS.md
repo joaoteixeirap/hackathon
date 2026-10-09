@@ -30,3 +30,8 @@ Uma linha por decisão: data, decisão, motivo.
 - 2026-10-08 — Rótulos das rodas só a partir do zoom 14,5, para não poluir a visão da cidade.
 - 2026-10-08 — Bottom sheet: lista rola só quando cheia (DESIGN); ficha rola já na meia altura para alcançar os botões.
 - 2026-10-08 — Horas das atividades demo ancoradas no fuso America/Sao_Paulo (amanhã 09:00 etc.), não em `now()` UTC.
+- 2026-10-08 — Ponto de encontro escolhido arrastando o mapa até uma mira fixa (centro do mapa), mais fácil com um polegar que tocar num ponto exato. Qualquer atividade (não só `outdoor`) precisa ficar dentro do bbox da cidade.
+- 2026-10-08 — Horários do formulário interpretados em -03:00 (todas as cidades-piloto em horário de Brasília); início mínimo 15 min à frente, máximo 90 dias.
+- 2026-10-08 — Novas atividades chegam ao mapa por Supabase Realtime (`postgres_changes` em `activities`, filtrado pela cidade).
+- 2026-10-08 — "R$ X por pessoa": antes de alguém ser aprovado, mostra a divisão "se lotar"; depois, com o grupo atual (aprovados + criador), arredondando para cima.
+- 2026-10-08 — Compartilhar atividade: botão "Enviar no WhatsApp" (`wa.me/?text=`) além do compartilhamento nativo; prévia via Open Graph (título · cidade, data e ponto).

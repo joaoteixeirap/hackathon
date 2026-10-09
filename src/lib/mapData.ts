@@ -80,3 +80,47 @@ export async function loadPlace(id: string): Promise<{ place: PlaceSummary; wifi
     citySlug: cities?.slug ?? "",
   };
 }
+
+export type ActivityPageData = Omit<ActivitySummary, "status"> & {
+  description: string | null;
+  cost_total_cents: number | null;
+  split_cost: boolean;
+  status: "open" | "full" | "cancelled" | "done";
+  creator_id: string;
+  approved: number;
+  place: { id: string; name: string } | null;
+  city: { slug: string; name: string };
+};
+
+export async function loadActivity(id: string): Promise<ActivityPageData | null> {
+  if (!isSupabaseConfigured() || !/^[0-9a-f-]{36}$/i.test(id)) return null;
+  const supabase = await createClient();
+  const [actRes, countRes] = await Promise.all([
+    supabase
+      .from("activities")
+      .select(
+        "id, title, description, category, starts_at, ends_at, meeting_lat, meeting_lng, meeting_label, capacity, cost_total_cents, split_cost, status, is_demo, creator_id, places(id, name), cities(slug, name)",
+      )
+      .eq("id", id)
+      .maybeSingle(),
+    supabase.rpc("approved_count", { p_activity_id: id }),
+  ]);
+  const a = actRes.data as unknown as
+    | (Omit<ActivityPageData, "lat" | "lng" | "approved" | "place" | "city"> & {
+        meeting_lat: number;
+        meeting_lng: number;
+        places: { id: string; name: string } | null;
+        cities: { slug: string; name: string };
+      })
+    | null;
+  if (!a) return null;
+  const { meeting_lat, meeting_lng, places, cities, ...rest } = a;
+  return {
+    ...rest,
+    lat: meeting_lat,
+    lng: meeting_lng,
+    approved: typeof countRes.data === "number" ? countRes.data : 0,
+    place: places,
+    city: cities,
+  };
+}

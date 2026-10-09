@@ -7,10 +7,8 @@ import { formatDayShort, formatHour, ringState } from "@/components/map/activity
 import { ActivityIcon } from "@/components/ui/CategoryIcon";
 import { DemoTag } from "@/components/ui/DemoTag";
 import { buttonPrimary, buttonSecondary } from "@/components/ui/styles";
-import { ACTIVITY_LABELS, type ActivitySummary } from "@/lib/places";
+import { ACTIVITY_LABELS, stripDemo, type ActivitySummary } from "@/lib/places";
 import { sharePage } from "@/lib/share";
-
-export const stripDemo = (title: string) => title.replace(/\s*\(Demo\)\s*$/, "");
 
 export function ActivityDetail({ activity, onClose }: { activity: ActivitySummary; onClose?: () => void }) {
   const [shareMsg, setShareMsg] = useState<string | null>(null);
@@ -73,7 +71,7 @@ export function ActivityDetail({ activity, onClose }: { activity: ActivitySummar
 
       <div className="flex flex-wrap items-center gap-2">
         <Link href={`/atividade/${activity.id}`} className={buttonPrimary}>
-          Ver e pedir para entrar
+          Ver roda
         </Link>
         <button type="button" onClick={share} className={`${buttonSecondary} gap-2`}>
           <Share2 size={16} strokeWidth={1.75} aria-hidden /> Compartilhar

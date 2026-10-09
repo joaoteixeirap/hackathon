@@ -149,3 +149,6 @@ export function filterActivities(activities: ActivitySummary[], query: string): 
 export function activeFilterCount(f: PlaceFilters): number {
   return [f.wifiStrong, f.openNow, f.hasOffer, f.seal].filter(Boolean).length;
 }
+
+/** Demo titles end in "(Demo)"; the UI shows a DemoTag instead. */
+export const stripDemo = (title: string) => title.replace(/\s*\(Demo\)\s*$/, "");

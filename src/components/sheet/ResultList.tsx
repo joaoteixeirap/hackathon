@@ -5,8 +5,7 @@ import { formatDayShort, formatHour } from "@/components/map/activityMarker";
 import { ActivityIcon, CATEGORY_BG, CategoryIcon } from "@/components/ui/CategoryIcon";
 import { DemoTag } from "@/components/ui/DemoTag";
 import { haversine } from "@/lib/geo";
-import { subcategoryLabel, type ActivitySummary, type PlaceSummary } from "@/lib/places";
-import { stripDemo } from "./ActivityDetail";
+import { stripDemo, subcategoryLabel, type ActivitySummary, type PlaceSummary } from "@/lib/places";
 
 function formatDistance(m: number): string {
   return m < 1000 ? `${Math.round(m / 10) * 10} m` : `${(m / 1000).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} km`;

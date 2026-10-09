@@ -168,6 +168,12 @@ export function PlaceDetail({
         <button type="button" onClick={share} className={`${buttonSecondary} gap-2`}>
           <Share2 size={16} strokeWidth={1.75} aria-hidden /> Compartilhar
         </button>
+        <Link
+          href={`/atividade/nova?lugar=${place.id}`}
+          className="inline-flex min-h-11 items-center gap-1 rounded-full border-[1.5px] border-tinta bg-sol px-4 text-sm font-bold text-[#1f2a30]"
+        >
+          Criar roda aqui
+        </Link>
         {!standalone && (
           <Link href={`/lugar/${place.id}`} className="min-h-11 px-2 py-3 text-sm font-bold text-mare underline-offset-4 hover:underline">
             Abrir ficha

@@ -11,6 +11,8 @@ import { Logo, LogoMark } from "@/components/ui/Logo";
 import type { City } from "@/lib/cities";
 import { haversine } from "@/lib/geo";
 import { loadOpeningHours, makeIsOpen } from "@/lib/openingHours";
+import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { createClient } from "@/lib/supabase/client";
 import {
   EMPTY_FILTERS,
   filterActivities,
@@ -39,7 +41,7 @@ const LIST_LIMIT = 60;
 const DESKTOP_PANEL = 400;
 const THEME_KEY = "carta-theme";
 
-type Selection = { kind: "place" | "activity"; id: string } | null;
+export type Selection = { kind: "place" | "activity"; id: string } | null;
 
 function useMedia(query: string): boolean {
   const [matches, setMatches] = useState(false);
@@ -89,15 +91,81 @@ function inBounds(p: { lat: number; lng: number }, b: MapViewState["bounds"]) {
   return p.lng >= b[0] && p.lng <= b[2] && p.lat >= b[1] && p.lat <= b[3];
 }
 
+type ActivityRow = {
+  id: string;
+  title: string;
+  category: ActivitySummary["category"];
+  starts_at: string;
+  ends_at: string;
+  meeting_lat: number;
+  meeting_lng: number;
+  meeting_label: string | null;
+  capacity: number;
+  status: string;
+  is_demo: boolean;
+  city_id: string;
+};
+
+/** New/changed activities from other users appear without reloading (F3: < 5 s). */
+function useLiveActivities(cityId: string | null, initial: ActivitySummary[]): ActivitySummary[] {
+  const [list, setList] = useState(initial);
+  useEffect(() => setList(initial), [initial]);
+
+  useEffect(() => {
+    if (!cityId || !isSupabaseConfigured()) return;
+    const supabase = createClient();
+    const channel = supabase
+      .channel(`activities:${cityId}`)
+      .on<ActivityRow>(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "activities", filter: `city_id=eq.${cityId}` },
+        (payload) => {
+          const row = payload.new as ActivityRow;
+          setList((prev) => {
+            const rest = prev.filter((a) => a.id !== (row?.id ?? (payload.old as ActivityRow)?.id));
+            const visible =
+              row?.id &&
+              (row.status === "open" || row.status === "full") &&
+              new Date(row.ends_at).getTime() > Date.now();
+            if (!visible) return rest;
+            const next: ActivitySummary = {
+              id: row.id,
+              title: row.title,
+              category: row.category,
+              starts_at: row.starts_at,
+              ends_at: row.ends_at,
+              lat: row.meeting_lat,
+              lng: row.meeting_lng,
+              meeting_label: row.meeting_label,
+              capacity: row.capacity,
+              status: row.status as "open" | "full",
+              is_demo: row.is_demo,
+            };
+            return [...rest, next].sort((a, b) => a.starts_at.localeCompare(b.starts_at));
+          });
+        },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [cityId]);
+
+  return list;
+}
+
 export function MapExperience({
   city,
   places,
-  activities,
+  activities: initialActivities,
+  initialSelection = null,
 }: {
   city: City;
   places: PlaceSummary[];
   activities: ActivitySummary[];
+  initialSelection?: Selection;
 }) {
+  const activities = useLiveActivities(city.id, initialActivities);
   const mapRef = useRef<MapViewHandle>(null);
   const isDesktop = useMedia("(min-width: 1024px)");
   const [themeChoice, setThemeChoice, theme] = useThemeChoice();
@@ -105,8 +173,8 @@ export function MapExperience({
   const [chip, setChip] = useState<ChipKey | null>(null);
   const [filters, setFilters] = useState<PlaceFilters>(EMPTY_FILTERS);
   const [query, setQuery] = useState("");
-  const [selection, setSelection] = useState<Selection>(null);
-  const [snap, setSnap] = useState<Snap>("collapsed");
+  const [selection, setSelection] = useState<Selection>(initialSelection);
+  const [snap, setSnap] = useState<Snap>(initialSelection ? "half" : "collapsed");
   const [sheetPx, setSheetPx] = useState(92);
   const [view, setView] = useState<MapViewState | null>(null);
   const [showPlaces, setShowPlaces] = useState(true);
