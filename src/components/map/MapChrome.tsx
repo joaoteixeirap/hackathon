@@ -12,13 +12,11 @@ import { CATEGORIES, CHIP_ORDER, type ChipKey, type PlaceFilters } from "@/lib/p
 export function SearchPill({
   value,
   onChange,
-  cityName,
   onFocus,
   elevated = true,
 }: {
   value: string;
   onChange: (v: string) => void;
-  cityName: string;
   onFocus?: () => void;
   elevated?: boolean;
 }) {
@@ -35,7 +33,7 @@ export function SearchPill({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onFocus={onFocus}
-        placeholder={`Buscar em ${cityName}`}
+        placeholder="Buscar"
         className="min-w-0 flex-1 bg-transparent text-[15px] font-medium text-ink placeholder:font-normal placeholder:text-muted focus:outline-none [&::-webkit-search-cancel-button]:hidden"
       />
       {value && (

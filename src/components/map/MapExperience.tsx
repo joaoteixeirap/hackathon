@@ -421,7 +421,7 @@ export function MapExperience({
   const listHeader = (
     <div className="flex items-center justify-between gap-3 pt-1 pb-1">
       <div className="min-w-0">
-        <p className="font-display text-[17px] leading-tight font-bold">{selection ? "Detalhes" : statewide ? "Explorar São Paulo" : `Explorar ${city.name}`}</p>
+        <p className="font-display text-[17px] leading-tight font-bold">{selection ? "Detalhes" : "Explorar"}</p>
         <p className="truncate text-[13px] text-muted tabular-nums">{countLine}</p>
         {essential && <button type="button" className="min-h-11 text-sm font-semibold text-primary" onClick={() => setEssential(null)}>Limpar filtro de serviços essenciais</button>}
         <div className={`${!isDesktop && snap === "collapsed" ? "hidden" : "flex"} flex-wrap gap-x-4`} data-no-drag><Link href={`/estadia?aba=pessoas`} className="inline-flex min-h-11 items-center text-xs font-semibold text-primary">Pessoas compatíveis</Link><Link href="/explorar" className="inline-flex min-h-11 items-center text-xs font-semibold text-primary">Cidades e ferramentas ↗</Link>{!isDesktop&&<Link href="/estadias" className="inline-flex min-h-11 items-center text-xs font-semibold text-primary">Minhas estadias</Link>}{!statewide&&<Link href={`/mapa/sp?city=${city.slug}`} className="inline-flex min-h-11 items-center text-xs font-semibold text-primary">Explorar todo SP</Link>}</div>
@@ -481,7 +481,7 @@ export function MapExperience({
               <Logo />
             </Link>
             <div className="flex min-w-0 max-w-xl flex-1">
-              <SearchPill value={query} onChange={onQuery} cityName={city.name} elevated={false} />
+              <SearchPill value={query} onChange={onQuery} elevated={false} />
             </div>
             <nav aria-label="Navegação principal" className="ml-auto flex shrink-0 items-center gap-1">
               <Link href={`/radar/${citySlug}`} aria-label="Radar" className={desktopNavLink}>
@@ -543,7 +543,7 @@ export function MapExperience({
               <Link href="/" aria-label="SoloRota, início" className="shrink-0 rounded-[14px] shadow-soft-md">
                 <LogoMark size={48} />
               </Link>
-              <SearchPill value={query} onChange={onQuery} cityName={city.name} />
+              <SearchPill value={query} onChange={onQuery} />
             </div>
             <div className="pointer-events-auto">{chips}</div>
           </header>
