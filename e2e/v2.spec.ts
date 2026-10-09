@@ -42,6 +42,7 @@ test.describe("V2: Radar", () => {
     const countLine = page.getByText(/\d+ lugare?s? · \d+ rodas? nesta área/).first();
     const count = async () => Number((await countLine.textContent())!.match(/^([\d.]+)/)![1].replace(".", ""));
     const all = await count();
+    if (!isMobile) await page.getByRole("button", { name: "Filtros", exact: true }).click();
     await page.getByRole("button", { name: "Dados recentes" }).click();
     await expect.poll(count).toBeLessThan(all);
     const recent = await count();

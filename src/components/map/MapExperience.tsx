@@ -444,7 +444,7 @@ export function MapExperience({
   const controls=selection?null:stateControls;
   const desktopNavLink="inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 text-sm font-semibold text-ink transition hover:bg-surface-2";
   const chips = (
-    <CategoryChips active={chip} onToggle={toggleChip} filters={filters} onFilter={toggleFilter} />
+    <CategoryChips active={chip} onToggle={toggleChip} filters={filters} onFilter={toggleFilter} filtersMenu={isDesktop} />
   );
 
   return (
@@ -502,7 +502,7 @@ export function MapExperience({
             </nav>
           </header>
 
-          <div className="absolute top-24 right-4 z-10 [mask-image:linear-gradient(to_right,black_calc(100%-56px),transparent)]" style={{ left: DESKTOP_PANEL + 32 }}>
+          <div className="absolute top-24 right-4 z-20" style={{ left: DESKTOP_PANEL + 32 }}>
             {chips}
           </div>
 

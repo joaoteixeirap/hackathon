@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Layers, LocateFixed, Search, X } from "lucide-react";
+import { Check, Layers, LocateFixed, Search, SlidersHorizontal, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { CATEGORY_TEXT, CategoryIcon } from "@/components/ui/CategoryIcon";
@@ -65,36 +65,48 @@ export function CategoryChips({
   onToggle,
   filters,
   onFilter,
-  wrap = false,
+  filtersMenu = false,
 }: {
-  wrap?: boolean;
+  /** Desktop: categories in a draggable strip, the filter toggles behind a "Filtros" button. */
+  filtersMenu?: boolean;
   active: ChipKey | null;
   onToggle: (k: ChipKey) => void;
   filters: PlaceFilters;
-  onFilter: (key: (typeof TOGGLES)[number]["key"]) => void;
+  onFilter: (key: ToggleKey) => void;
 }) {
   const base =
     "flex h-11 shrink-0 items-center gap-1.5 rounded-full px-3.5 text-sm font-semibold transition active:scale-[0.97] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20";
-  const idle = wrap ? "border border-line bg-surface text-ink hover:bg-surface-2" : "bg-surface text-ink shadow-soft-sm hover:bg-surface-2";
+  const idle = "bg-surface text-ink shadow-soft-sm hover:bg-surface-2";
+  const drag = useDragScroll();
+  const categories = CHIP_ORDER.map((k) => {
+    const on = active === k;
+    const label = k === "activities" ? "Atividades" : CATEGORIES[k].label;
+    return (
+      <button key={k} type="button" aria-pressed={on} onClick={() => onToggle(k)} className={`${base} ${on ? "bg-primary text-on-fill shadow-soft-sm" : idle}`}>
+        <CategoryIcon category={k} size={16} className={on ? "" : CATEGORY_TEXT[k]} />
+        {label}
+      </button>
+    );
+  });
+
+  if (filtersMenu) {
+    return (
+      <div className="flex items-center gap-2" role="toolbar" aria-label="Categorias e filtros">
+        <div
+          {...drag}
+          className="no-scrollbar flex min-w-0 flex-1 cursor-grab gap-2 overflow-x-auto py-1 pr-10 select-none active:cursor-grabbing [mask-image:linear-gradient(to_right,black_calc(100%-40px),transparent)]"
+        >
+          {categories}
+        </div>
+        <FiltersMenu filters={filters} onFilter={onFilter} chipClass={base} />
+      </div>
+    );
+  }
+
   return (
-    <div
-      className={wrap ? "flex flex-wrap gap-2" : "no-scrollbar -mx-3 flex gap-2 overflow-x-auto px-3 pt-0.5 pb-2"}
-      role="toolbar"
-      aria-label="Categorias e filtros"
-      // Mouse wheels only scroll vertically; turn that into sideways scrolling for the single-row strip.
-      onWheel={wrap ? undefined : (e) => { if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) e.currentTarget.scrollLeft += e.deltaY; }}
-    >
-      {CHIP_ORDER.map((k) => {
-        const on = active === k;
-        const label = k === "activities" ? "Atividades" : CATEGORIES[k].label;
-        return (
-          <button key={k} type="button" aria-pressed={on} onClick={() => onToggle(k)} className={`${base} ${on ? "bg-primary text-on-fill shadow-soft-sm" : idle}`}>
-            <CategoryIcon category={k} size={16} className={on ? "" : CATEGORY_TEXT[k]} />
-            {label}
-          </button>
-        );
-      })}
-      <span className={wrap ? "basis-full" : "mx-0.5 w-px shrink-0 self-stretch bg-line"} aria-hidden />
+    <div className="no-scrollbar -mx-3 flex gap-2 overflow-x-auto px-3 pt-0.5 pb-2" role="toolbar" aria-label="Categorias e filtros">
+      {categories}
+      <span className="mx-0.5 w-px shrink-0 self-stretch bg-line" aria-hidden />
       {TOGGLES.map((t) => {
         const on = filters[t.key];
         return (
@@ -104,6 +116,110 @@ export function CategoryChips({
           </button>
         );
       })}
+    </div>
+  );
+}
+
+/** Mouse users can't swipe: let them drag the strip sideways and turn the vertical wheel into horizontal scroll. */
+function useDragScroll() {
+  const state = useRef<{ x: number; left: number; moved: boolean } | null>(null);
+  const moved = useRef(false);
+  return {
+    onWheel: (e: React.WheelEvent<HTMLDivElement>) => {
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) e.currentTarget.scrollLeft += e.deltaY;
+    },
+    onPointerDown: (e: React.PointerEvent<HTMLDivElement>) => {
+      if (e.pointerType !== "mouse" || e.button !== 0) return;
+      state.current = { x: e.clientX, left: e.currentTarget.scrollLeft, moved: false };
+      moved.current = false;
+    },
+    onPointerMove: (e: React.PointerEvent<HTMLDivElement>) => {
+      const s = state.current;
+      if (!s) return;
+      const dx = e.clientX - s.x;
+      if (!s.moved && Math.abs(dx) > 5) {
+        s.moved = moved.current = true;
+        e.currentTarget.setPointerCapture(e.pointerId);
+      }
+      if (s.moved) e.currentTarget.scrollLeft = s.left - dx;
+    },
+    onPointerUp: () => {
+      state.current = null;
+    },
+    onPointerCancel: () => {
+      state.current = null;
+    },
+    // A drag that ends over a chip must not toggle it.
+    onClickCapture: (e: React.MouseEvent) => {
+      if (moved.current) {
+        e.stopPropagation();
+        e.preventDefault();
+        moved.current = false;
+      }
+    },
+  };
+}
+
+function FiltersMenu({ filters, onFilter, chipClass }: { filters: PlaceFilters; onFilter: (key: ToggleKey) => void; chipClass: string }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const count = TOGGLES.filter((t) => filters[t.key]).length;
+
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: PointerEvent) => !ref.current?.contains(e.target as Node) && setOpen(false);
+    const esc = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    document.addEventListener("pointerdown", close);
+    document.addEventListener("keydown", esc);
+    return () => {
+      document.removeEventListener("pointerdown", close);
+      document.removeEventListener("keydown", esc);
+    };
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative shrink-0">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        aria-haspopup="true"
+        className={`${chipClass} ${count ? "bg-primary-soft text-primary ring-1 ring-primary/40" : "bg-surface text-ink shadow-soft-sm hover:bg-surface-2"}`}
+      >
+        <SlidersHorizontal size={16} aria-hidden />
+        Filtros
+        {count > 0 && <span className="grid size-5 place-items-center rounded-full bg-primary text-[11px] text-on-fill tabular-nums">{count}</span>}
+      </button>
+      {open && (
+        <div className="absolute top-full right-0 z-30 mt-2 w-72 rounded-3xl border border-line bg-surface p-4 shadow-soft-lg">
+          <div className="mb-2 flex items-center justify-between">
+            <p className="font-display text-lg font-bold">Filtros</p>
+            {count > 0 && (
+              <button type="button" onClick={() => TOGGLES.forEach((t) => filters[t.key] && onFilter(t.key))} className="min-h-9 text-sm font-semibold text-primary">
+                Limpar
+              </button>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {TOGGLES.map((t) => {
+              const on = filters[t.key];
+              return (
+                <button
+                  key={t.key}
+                  type="button"
+                  aria-pressed={on}
+                  onClick={() => onFilter(t.key)}
+                  className={`flex min-h-10 items-center gap-1.5 rounded-full px-3.5 text-sm font-semibold transition ${on ? "bg-primary-soft text-primary ring-1 ring-primary/40" : "border border-line bg-surface text-ink hover:bg-surface-2"}`}
+                >
+                  {on && <Check size={14} strokeWidth={2.5} aria-hidden />}
+                  {t.label}
+                </button>
+              );
+            })}
+          </div>
+          <p className="mt-3 text-xs text-muted">Valem para os lugares do mapa e da lista.</p>
+        </div>
+      )}
     </div>
   );
 }

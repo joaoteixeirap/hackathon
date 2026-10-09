@@ -33,6 +33,7 @@ test.describe("map (F1, F2)", () => {
     await expect.poll(() => count(page)).toBeLessThanOrEqual(3);
     await page.getByRole("button", { name: "Limpar busca" }).click();
 
+    if (!isMobile) await page.getByRole("button", { name: "Filtros", exact: true }).click();
     const seal = page.getByRole("button", { name: "Com Selo" });
     await seal.click();
     await expect(seal).toHaveAttribute("aria-pressed", "true");
@@ -41,6 +42,7 @@ test.describe("map (F1, F2)", () => {
 
   test("opening a place shows its card; closing returns to the list", async ({ page, isMobile }) => {
     await openMap(page, isMobile);
+    if (!isMobile) await page.getByRole("button", { name: "Filtros", exact: true }).click();
     await page.getByRole("button", { name: "Com Selo" }).click();
     await page.getByRole("button", { name: /^Cowork Demo Gonzaga/ }).click();
 
@@ -56,6 +58,7 @@ test.describe("map (F1, F2)", () => {
 
   test("place page is shareable with Open Graph tags", async ({ page, isMobile }) => {
     await openMap(page, isMobile);
+    if (!isMobile) await page.getByRole("button", { name: "Filtros", exact: true }).click();
     await page.getByRole("button", { name: "Com Selo" }).click();
     await page.getByRole("button", { name: /^Cowork Demo Gonzaga/ }).click();
     await page.getByRole("link", { name: "Ver página do lugar" }).click();
@@ -86,7 +89,8 @@ test.describe("map lifecycle", () => {
 
     for (const name of isMobile ? ["Perfil", "Criar atividade"] : ["Perfil", "Criar roda"]) {
       await page.getByRole("link", { name, exact: true }).first().click();
-      await expect(page).not.toHaveURL(/\/mapa\//);
+      // First visits compile on the dev server; give the navigation more than the default 5 s.
+      await expect(page).not.toHaveURL(/\/mapa\//, { timeout: 20_000 });
       await page.getByRole("link", { name: "Mapa", exact: true }).first().click();
       await expect(page.locator("[data-map-ready=true]")).toBeVisible({ timeout: 30_000 });
     }
