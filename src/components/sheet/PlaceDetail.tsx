@@ -3,6 +3,7 @@
 import { Accessibility, Clock, MapPin, Navigation, Plug, Plus, Share2, Ticket, Volume2, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { PlaceOffers } from "@/components/offers/PlaceOffers";
 import { CATEGORY_BG, CategoryIcon } from "@/components/ui/CategoryIcon";
 import { DemoTag } from "@/components/ui/DemoTag";
 import { NomadBadge } from "@/components/ui/NomadBadge";
@@ -145,12 +146,7 @@ export function PlaceDetail({
         )}
       </div>
 
-      {place.offers > 0 && (
-        <p className="flex items-center gap-2 rounded-2xl bg-accent-soft px-3.5 py-3 text-sm font-semibold text-accent-strong">
-          <Ticket size={16} aria-hidden />
-          {place.offers} {place.offers === 1 ? "oferta exclusiva" : "ofertas exclusivas"} para nômades
-        </p>
-      )}
+      <PlaceOffers placeId={place.id} count={place.offers} />
 
       {place.address && (
         <p className="flex items-start gap-2 text-sm text-muted">

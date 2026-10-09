@@ -51,3 +51,10 @@ Uma linha por decisão: data, decisão, motivo.
 - 2026-10-08 — E2E do M5 com dois "celulares" (contextos Pixel 7) só no projeto `mobile`, para não repetir o fluxo pesado no desktop.
 - 2026-10-08 — Canais Realtime chamam `syncRealtimeAuth` antes de assinar: a sessão de visitante pode nascer numa server action depois que a página abriu, e sem isso o socket fica com o token anônimo e a RLS esconde o chat.
 - 2026-10-08 — Limite de logins anônimos do Supabase subido para 1000/h (o padrão, 30/h por IP, travaria a demo com avaliadores no mesmo Wi-Fi).
+- 2026-10-09 — M6: código da oferta fora do `select` público (privilégio de coluna). Nômade só vê o código ao resgatar (`redeem_offer`); dono vê via `partner_offers`. Sem isso, qualquer um copiaria o código sem gerar resgate.
+- 2026-10-09 — Resgate só por RPC `redeem_offer` (removida a política de insert direto): valida verificação, validade, vagas (total de resgates ≤ `capacity`) e um por dia no fuso de Brasília. Chamar de novo nos 10 min devolve o mesmo código; depois disso, "já usou hoje".
+- 2026-10-09 — Modo hackathon para parceiros: `require_partner_approval() = false` aprova o cadastro na hora (trigger). `/admin/parceiros` aprova ou revoga; voltar a `true` reativa a fila sem mudar código.
+- 2026-10-09 — Um negócio por dono (índice único em `partners.owner_id`), para o painel ficar simples.
+- 2026-10-09 — Reivindicar lugar importado do OSM por RPC `claim_place` (só sem dono e não demo). No piloto não há prova de propriedade; a revogação do parceiro pelo admin é a defesa.
+- 2026-10-09 — Destaque: `feature_place` marca 30 dias e o plano `destaque`; preço de exemplo R$ 49/mês (hipótese) com aviso "cobrança simulada".
+- 2026-10-09 — QR gerado no navegador com `qrcode` (SVG local), sem serviço externo; ofertas da ficha carregadas sob demanda (o mapa só leva a contagem).

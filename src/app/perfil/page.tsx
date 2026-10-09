@@ -64,6 +64,14 @@ export default async function MyProfilePage() {
         <ProfileForm profile={profile} cities={cities ?? []} />
       </section>
 
+      <Link href="/parceiro" className={`${card} mt-6 flex min-h-16 items-center justify-between gap-3 p-5 hover:bg-surface-2`}>
+        <span>
+          <span className="block font-semibold">Tem um negócio na cidade?</span>
+          <span className="block text-sm text-muted">Coloque seu lugar e suas ofertas no mapa dos nômades.</span>
+        </span>
+        <span className="text-sm font-bold text-primary">Painel do parceiro</span>
+      </Link>
+
     </PageShell>
   );
 }
