@@ -2,7 +2,7 @@
 
 PWA mobile-first em forma de mapa para nômades digitais no Brasil: comunidade (atividades em grupo, chat), lugares para trabalhar, comer, saúde e moradia, e painel de parceiros locais. Cidade-piloto: Santos (SP).
 
-Especificação: [SPEC.md](SPEC.md) · Visual: [DESIGN.md](DESIGN.md) · Demanda: [EVIDENCE.md](EVIDENCE.md) · Decisões: [docs/DECISIONS.md](docs/DECISIONS.md)
+Roteiro do pitch: [docs/PITCH.md](docs/PITCH.md) · Especificação: [SPEC.md](SPEC.md) · Visual: [DESIGN.md](DESIGN.md) · Demanda: [EVIDENCE.md](EVIDENCE.md) · Decisões: [docs/DECISIONS.md](docs/DECISIONS.md)
 
 ## Rodar localmente
 
@@ -36,6 +36,7 @@ Sem chaves do Supabase o mapa abre mesmo assim (cidade padrão), sem dados.
 | `pnpm test:e2e` | smoke (Playwright; na 1ª vez: `pnpm exec playwright install chromium`) |
 | `pnpm db:reset` | aplica `supabase/migrations` e `supabase/seed.sql` no Supabase local |
 | `pnpm import:osm <cidade>` | importa lugares reais do OpenStreetMap (M2) |
+| `pnpm demo:refresh` | antes de uma demo: rodas demo voltam para amanhã, presença e ofertas demo renovadas (não apaga nada) |
 
 Lista de espera: `/espera?utm_source=instagram&utm_campaign=<campanha>&bloco=comunidade|trabalho|saude_moradia`. Resultados em `/admin/metricas` (admin).
 

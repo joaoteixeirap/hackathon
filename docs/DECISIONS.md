@@ -70,3 +70,6 @@ Uma linha por decisão: data, decisão, motivo.
 - 2026-10-09 — Contato de confiança: link do WhatsApp só com título, horário, ponto de encontro, mapa e URL pública da roda; nenhum nome do grupo.
 - 2026-10-09 — Fila de denúncias com o conteúdo resolvido por tipo e ações "Resolver", "Apagar mensagem" e "Cancelar roda"; denúncia de lugares adicionada.
 - 2026-10-09 — Corrigido bug do M3/M4: `.roda` sobrescrevia o `position: absolute` dos marcadores do MapLibre e cada roda saía 44 px × posição na lista abaixo do ponto real. Marcadores DOM não definem `position`; teste E2E de regressão.
+- 2026-10-09 — M8: `pnpm demo:refresh` move as rodas demo em dias inteiros para começarem amanhã (mesmas horas; cidades-piloto sem horário de verão), renova estadia dos perfis demo, ofertas e destaque demo. Sem reset: só linhas `is_demo` e os perfis demo fixos.
+- 2026-10-09 — `/sobre` com privacidade em linguagem simples, fontes (OSM/ODbL, OpenFreeMap) e hipóteses; contato LGPD via `NEXT_PUBLIC_CONTACT_EMAIL` opcional (não inventamos e-mail). Link no menu Camadas, no perfil e no `/espera`.
+- 2026-10-09 — `/admin` reúne os painéis da equipe com contadores; roteiro e checklist do pitch em `docs/PITCH.md` (Santos, substitui o roteiro de Florianópolis da SPEC §10).

@@ -10,7 +10,8 @@
     "test": "vitest run",
     "test:e2e": "playwright test",
     "db:reset": "node scripts/db-reset.mjs",
-    "import:osm": "tsx scripts/import-osm.ts"
+    "import:osm": "tsx scripts/import-osm.ts",
+    "demo:refresh": "tsx scripts/demo-refresh.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

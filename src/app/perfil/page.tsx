@@ -75,6 +75,12 @@ export default async function MyProfilePage() {
         <span className="text-sm font-bold text-primary">Painel do parceiro</span>
       </Link>
 
+      <p className="mt-6 text-center text-sm">
+        <Link href="/sobre" className="inline-flex min-h-11 items-center font-semibold text-primary underline-offset-4 hover:underline">
+          Sobre, privacidade e fontes dos dados
+        </Link>
+      </p>
+
     </PageShell>
   );
 }

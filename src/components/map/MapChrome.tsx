@@ -187,6 +187,9 @@ export function LayersMenu({
               </button>
             ))}
           </div>
+          <Link href="/sobre" className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-primary underline-offset-4 hover:underline">
+            Sobre, privacidade e fontes
+          </Link>
         </div>
       )}
     </div>

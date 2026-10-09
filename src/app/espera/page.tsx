@@ -49,7 +49,10 @@ export default async function WaitlistPage({ searchParams }: Props) {
         />
 
         <p className="mt-8 text-xs text-muted">
-          Contamos visitas com um identificador anônimo guardado só neste aparelho, sem cookies de terceiros. Dados do mapa © OpenStreetMap contributors.
+          Contamos visitas com um identificador anônimo guardado só neste aparelho, sem cookies de terceiros. Dados do mapa © OpenStreetMap contributors.{" "}
+          <Link href="/sobre" className="font-semibold underline underline-offset-4">
+            Privacidade e fontes
+          </Link>
         </p>
       </main>
     </div>
