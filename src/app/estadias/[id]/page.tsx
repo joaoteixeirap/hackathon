@@ -4,7 +4,7 @@ import { Baby,CalendarDays,CheckCircle2,Luggage,Map as MapIcon,PawPrint,Pencil,W
 import { PageShell } from "@/components/ui/PageShell";
 import { PlanActions } from "@/components/stay/PlanActions";
 import { CommunityPicker } from "@/components/stay/CommunityPicker";
-import { CityDecision } from "@/components/stay/CityDecision";
+import { CityDecision,CityDecisionIntro } from "@/components/stay/CityDecision";
 import { card,buttonPrimary,buttonSecondary } from "@/components/ui/styles";
 import { getMyProfile,getUser } from "@/lib/auth";
 import { UUID,planDates,PLAN_LABELS } from "@/lib/destinations";
@@ -24,8 +24,9 @@ export default async function PlanPage({params,searchParams}:{params:Promise<{id
  ].filter(Boolean) as {icon:typeof Wifi;text:string}[];
  const small="min-h-11 gap-2 px-5 text-sm";
  // Desktop: summary on top; city evidence on the left, communities and next steps in a right column.
- // Phones stack them in DOM order: summary, communities, evidence, next steps.
- return <PageShell title={`Minha estadia em ${p.city.name}`} wide><div className="space-y-5 lg:grid lg:grid-cols-[minmax(0,1fr)_380px] lg:grid-rows-[auto_auto_1fr] lg:gap-6 lg:space-y-0">
+ // The evidence heading has its own row so the sidebar's top lines up with the first evidence cards.
+ // Phones stack them in DOM order: summary, communities, evidence heading and cards, next steps.
+ return <PageShell title={`Minha estadia em ${p.city.name}`} wide><div className="space-y-5 lg:grid lg:grid-cols-[minmax(0,1fr)_380px] lg:grid-rows-[auto_auto_auto_1fr] lg:gap-6 lg:space-y-0">
  <section className={`${card} overflow-hidden lg:col-span-2`} aria-label="Resumo do plano">
   {saved&&<p role="status" className="flex items-center gap-2 border-b border-line bg-primary-soft px-5 py-3 text-sm font-semibold text-success sm:px-6"><CheckCircle2 size={18} className="shrink-0" aria-hidden/><span>Estadia salva. Você pode entrar nas comunidades agora ou decidir depois.</span></p>}
   <div className="flex flex-col gap-5 p-5 sm:p-6 lg:flex-row lg:items-center lg:justify-between">
@@ -45,8 +46,9 @@ export default async function PlanPage({params,searchParams}:{params:Promise<{id
    </div>
   </div>
  </section>
- <section className={`${card} p-5 sm:p-6 lg:col-start-2 lg:row-start-2 lg:self-start`}>{counts.unavailable?<p>Comunidades indisponíveis no momento. Seu plano está salvo.</p>:<CommunityPicker cityId={p.city_id} cityName={p.city.name} communities={counts.communities} joined={mine.groups.map(g=>g.id)} suggested={p.with_children?["remote_work","arrival","families"]:["remote_work","arrival"]} verified={Boolean(profile?.verified)}/>}</section>
- <div className="lg:col-start-1 lg:row-span-2 lg:row-start-2"><CityDecision inPlan slug={p.city.slug} name={p.city.name} places={evidence.places} incomplete={evidence.incomplete} preferences={p}/></div>
- <section className={`${card} space-y-3 p-5 sm:p-6 lg:col-start-2 lg:row-start-3 lg:self-start`} aria-labelledby="next-steps"><h2 id="next-steps" className="font-display text-lg font-bold">Próximos passos</h2><PlanActions plan={p}/></section>
+ <section className={`${card} p-5 sm:p-6 lg:col-start-2 lg:row-start-3 lg:self-start`}>{counts.unavailable?<p>Comunidades indisponíveis no momento. Seu plano está salvo.</p>:<CommunityPicker cityId={p.city_id} cityName={p.city.name} communities={counts.communities} joined={mine.groups.map(g=>g.id)} suggested={p.with_children?["remote_work","arrival","families"]:["remote_work","arrival"]} verified={Boolean(profile?.verified)}/>}</section>
+ <div className="lg:col-start-1 lg:row-start-2"><CityDecisionIntro name={p.city.name}/></div>
+ <div className="lg:col-start-1 lg:row-span-2 lg:row-start-3"><CityDecision inPlan slug={p.city.slug} name={p.city.name} places={evidence.places} incomplete={evidence.incomplete} preferences={p}/></div>
+ <section className={`${card} space-y-3 p-5 sm:p-6 lg:col-start-2 lg:row-start-4 lg:self-start`} aria-labelledby="next-steps"><h2 id="next-steps" className="font-display text-lg font-bold">Próximos passos</h2><PlanActions plan={p}/></section>
  </div></PageShell>;
 }
