@@ -20,3 +20,13 @@ Uma linha por decisão: data, decisão, motivo.
 - 2026-10-08 — Critérios do Selo e da presença em funções SQL (`nomad_seal_min_mbps`, `nomad_seal_min_tests`, `presence_min_people`) para ajuste num só lugar.
 - 2026-10-08 — Testes de RLS como testes de integração Vitest (`supabase/tests`), pulados sem chaves; criam usuários `@example.com` descartáveis.
 - 2026-10-08 — Bairro do perfil em texto livre no M1; padronizar com lista de bairros no M7 (presença).
+- 2026-10-08 — Cidade-piloto trocada para Santos (SP), pedido da equipe. Bbox só da área insular urbana `[-46.40, -24.00, -46.29, -23.91]`, zoom 13,2. Florianópolis segue cadastrada sem dados demo.
+- 2026-10-08 — Sem tela de login no hackathon: sessão anônima do Supabase criada no middleware em `/perfil`, `/atividade/nova`, `/parceiro` e nas server actions (`ensureUser`). RLS continua valendo por usuário. `/entrar` fica no código para depois. Requer "Allow anonymous sign-ins" ligado no projeto.
+- 2026-10-08 — Verificação manual desligada por `require_verification() = false` (migração 0002); voltar a `true` reativa F4/F7 sem mudar código.
+- 2026-10-08 — Importação OSM: além da SPEC, `tourism=hotel`, `tourism=museum` e serviços (`shop=laundry|dry_cleaning`, `amenity=bicycle_rental|post_office`). Bairro = `addr:suburb` ou o rótulo `place=suburb|neighbourhood` mais próximo (até 2,5 km). Nova coluna `places.wheelchair`.
+- 2026-10-08 — Lugares reivindicados por parceiro e Wi-Fi medido (`user_test`/`partner`) não são sobrescritos pela reimportação.
+- 2026-10-08 — Dados do mapa carregados no servidor numa ida (lugares compactos + contagem de ofertas + atividades futuras) e filtrados no cliente; ficha abre sem nova requisição.
+- 2026-10-08 — Pinos como imagens MapLibre geradas de SVG (ícones Lucide), clusters nativos com anel na cor da categoria dominante; atividades como marcadores DOM (poucas, animadas).
+- 2026-10-08 — Rótulos das rodas só a partir do zoom 14,5, para não poluir a visão da cidade.
+- 2026-10-08 — Bottom sheet: lista rola só quando cheia (DESIGN); ficha rola já na meia altura para alcançar os botões.
+- 2026-10-08 — Horas das atividades demo ancoradas no fuso America/Sao_Paulo (amanhã 09:00 etc.), não em `now()` UTC.

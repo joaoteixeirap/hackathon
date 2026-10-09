@@ -123,6 +123,19 @@ Modo noturno ("carta noturna"), ativado por `prefers-color-scheme: dark` e por b
 
 Tom acolhedor, direto, sem gíria forçada. Exemplos: "Quem está por aqui hoje?", "Criar um rolê em grupo", "Combine em local público", "Wi-Fi medido por 3 nômades", "Sem informação ainda. Ajude a mapear", "Cobrança simulada neste protótipo", "Demo" (etiqueta em dados de demonstração).
 
-## 11. Acessibilidade
+## 11. Elementos de carta náutica (adicionados em 08/10/2026)
+
+Para reforçar a autenticidade da "Carta Tropical" (cidade-piloto Santos, cidade portuária):
+
+- **Moldura graduada:** bordas da tela com blocos alternados `tinta`/`papel-claro` (escala de latitude e longitude da margem de uma carta), com filete interno fino. 6 px no celular, 9 px no desktop.
+- **Água gravada:** hachura horizontal fina sobre a água e contorno de costa em tinta, como gravura em metal.
+- **Rosa dos ventos** decorativa, translúcida, sobre o mar.
+- **Leitura de instrumento:** coordenadas do centro do mapa em graus, minutos e segundos (DM Mono) acima da régua de escala.
+- **Cartucho (desktop):** caixa de título com borda dupla, "Carta do nômade · Santos", coordenadas e "levantamento colaborativo".
+- **Logotipo:** estrela-bússola em anel tracejado; "Solo" reto e "Rota" em itálico coral.
+- **Etiquetas de filtro** (Wi-Fi forte, Aberto agora…) em DM Mono com contorno tracejado, distintas dos chips de categoria.
+- **Picote** pontilhado sob o cabeçalho da bottom sheet; vinheta suave de papel envelhecido nas bordas.
+
+## 12. Acessibilidade
 
 Contraste AA em texto e ícones; pins sempre com ícone (nunca só cor); alvos ≥ 44 px; rótulos ARIA nos controles do mapa; foco visível; lista de resultados na sheet como alternativa textual ao mapa; respeitar tamanho de fonte do sistema.

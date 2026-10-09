@@ -14,6 +14,9 @@ importers:
       '@supabase/supabase-js':
         specifier: ^2
         version: 2.117.3
+      lucide:
+        specifier: ^1.53.0
+        version: 1.53.0
       lucide-react:
         specifier: ^1.53.0
         version: 1.53.0(@types/react@19.3.0)(react@19.1.0)
@@ -23,6 +26,9 @@ importers:
       next:
         specifier: 15.5.27
         version: 15.5.27(@playwright/test@1.64.0)(@types/node@24.19.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      opening_hours:
+        specifier: ^3.15.0
+        version: 3.15.0(typescript@5.9.3)
       react:
         specifier: 19.1.0
         version: 19.1.0
@@ -42,6 +48,9 @@ importers:
       '@tailwindcss/postcss':
         specifier: ^4
         version: 4.3.3
+      '@types/geojson':
+        specifier: 7946.0.16
+        version: 7946.0.16
       '@types/node':
         specifier: ^24.19.1
         version: 24.19.1
@@ -1616,6 +1625,14 @@ packages:
     resolution: {integrity: sha512-T2UbfbBEF32wiepXIsMlTW9+dDYC6wMh/t/vYA4tuOMKqWz/n3vr1NFSxQiyP+zk2mXsoMA/i/7qV6LKut1t1A==}
     engines: {node: '>= 0.4'}
 
+  i18next@26.4.2:
+    resolution: {integrity: sha512-RX+R0VLg13IbvRuJSxnqykUFS9vQZTl8wYpWPCIUDWVrSGjsQywB5Y+pjzrkboxGAuYfJZVH1InFTdgBdxq6ug==}
+    peerDependencies:
+      typescript: ^5 || ^6 || ^7
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+
   iceberg-js@0.8.1:
     resolution: {integrity: sha512-1dhVQZXhcHje7798IVM+xoo/1ZdVfzOMIc8/rgVSijRK38EDqOJoGula9N/8ZI5RD8QTxNQtK/Gozpr+qUqRRA==}
     engines: {node: '>=20.0.0'}
@@ -1968,6 +1985,9 @@ packages:
       '@types/react':
         optional: true
 
+  lucide@1.53.0:
+    resolution: {integrity: sha512-5bBZofL4QmNhY6YIXe3sSJKvO2gMZ1fOMEcOyVsT5/7k6KR8IizWUhWVuQtVnrN/TRLKDKEr4Ln0a7CZ8dQMMA==}
+
   magic-string@0.30.21:
     resolution: {integrity: sha512-vd2F4YUyEXKGcLHoq+TEyCjxueSeHnFxyyjNp80yg0XV4vUhnDer/lvvlqM/arB5bXQN5K2/3oinyCRyx8T2CQ==}
 
@@ -2079,6 +2099,10 @@ packages:
   obug@2.2.1:
     resolution: {integrity: sha512-XrsrhT5sybtKI6wakr2SPOlGZWWYbUXZ7a0jT8/QOeAPau+1X/bSegNe5YR75oJmEZQbKningirmGOEJCIk61Q==}
     engines: {node: '>=12.20.0'}
+
+  opening_hours@3.15.0:
+    resolution: {integrity: sha512-gSPN1YSLCcS4H4YL3Pc/0QRgoafuIhasQ44bM0U+62TABoEyIEeP9AuAIGSGHd9AWycq1eBwxbNfgkiCpx8bCQ==}
+    engines: {node: '>=14'}
 
   optionator@0.9.4:
     resolution: {integrity: sha512-6IpQ7mKUxRcZNLIObR0hz7lxsapSSIYNZJwXPGeF0mTVqGKFIXj1DQcMoT22S3ROcLyY/rz0PWaWZ9ayWmad9g==}
@@ -2351,6 +2375,9 @@ packages:
         optional: true
       babel-plugin-macros:
         optional: true
+
+  suncalc@2.1.1:
+    resolution: {integrity: sha512-ufMOPzYRk5aomEs3g+qeJGdCPZWC3TL94E0HQagoSusFnNXCvfuewWBroY3lxRHqA7IA8UGvgg7dcrSSDJsuEg==}
 
   supabase@2.120.0:
     resolution: {integrity: sha512-NF8ueHsOZMbyiFJARKbiZy9AhNtj5E5R49P+cVqlv2u/T2JpMtsvp29YgPgrIWkVUjsfhJseTmKEdckatSeWZQ==}
@@ -4076,6 +4103,10 @@ snapshots:
     dependencies:
       function-bind: 1.1.2
 
+  i18next@26.4.2(typescript@5.9.3):
+    optionalDependencies:
+      typescript: 5.9.3
+
   iceberg-js@0.8.1: {}
 
   ignore@5.3.2: {}
@@ -4384,6 +4415,8 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.3.0
 
+  lucide@1.53.0: {}
+
   magic-string@0.30.21:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.6.0
@@ -4518,6 +4551,13 @@ snapshots:
       es-object-atoms: 1.1.2
 
   obug@2.2.1: {}
+
+  opening_hours@3.15.0(typescript@5.9.3):
+    dependencies:
+      i18next: 26.4.2(typescript@5.9.3)
+      suncalc: 2.1.1
+    transitivePeerDependencies:
+      - typescript
 
   optionator@0.9.4:
     dependencies:
@@ -4865,6 +4905,8 @@ snapshots:
     dependencies:
       client-only: 0.0.1
       react: 19.1.0
+
+  suncalc@2.1.1: {}
 
   supabase@2.120.0:
     dependencies:
