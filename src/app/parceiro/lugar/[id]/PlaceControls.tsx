@@ -2,10 +2,11 @@
 
 import { Sparkles } from "lucide-react";
 import { useActionState, useEffect, useRef, useState, useTransition } from "react";
-import { createOffer, featurePlace, setOfferActive, type FormState } from "@/app/parceiro/actions";
+import { createOffer, featurePlace, setOfferActive, setStayPolicy, type FormState } from "@/app/parceiro/actions";
 import { buttonAccent, buttonPrimary, field, label } from "@/components/ui/styles";
 import { formatBRL } from "@/lib/activityForm";
 import { FEATURE_PRICE_CENTS, OFFER_KINDS, OFFER_LABELS, type OfferErrors } from "@/lib/offers";
+import { STAY_LABEL, type StayPolicy } from "@/lib/placeTrust";
 
 /** "Destacar no mapa" with the example price and the simulated-charge notice (F10). */
 export function FeatureButton({ placeId, featuredUntil }: { placeId: string; featuredUntil: string | null }) {
@@ -125,6 +126,39 @@ export function OfferForm({ placeId }: { placeId: string }) {
       </button>
       <p role="status" className={`text-sm empty:hidden ${state.status === "saved" ? "text-success" : "text-danger"}`}>
         {state.status === "saved" ? "Oferta publicada. Ela já aparece na ficha do lugar e no filtro \"Tem oferta\"." : state.message}
+      </p>
+    </form>
+  );
+}
+
+/** R5: "Dá para ficar trabalhando?" as declared by the venue. */
+export function StayPolicyForm({ placeId, policy, note }: { placeId: string; policy: StayPolicy; note: string | null }) {
+  const [state, action, pending] = useActionState<FormState<never>, FormData>(setStayPolicy.bind(null, placeId), { status: "idle" });
+  return (
+    <form action={action} className="space-y-3">
+      <div className="space-y-1.5">
+        <label htmlFor="stay_policy" className={label}>
+          Política de permanência
+        </label>
+        <select id="stay_policy" name="stay_policy" defaultValue={policy} className={field}>
+          {(Object.keys(STAY_LABEL) as StayPolicy[]).map((k) => (
+            <option key={k} value={k}>
+              {k === "unknown" ? "Não declarar" : STAY_LABEL[k]}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="space-y-1.5">
+        <label htmlFor="stay_note" className={label}>
+          Observação (opcional)
+        </label>
+        <input id="stay_note" name="stay_note" maxLength={140} defaultValue={note ?? ""} placeholder="Ex.: consumo mínimo de R$ 15 a cada 2 h" className={field} />
+      </div>
+      <button type="submit" disabled={pending} className={`${buttonPrimary} w-full`}>
+        {pending ? "Salvando…" : "Salvar política"}
+      </button>
+      <p role="status" className={`text-sm empty:hidden ${state.status === "saved" ? "text-success" : "text-danger"}`}>
+        {state.status === "saved" ? "Salvo. A ficha mostra \"Declarado pelo local\"." : state.message}
       </p>
     </form>
   );

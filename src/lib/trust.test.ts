@@ -59,3 +59,13 @@ describe("factLine (T1)", () => {
     expect(factLine(undefined)).toBe("Sem verificação ainda");
   });
 });
+
+describe("factLineShort", () => {
+  it("is a compact line for the Radar", async () => {
+    const { factLineShort } = await import("./trust");
+    const NOW2 = Date.parse("2026-10-09T15:00:00Z");
+    expect(factLineShort({ source: "user", observed_at: new Date(NOW2 - 2 * 86_400_000).toISOString(), confirmations_90d: 2, outdated_30d: 0 }, NOW2)).toBe("nômades · há 2 dias · 2 pessoas");
+    expect(factLineShort({ source: "partner", observed_at: new Date(NOW2).toISOString(), confirmations_90d: 0, outdated_30d: 0 }, NOW2)).toBe("local · hoje");
+    expect(factLineShort(undefined)).toBe("sem verificação");
+  });
+});

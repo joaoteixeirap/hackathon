@@ -1,4 +1,5 @@
 // Shared place/activity types, category config and pure filtering (F1, F2).
+import { isCallMode, isRecent } from "./radarFilters";
 import { isSealActive, type FactMeta } from "./trust";
 
 export type PlaceCategory = "work" | "eat" | "health" | "stay" | "tour" | "service";
@@ -109,6 +110,9 @@ export type PlaceFilters = {
   openNow: boolean;
   hasOffer: boolean;
   seal: boolean;
+  /** SPEC_V2: "Modo chamada" and "Dados recentes" (same rules as the Radar). */
+  callMode: boolean;
+  recent: boolean;
 };
 
 export const EMPTY_FILTERS: PlaceFilters = {
@@ -118,6 +122,8 @@ export const EMPTY_FILTERS: PlaceFilters = {
   openNow: false,
   hasOffer: false,
   seal: false,
+  callMode: false,
+  recent: false,
 };
 
 /** Case- and accent-insensitive text normalization for client search. */
@@ -141,6 +147,8 @@ export function filterPlaces(
     if (f.wifiStrong && !(p.wifi_mbps != null && p.wifi_mbps >= WIFI_STRONG_MBPS)) return false;
     if (f.hasOffer && p.offers === 0) return false;
     if (f.seal && !isSealActive(p)) return false;
+    if (f.callMode && !isCallMode(p)) return false;
+    if (f.recent && !isRecent(p.wifi_fact)) return false;
     if (f.openNow && isOpen && isOpen(p) !== true) return false;
     return true;
   });
@@ -153,7 +161,7 @@ export function filterActivities(activities: ActivitySummary[], query: string): 
 }
 
 export function activeFilterCount(f: PlaceFilters): number {
-  return [f.wifiStrong, f.openNow, f.hasOffer, f.seal].filter(Boolean).length;
+  return [f.wifiStrong, f.openNow, f.hasOffer, f.seal, f.callMode, f.recent].filter(Boolean).length;
 }
 
 /** Demo titles end in "(Demo)"; the UI shows a DemoTag instead. */

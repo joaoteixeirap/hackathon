@@ -8,7 +8,7 @@ import { getUser } from "@/lib/auth";
 import { OFFER_LABELS } from "@/lib/offers";
 import { getMyPartner, getPartnerPlace } from "@/lib/partner";
 import { subcategoryLabel } from "@/lib/places";
-import { FeatureButton, OfferForm, OfferToggle } from "./PlaceControls";
+import { FeatureButton, OfferForm, OfferToggle, StayPolicyForm } from "./PlaceControls";
 
 export const metadata: Metadata = { title: "Meu lugar · SoloRota" };
 export const dynamic = "force-dynamic";
@@ -49,6 +49,14 @@ export default async function PartnerPlacePage({ params, searchParams }: Props) 
           Destaque
         </h2>
         <FeatureButton placeId={place.id} featuredUntil={place.featured_until} />
+      </section>
+
+      <section className={`${card} mt-6 p-5`} aria-labelledby="rules-title">
+        <h2 id="rules-title" className="mb-1 font-display text-xl font-bold">
+          Regras do local
+        </h2>
+        <p className="mb-3 text-sm text-muted">Aparece no Radar e na ficha como &quot;Declarado pelo local&quot;, e vale sobre o que os nômades relatam.</p>
+        <StayPolicyForm placeId={place.id} policy={place.stay_policy} note={place.stay_note} />
       </section>
 
       <section className={`${card} mt-6 p-5`} aria-labelledby="offers-title">

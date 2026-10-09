@@ -1,5 +1,6 @@
 import "server-only";
 import type { OfferKind } from "./offers";
+import type { StayPolicy } from "./placeTrust";
 import type { PlaceCategory } from "./places";
 import { createClient } from "./supabase/server";
 
@@ -13,6 +14,8 @@ export type PartnerPlace = {
   neighborhood: string | null;
   featured_until: string | null;
   city_id: string;
+  stay_policy: StayPolicy;
+  stay_note: string | null;
 };
 
 export type PartnerOffer = {
@@ -32,7 +35,7 @@ export type PartnerOffer = {
 
 export type PartnerRedemption = { offer_id: string; offer_title: string; first_name: string; redeemed_on: string; created_at: string };
 
-const PLACE_COLUMNS = "id, name, category, subcategory, neighborhood, featured_until, city_id";
+const PLACE_COLUMNS = "id, name, category, subcategory, neighborhood, featured_until, city_id, stay_policy, stay_note";
 
 export async function getMyPartner(userId: string): Promise<MyPartner | null> {
   const supabase = await createClient();

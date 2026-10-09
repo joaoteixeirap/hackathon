@@ -5,6 +5,7 @@ import { formatDayShort, formatHour } from "@/components/map/activityMarker";
 import { ActivityIcon, CATEGORY_BG, CategoryIcon } from "@/components/ui/CategoryIcon";
 import { DemoTag } from "@/components/ui/DemoTag";
 import { SealStatus } from "@/components/trust/TrustBadges";
+import { SponsoredTag } from "@/components/ui/SponsoredTag";
 import { haversine } from "@/lib/geo";
 import { stripDemo, subcategoryLabel, type ActivitySummary, type PlaceSummary } from "@/lib/places";
 import { isSealActive } from "@/lib/trust";
@@ -84,6 +85,7 @@ export function ResultList({
                     <span className="block truncate text-[15px] font-semibold">
                       {p.name}
                       {p.is_demo && <DemoTag />}
+                      {p.featured && <SponsoredTag />}
                     </span>
                     <span className="flex items-center gap-1.5 truncate text-[13px] text-muted">
                       {subcategoryLabel(p)}

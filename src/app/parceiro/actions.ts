@@ -102,3 +102,21 @@ export async function featurePlace(placeId: string): Promise<ActionResult> {
   revalidatePath("/parceiro");
   return { ok: true };
 }
+
+const STAY_POLICIES = ["free", "min_consumption", "time_limit", "pass_required", "unknown"];
+
+/** R5: the venue declares its stay policy (wins over check-in reports). */
+export async function setStayPolicy(placeId: string, _prev: FormState<never>, formData: FormData): Promise<FormState<never>> {
+  const policy = String(formData.get("stay_policy") ?? "");
+  const note = String(formData.get("stay_note") ?? "").trim();
+  if (!UUID_RE.test(placeId) || !STAY_POLICIES.includes(policy)) return { status: "error", message: "Escolha uma opção." };
+  if (note.length > 140) return { status: "error", message: "Observação de até 140 caracteres." };
+  if (!(await approvedPartner())) return { status: "error", message: SESSION_LOST };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("set_stay_policy", { p_place_id: placeId, p_policy: policy, p_note: note || null });
+  if (error) return { status: "error", message: "Não foi possível salvar a política." };
+  revalidateTag(MAP_DATA_TAG);
+  revalidatePath(`/parceiro/lugar/${placeId}`);
+  revalidatePath(`/lugar/${placeId}`);
+  return { status: "saved" };
+}

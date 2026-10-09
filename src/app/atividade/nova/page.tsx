@@ -4,6 +4,7 @@ import { PageShell } from "@/components/ui/PageShell";
 import { card } from "@/components/ui/styles";
 import { defaultCitySlug, getCity } from "@/lib/cities";
 import { loadPlace } from "@/lib/mapData";
+import type { PlaceTrust } from "@/lib/placeTrust";
 import { CreateActivityForm } from "./CreateActivityForm";
 
 export const metadata: Metadata = { title: "Criar roda · SoloRota" };
@@ -28,8 +29,15 @@ export default async function NewActivityPage({ searchParams }: Props) {
         Em {city.name}. A roda aparece no mapa para outros nômades na hora.
       </p>
       <div className={`${card} p-5`}>
-        <CreateActivityForm citySlug={city.slug} bbox={city.bbox} prefill={prefill} />
+        <CreateActivityForm citySlug={city.slug} bbox={city.bbox} prefill={prefill} stayNotice={stayNotice(placeData?.trust)} />
       </div>
     </PageShell>
   );
+}
+
+/** R5: warn when the venue asks for something to stay (consumption, time limit, pass). */
+function stayNotice(trust: PlaceTrust | null | undefined): string | null {
+  if (!trust || trust.stay_policy === "unknown" || trust.stay_policy === "free") return null;
+  const rule = { min_consumption: "consumo mínimo", time_limit: "limite de tempo", pass_required: "passe ou diária" }[trust.stay_policy];
+  return `Este local pede ${rule}${trust.stay_note ? ` (${trust.stay_note})` : ""}. Avise o grupo na descrição.`;
 }

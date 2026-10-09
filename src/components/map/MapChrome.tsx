@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Layers, LocateFixed, Map as MapIcon, Plus, Search, User, Users, X } from "lucide-react";
+import { Check, Layers, LocateFixed, Search, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { CATEGORY_TEXT, CategoryIcon } from "@/components/ui/CategoryIcon";
@@ -49,11 +49,15 @@ export function SearchPill({
 
 /* ------------------------------------------------------------------------- */
 
-const TOGGLES: { key: keyof Pick<PlaceFilters, "wifiStrong" | "openNow" | "hasOffer" | "seal">; label: string }[] = [
+export type ToggleKey = keyof Pick<PlaceFilters, "wifiStrong" | "openNow" | "hasOffer" | "seal" | "callMode" | "recent">;
+
+const TOGGLES: { key: ToggleKey; label: string }[] = [
   { key: "wifiStrong", label: "Wi-Fi forte" },
   { key: "openNow", label: "Aberto agora" },
   { key: "hasOffer", label: "Tem oferta" },
   { key: "seal", label: "Com Selo" },
+  { key: "callMode", label: "Modo chamada" },
+  { key: "recent", label: "Dados recentes" },
 ];
 
 export function CategoryChips({
@@ -193,44 +197,5 @@ export function LayersMenu({
         </div>
       )}
     </div>
-  );
-}
-
-/* ------------------------------------------------------------------------- */
-
-export const NAV_HEIGHT = 68;
-
-export function BottomNav({ onMap, onGroups, groupsActive }: { onMap: () => void; onGroups: () => void; groupsActive: boolean }) {
-  const item = "flex min-h-11 flex-1 flex-col items-center justify-center gap-1 text-[11px] font-semibold transition-colors";
-  const on = "text-primary";
-  const off = "text-muted";
-  return (
-    <nav
-      aria-label="Navegação principal"
-      className="fixed inset-x-0 bottom-0 z-30 flex items-stretch border-t border-line bg-surface/95 px-2 backdrop-blur-md"
-      style={{ height: `calc(${NAV_HEIGHT}px + env(safe-area-inset-bottom, 0px))`, paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
-    >
-      <button type="button" onClick={onMap} className={`${item} ${groupsActive ? off : on}`} aria-current={groupsActive ? undefined : "page"}>
-        <MapIcon size={22} strokeWidth={groupsActive ? 1.75 : 2.25} aria-hidden />
-        Explorar
-      </button>
-      <button type="button" onClick={onGroups} className={`${item} ${groupsActive ? on : off}`}>
-        <Users size={22} strokeWidth={groupsActive ? 2.25 : 1.75} aria-hidden />
-        Grupos
-      </button>
-      <div className="flex flex-1 items-center justify-center">
-        <Link
-          href="/atividade/nova"
-          aria-label="Criar atividade"
-          className="grid size-12 place-items-center rounded-2xl bg-accent text-white shadow-[0_6px_16px_rgb(255_91_58/0.4)] transition active:scale-95"
-        >
-          <Plus size={24} strokeWidth={2.5} aria-hidden />
-        </Link>
-      </div>
-      <Link href="/perfil" className={`${item} ${off}`}>
-        <User size={22} strokeWidth={1.75} aria-hidden />
-        Perfil
-      </Link>
-    </nav>
   );
 }

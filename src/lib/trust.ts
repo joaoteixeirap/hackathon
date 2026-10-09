@@ -105,3 +105,13 @@ export function factLine(meta: FactMeta | undefined, opts: { measured?: boolean;
   const who = n > 0 ? ` por ${n} ${n === 1 ? "pessoa" : "pessoas"}` : "";
   return `${src}${when}${who}`;
 }
+
+/** Compact version for dense lists (Radar): "nômades · há 2 dias · 2 pessoas". */
+export function factLineShort(meta: FactMeta | undefined, now = Date.now()): string {
+  if (!meta) return "sem verificação";
+  if (meta.source === "osm") return meta.observed_at ? `OpenStreetMap · importado ${shortDate(meta.observed_at)}` : "OpenStreetMap";
+  const who = meta.source === "partner" ? "local" : meta.source === "admin" ? "equipe" : "nômades";
+  const days = daysSince(meta.observed_at, now);
+  const n = meta.confirmations_90d;
+  return [who, days == null ? null : ago(days), n > 0 ? `${n} ${n === 1 ? "pessoa" : "pessoas"}` : null].filter(Boolean).join(" · ");
+}

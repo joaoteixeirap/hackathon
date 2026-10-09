@@ -295,3 +295,19 @@ body {
   font-weight: 600;
   box-shadow: var(--shadow-sm);
 }
+
+/* Radar map pins: numbered by position in the Radar list (SPEC_V2 R4). No `position`: maplibre owns it. */
+.radar-pin {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 9999px;
+  border: 2.5px solid var(--surface);
+  background: var(--primary);
+  color: var(--on-fill);
+  font-weight: 700;
+  font-size: 13px;
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Plus, User } from "lucide-react";
+import { ArrowLeft, Gauge, Plus, User } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { RouteTray } from "@/components/route/RouteTray";
@@ -9,6 +9,7 @@ import { ActivityDetail } from "@/components/sheet/ActivityDetail";
 import { BottomSheet, type Snap } from "@/components/sheet/BottomSheet";
 import { PlaceDetail } from "@/components/sheet/PlaceDetail";
 import { ResultList } from "@/components/sheet/ResultList";
+import { AppNav, NAV_HEIGHT } from "@/components/ui/AppNav";
 import { Logo, LogoMark } from "@/components/ui/Logo";
 import { buttonAccent } from "@/components/ui/styles";
 import type { City } from "@/lib/cities";
@@ -20,6 +21,7 @@ import { track } from "@/lib/track";
 import {
   EMPTY_FILTERS,
   filterActivities,
+  activeFilterCount,
   filterPlaces,
   type ActivitySummary,
   type ChipKey,
@@ -30,13 +32,12 @@ import {
 } from "@/lib/places";
 import type { MapTheme } from "./applyTheme";
 import {
-  BottomNav,
   CategoryChips,
   LayersMenu,
-  NAV_HEIGHT,
   RecenterButton,
   SearchPill,
   type ThemeChoice,
+  type ToggleKey,
 } from "./MapChrome";
 import { MapView, type MapViewHandle, type MapViewState } from "./MapView";
 import type { PresenceSpot } from "./presenceMarker";
@@ -272,7 +273,7 @@ export function MapExperience({
     setChip((c) => (c === k ? null : k));
     setSelection(null);
   };
-  const toggleFilter = (key: "wifiStrong" | "openNow" | "hasOffer" | "seal") =>
+  const toggleFilter = (key: ToggleKey) =>
     setFilters((f) => ({ ...f, [key]: !f[key] }));
 
   const onQuery = (q: string) => {
@@ -283,7 +284,7 @@ export function MapExperience({
 
   const countLine = `${visible.places.length.toLocaleString("pt-BR")} ${visible.places.length === 1 ? "lugar" : "lugares"} · ${visible.activities.length} ${visible.activities.length === 1 ? "roda" : "rodas"} nesta área`;
   const emptyText =
-    query || chip || filters.wifiStrong || filters.openNow || filters.hasOffer || filters.seal
+    query || chip || activeFilterCount(filters) > 0
       ? "Nada com esses filtros neste trecho. Afaste o mapa ou limpe os filtros."
       : "Nada mapeado neste trecho ainda. Ajude a mapear.";
 
@@ -382,6 +383,9 @@ export function MapExperience({
                 <Link href="/perfil" aria-label="Perfil" className="grid size-11 place-items-center rounded-full text-ink hover:bg-surface-2">
                   <User size={20} strokeWidth={2} />
                 </Link>
+                <Link href={`/radar/${city.slug}`} className="inline-flex min-h-10 items-center gap-1.5 rounded-full px-3 text-sm font-semibold hover:bg-surface-2">
+                  <Gauge size={16} aria-hidden /> Radar
+                </Link>
                 <Link href="/atividade/nova" className={`${buttonAccent} min-h-10 gap-1.5 px-4 text-sm`}>
                   <Plus size={16} strokeWidth={2.5} aria-hidden /> Criar roda
                 </Link>
@@ -415,17 +419,13 @@ export function MapExperience({
           >
             {body}
           </BottomSheet>
-          <BottomNav
-            groupsActive={chip === "activities"}
-            onMap={() => {
+          <AppNav
+            active="map"
+            citySlug={city.slug}
+            onMapClick={() => {
               setChip(null);
               setSelection(null);
               setSnap("collapsed");
-            }}
-            onGroups={() => {
-              setChip("activities");
-              setSelection(null);
-              setSnap("half");
             }}
           />
         </>

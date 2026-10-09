@@ -225,6 +225,23 @@ async function installLayers(map: maplibregl.Map, theme: MapTheme, data: Feature
       "symbol-sort-key": ["case", ["==", ["get", "featured"], true], 1, 0],
     },
   });
+  // I3: a paid highlight is always labeled on the map.
+  map.addLayer({
+    id: "place-sponsored-label",
+    type: "symbol",
+    source: "places",
+    minzoom: 13,
+    filter: ["all", ["!", ["has", "point_count"]], ["==", ["get", "featured"], true]],
+    layout: {
+      "text-field": "Patrocinado",
+      "text-font": ["Noto Sans Bold"],
+      "text-size": 10,
+      "text-anchor": "top",
+      "text-offset": [0, 0.3],
+      "text-allow-overlap": true,
+    },
+    paint: { "text-color": ink, "text-halo-color": surface, "text-halo-width": 1.5 },
+  });
   map.addLayer({
     id: "place-selected",
     type: "symbol",

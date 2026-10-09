@@ -12,6 +12,7 @@ import { FactRow } from "@/components/trust/FactRow";
 import { CallReadyBadge, SealStatus, VerifiedStamp } from "@/components/trust/TrustBadges";
 import { CATEGORY_BG, CategoryIcon } from "@/components/ui/CategoryIcon";
 import { DemoTag } from "@/components/ui/DemoTag";
+import { SponsoredTag } from "@/components/ui/SponsoredTag";
 import { WifiMeter } from "@/components/ui/WifiMeter";
 import { buttonPrimary, buttonSecondary } from "@/components/ui/styles";
 import { DECLARED_DIVERGENCE_PCT } from "@/config/nomad";
@@ -152,6 +153,7 @@ export function PlaceDetail({
           <h2 id={`place-${place.id}`} className="font-display text-[22px] leading-tight font-bold tracking-[-0.01em] text-balance">
             {place.name}
             {place.is_demo && <DemoTag />}
+            {place.featured && <SponsoredTag />}
           </h2>
           <p className="mt-0.5 text-sm text-muted">
             {subcategoryLabel(place)}

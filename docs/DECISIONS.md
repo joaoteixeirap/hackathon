@@ -121,3 +121,10 @@ Uma linha por decisão: data, decisão, motivo.
 - 2026-10-09 — "Você ajudou N pessoas" = eventos `open_place` daquela ficha em 30 dias (`place_open_count`), omitido quando zero.
 - 2026-10-09 — `pnpm demo:refresh` recria check-ins demo: Gonzaga (2 e 25 dias, Selo + chamadas), Ponta da Praia (70 dias, selo vencido), Centro (120 dias, desatualizado). O `seed.sql` tem as mesmas linhas.
 - 2026-10-09 — Corrigido: a janela de check-in cancelava a medição a cada re-render da ficha (efeito dependia de `onClose`).
+- 2026-10-09 — V2 Radar: mesma tabela de pontos do SPEC em `radarScore` (só download **medido** pontua; declarado pelo parceiro não). Desempate: verificação mais recente, depois nome. Teste de I3: duas fichas iguais, uma patrocinada, mesma nota e mesma ordem; o Radar nem recebe `featured_until`.
+- 2026-10-09 — Radar carrega até 300 cafés (`subcategory = cafe`) e lugares `work`, os verificados primeiro (para o corte nunca tirar dado medido); filtros no cliente. "Perto de mim" = até 2 km (hipótese) com a posição só em memória; sem permissão, seletor de bairro.
+- 2026-10-09 — "Modo chamada" e "Dados recentes" usam as mesmas funções no Radar e nos chips do mapa (`radarFilters.ts`).
+- 2026-10-09 — I3 no mapa: destaque pago com rótulo "Patrocinado" no pino (zoom ≥ 13), na lista e na ficha; no Radar o destaque não aparece.
+- 2026-10-09 — Navegação inferior nova (`AppNav`): Mapa · Radar · ＋ · Estadia · Perfil; "Grupos" virou o chip "Atividades" do mapa. `/estadia` é provisória até o V3. Botão ＋ com ícone escuro sobre coral (branco não atinge 3:1).
+- 2026-10-09 — R5: parceiro declara a permanência por RPC `set_stay_policy` (campos protegidos); "Não declarar" devolve a decisão aos relatos. Aviso no formulário de roda quando o lugar pede consumo, limite de tempo ou passe.
+- 2026-10-09 — Radar em leitura rápida: linha curta por critério ("nômades · há 2 dias · 2 pessoas") com selo de frescor; a ficha completa mantém a frase longa.

@@ -25,7 +25,7 @@ function Err({ id, msg }: { id: string; msg?: string }) {
   ) : null;
 }
 
-export function CreateActivityForm({ citySlug, bbox, prefill }: { citySlug: string; bbox: BBox; prefill: Prefill }) {
+export function CreateActivityForm({ citySlug, bbox, prefill, stayNotice }: { citySlug: string; bbox: BBox; prefill: Prefill; stayNotice?: string | null }) {
   const [state, action, pending] = useActionState<CreateActivityState, FormData>(createActivity, { status: "idle" });
   const e = state.errors ?? {};
   const [point, setPoint] = useState({ lat: prefill.lat, lng: prefill.lng });
@@ -131,6 +131,11 @@ export function CreateActivityForm({ citySlug, bbox, prefill }: { citySlug: stri
           <ShieldCheck size={18} strokeWidth={1.75} className="shrink-0 text-success" aria-hidden />
           Combine em local público.
         </p>
+        {stayNotice && (
+          <p className="rounded-2xl bg-accent-soft px-3.5 py-2.5 text-sm" role="note">
+            {stayNotice}
+          </p>
+        )}
       </div>
 
       <div className="grid grid-cols-2 gap-3">
