@@ -58,3 +58,25 @@ async function fetchCity(slug: string): Promise<City | null> {
 }
 
 export const defaultCitySlug = process.env.NEXT_PUBLIC_DEFAULT_CITY || "santos";
+
+/** All cities (name order) for pickers such as /espera. */
+export async function listCities(): Promise<Pick<City, "slug" | "name">[]> {
+  if (isSupabaseConfigured()) {
+    try {
+      return await cachedCityList();
+    } catch {
+      // fall through to bootstrap values
+    }
+  }
+  return BOOTSTRAP_CITIES.map(({ slug, name }) => ({ slug, name }));
+}
+
+const cachedCityList = unstable_cache(
+  async () => {
+    const { data, error } = await createPublicClient().from("cities").select("slug, name").order("name");
+    if (error) throw error;
+    return data ?? [];
+  },
+  ["city-list-v1"],
+  { revalidate: 3600, tags: ["cities"] },
+);

@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { ensureUser } from "@/lib/auth";
 import { parseActivityForm, type ActivityErrors } from "@/lib/activityForm";
 import { getCity } from "@/lib/cities";
+import { logEvent } from "@/lib/events";
 import { MAP_DATA_TAG } from "@/lib/mapData";
 import { createClient } from "@/lib/supabase/server";
 
@@ -33,5 +34,6 @@ export async function createActivity(_prev: CreateActivityState, formData: FormD
     return { status: "error", message: "Não foi possível criar a atividade agora. Tente de novo." };
   }
   revalidateTag(MAP_DATA_TAG);
+  await logEvent("create_activity", { activity_id: data.id, city: city.slug });
   redirect(`/atividade/${data.id}?nova=1`);
 }

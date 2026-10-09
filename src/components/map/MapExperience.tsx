@@ -14,6 +14,7 @@ import { haversine } from "@/lib/geo";
 import { loadOpeningHours, makeIsOpen } from "@/lib/openingHours";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/client";
+import { track } from "@/lib/track";
 import {
   EMPTY_FILTERS,
   filterActivities,
@@ -181,6 +182,8 @@ export function MapExperience({
   const [mapReady, setMapReady] = useState(false);
   const [isOpen, setIsOpen] = useState<((p: PlaceSummary) => boolean | null) | undefined>(undefined);
 
+  useEffect(() => track("view_map", { city: city.slug }), [city.slug]);
+
   useEffect(() => {
     if (filters.openNow && !isOpen) {
       loadOpeningHours().then((Ctor) => setIsOpen(() => makeIsOpen(Ctor)));
@@ -222,6 +225,7 @@ export function MapExperience({
       }
       setSelection({ kind: "place", id });
       setSnap("half");
+      track("open_place", { place_id: id });
       const p = places.find((x) => x.id === id);
       if (p) mapRef.current?.flyTo(p.lat, p.lng);
     },

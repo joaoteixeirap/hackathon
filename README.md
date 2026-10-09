@@ -37,6 +37,8 @@ Sem chaves do Supabase o mapa abre mesmo assim (cidade padrão), sem dados.
 | `pnpm db:reset` | aplica `supabase/migrations` e `supabase/seed.sql` no Supabase local |
 | `pnpm import:osm <cidade>` | importa lugares reais do OpenStreetMap (M2) |
 
+Lista de espera: `/espera?utm_source=instagram&utm_campaign=<campanha>&bloco=comunidade|trabalho|saude_moradia`. Resultados em `/admin/metricas` (admin).
+
 ## Deploy
 
 Vercel: importe o repositório, defina as variáveis de `.env.example` e publique. `SUPABASE_SERVICE_ROLE_KEY` só no servidor.

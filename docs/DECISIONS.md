@@ -58,3 +58,9 @@ Uma linha por decisão: data, decisão, motivo.
 - 2026-10-09 — Reivindicar lugar importado do OSM por RPC `claim_place` (só sem dono e não demo). No piloto não há prova de propriedade; a revogação do parceiro pelo admin é a defesa.
 - 2026-10-09 — Destaque: `feature_place` marca 30 dias e o plano `destaque`; preço de exemplo R$ 49/mês (hipótese) com aviso "cobrança simulada".
 - 2026-10-09 — QR gerado no navegador com `qrcode` (SVG local), sem serviço externo; ofertas da ficha carregadas sob demanda (o mapa só leva a contagem).
+- 2026-10-09 — `/espera` antes do M7 (pedido da equipe) com F13 completo: 3 blocos de porta falsa ("Quero isso" marca `origin_block`), `?bloco=` pré-seleciona para anúncios por bloco, `utm_source`/`utm_campaign` gravados no cadastro e nos eventos.
+- 2026-10-09 — Visitante contado por id aleatório no `localStorage` (`sr_sid`), sem cookie; eventos chegam por `sendBeacon` em `/api/eventos`, que só aceita nomes conhecidos e props curtas (`sanitizeEvent`). `create_activity` e `request_join` são registrados no servidor.
+- 2026-10-09 — Conversão por bloco = cadastros do bloco ÷ visitantes únicos de `/espera` (meta de 10% do EVIDENCE.md); também ÷ quem clicou no bloco. Funil calculado em TS puro (`funnel`, testado); eventos lidos em páginas de 1000 (limite do PostgREST), contagens do app com `count`.
+- 2026-10-09 — Cadastro repetido de e-mail responde "Você já estava na lista" sem erro; cadastro anônimo pelo cliente público (sem criar sessão de visitante).
+- 2026-10-09 — Botões sobre o painel escuro do `/espera` em `surface`/`ink` e bloco escolhido em `primary`: branco sobre coral não passa AA.
+- 2026-10-09 — E2E do painel admin loga um admin descartável escrevendo o cookie do `@supabase/ssr` (`e2e/admin.ts`), já que não há login por senha na interface.

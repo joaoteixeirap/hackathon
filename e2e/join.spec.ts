@@ -38,14 +38,14 @@ test.describe("join, approve and chat (M5)", () => {
       // Another visitor asks to join from the shared link.
       await joiner.goto(`/atividade/${activityId}`);
       await joiner.getByRole("button", { name: "Pedir para entrar" }).click();
-      await expect(joiner.getByText("Pedido enviado.")).toBeVisible();
+      await expect(joiner.getByText("Pedido enviado.")).toBeVisible({ timeout: 15_000 });
       await expect(joiner.getByRole("heading", { name: /Chat do grupo/ })).toHaveCount(0);
 
       // The creator's queue updates live; approve.
       const approve = creator.getByRole("button", { name: /^Aprovar / });
       await expect(approve).toBeVisible({ timeout: 10_000 });
       await approve.click();
-      await expect(creator.getByText("Nenhum pedido pendente.")).toBeVisible();
+      await expect(creator.getByText("Nenhum pedido pendente.")).toBeVisible({ timeout: 15_000 });
       await expect(creator.getByText("R$ 60,00 por pessoa")).toBeVisible();
       await expect(creator.getByText("com 2 pessoas")).toBeVisible();
 

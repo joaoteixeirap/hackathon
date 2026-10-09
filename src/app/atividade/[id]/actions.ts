@@ -2,6 +2,7 @@
 
 import { revalidatePath, revalidateTag } from "next/cache";
 import { ensureUser, getUser } from "@/lib/auth";
+import { logEvent } from "@/lib/events";
 import { MAP_DATA_TAG } from "@/lib/mapData";
 import { joinErrorMessage, REPORT_REASONS } from "@/lib/membership";
 import { createClient } from "@/lib/supabase/server";
@@ -23,7 +24,9 @@ export async function requestJoin(activityId: string): Promise<ActionResult> {
   if (!user) return { ok: false, message: "Não foi possível abrir sua sessão de visitante. Recarregue a página." };
   const supabase = await createClient();
   const { error } = await supabase.rpc("request_join", { p_activity_id: activityId });
-  return error ? { ok: false, message: joinErrorMessage(error.message) } : done(activityId);
+  if (error) return { ok: false, message: joinErrorMessage(error.message) };
+  await logEvent("request_join", { activity_id: activityId });
+  return done(activityId);
 }
 
 /** Cancel a pending request or leave the group. */
