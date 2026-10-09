@@ -1,0 +1,21 @@
+# Vercel builds from source. Local Next.js builds can contain files above 100 MB.
+.next/
+.next-*/
+node_modules/
+
+# Local caches and generated reports.
+.cache/
+test-results/
+playwright-report/
+playwright/.cache/
+coverage/
+out/
+build/
+*.tsbuildinfo
+
+# Secrets and local provider configuration are configured in the Vercel dashboard.
+.env*
+.vercel/
+.git/
+*.pem
+*.log
