@@ -7,3 +7,7 @@ it("returns honest empty statistics and derives freshness, medians and active se
  expect(cityStatistics([p],1,now).median).toBeNull();
  expect(cityStatistics([p,{...p,wifi_mbps:100}],1,now)).toMatchObject({work:2,median:75,seals:2,fresh:{fresh:2,aging:0,stale:0,unknown:0},demo:2});
 });
+it("counts emergency-tagged care separately from pharmacy and excludes demo providers",()=>{
+ const p={category:"health",subcategory:"hospital",wifi_mbps:null,wifi_source:null,last_verified_at:null,distinct_users_90d:0,seal_valid_until:null,facts_meta:{},opening_hours:null,is_demo:false,emergency_fact:{value:true,source:"osm" as const,observed_at:"2026-10-09",confirmations_90d:0,outdated_30d:0}};
+ expect(cityStatistics([p,{...p,is_demo:true},{...p,subcategory:"pharmacy"},{...p,emergency_fact:{...p.emergency_fact,value:false}}],0)).toMatchObject({emergency:1,pharmacies:1});
+});

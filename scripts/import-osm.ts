@@ -93,7 +93,9 @@ async function main() {
       skipped++;
       continue;
     }
-    const row = { ...p, city_id: city.id };
+    const {emergency:_emergency,...columns}=p;
+    void _emergency;
+    const row = { ...columns, city_id: city.id };
     if (prev && (prev.wifi_source === "user_test" || prev.wifi_source === "partner")) {
       const { wifi_source: _ignored, ...rest } = row;
       void _ignored;
@@ -108,6 +110,12 @@ async function main() {
       const { error: upErr } = await db.from("places").upsert(rows.slice(i, i + BATCH), { onConflict: "osm_id" });
       if (upErr) throw upErr;
     }
+  }
+
+  const emergencyRows=unique.filter(p=>p.category==="health"&&!byOsm.get(p.osm_id)?.partner_id).map(p=>({osm_id:p.osm_id,emergency:p.emergency}));
+  if(emergencyRows.length) {
+    const {error}=await db.rpc("import_osm_emergency",{p_city_id:city.id,p_rows:emergencyRows});
+    if(error)throw error;
   }
 
   const counts = unique.reduce<Record<string, number>>((acc, p) => ((acc[p.category] = (acc[p.category] ?? 0) + 1), acc), {});

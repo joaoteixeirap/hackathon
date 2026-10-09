@@ -42,6 +42,8 @@ import {
 import { MapView, type MapViewHandle, type MapViewState } from "./MapView";
 import type { FavoriteSpot } from "./favoriteMarker";
 import type { PresenceSpot } from "./presenceMarker";
+import { offersEmergencyOr24h } from "@/lib/essentialServices";
+import { useActivityCompats } from "@/components/activity/useActivityCompats";
 
 const LIST_LIMIT = 60;
 const DESKTOP_PANEL = 400;
@@ -256,7 +258,7 @@ export function MapExperience({
 
   const shownPlaces = useMemo(() => {
     if (!showPlaces || chip === "activities") return [];
-    return filterPlaces(places, { ...filters, category: chip as PlaceCategory | null, query }, isOpen).filter(p => !essential || (p.subcategory === essential.sub && (!essential.always || p.opening_hours === "24/7") && (!essential.pass || p.stay_policy === "pass_required")));
+    return filterPlaces(places, { ...filters, category: chip as PlaceCategory | null, query }, isOpen).filter(p => !essential || ((essential.always ? offersEmergencyOr24h(p) : p.subcategory === essential.sub) && (!essential.pass || p.stay_policy === "pass_required")));
   }, [places, filters, chip, query, isOpen, showPlaces, essential]);
 
   const shownActivities = useMemo(() => {
@@ -276,6 +278,7 @@ export function MapExperience({
     const as = b ? shownActivities.filter((a) => inBounds(a, b)) : shownActivities;
     return { places: ps.map((x) => x.p), activities: as };
   }, [shownPlaces, shownActivities, view, center]);
+  const compats=useActivityCompats([...visible.activities.slice(0,LIST_LIMIT).map(a=>a.id),...(selection?.kind==="activity" ? [selection.id] : [])]);
 
   const selectedPlace = selection?.kind === "place" ? places.find((p) => p.id === selection.id) : undefined;
   const selectedActivity = selection?.kind === "activity" ? activities.find((a) => a.id === selection.id) : undefined;
@@ -339,6 +342,7 @@ export function MapExperience({
   ) : selectedActivity ? (
     <ActivityDetail
       activity={selectedActivity}
+      compat={compats[selectedActivity.id]}
       onClose={() => selectPlace(null)}
       route={{
         inRoute: dayRoute.has({ kind: "activity", id: selectedActivity.id }),
@@ -349,6 +353,7 @@ export function MapExperience({
     />
   ) : (
     <ResultList
+      compats={compats}
       places={visible.places.slice(0, LIST_LIMIT)}
       activities={visible.activities}
       center={center}
@@ -364,7 +369,7 @@ export function MapExperience({
         <p className="font-display text-[17px] leading-tight font-bold">{selection ? "Detalhes" : `Explorar ${city.name}`}</p>
         <p className="truncate text-[13px] text-muted tabular-nums">{countLine}</p>
         {essential && <button type="button" className="min-h-11 text-sm font-semibold text-primary" onClick={() => setEssential(null)}>Limpar filtro de serviços essenciais</button>}
-        <Link href={`/estadia?aba=pessoas`} className="inline-flex min-h-11 items-center text-xs font-semibold text-primary">Pessoas compatíveis</Link>
+        <div className={`${!isDesktop && snap === "collapsed" ? "hidden" : "flex"} flex-wrap gap-x-4`} data-no-drag><Link href={`/estadia?aba=pessoas`} className="inline-flex min-h-11 items-center text-xs font-semibold text-primary">Pessoas compatíveis</Link><Link href="/explorar" className="inline-flex min-h-11 items-center text-xs font-semibold text-primary">Cidades e ferramentas ↗</Link></div>
       </div>
       {selection && (
         <button
@@ -434,7 +439,7 @@ export function MapExperience({
             <SearchPill value={query} onChange={onQuery} cityName={city.name} elevated={false} />
             {chips}
           </div>
-          <div className="px-5 pt-4">{listHeader}</div>
+            <div className="px-5 pt-4">{listHeader}</div>
           <div className="min-h-0 flex-1 overflow-y-auto px-5 pt-1 pb-6">{body}</div>
         </aside>
       ) : (

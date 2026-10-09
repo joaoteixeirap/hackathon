@@ -38,7 +38,7 @@ function TaskItem({ task, citySlug }: { task: StayTaskRow; citySlug: string }) {
         {task.hint && <p className="text-xs text-muted">{task.hint}</p>}
         <div className="flex flex-wrap gap-x-3">
           {task.map_category && (
-            <Link href={`/mapa/${citySlug}?cat=${task.map_category}`} className="inline-flex min-h-11 items-center gap-1 text-xs font-semibold text-primary">
+            <Link href={`/mapa/${citySlug}?cat=${encodeURIComponent(task.map_category)}${task.map_subcategory ? `&sub=${encodeURIComponent(task.map_subcategory)}` : ""}`} className="inline-flex min-h-11 items-center gap-1 text-xs font-semibold text-primary">
               <MapPin size={13} aria-hidden /> Abrir no mapa
             </Link>
           )}

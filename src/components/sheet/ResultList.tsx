@@ -9,6 +9,9 @@ import { SponsoredTag } from "@/components/ui/SponsoredTag";
 import { haversine } from "@/lib/geo";
 import { stripDemo, subcategoryLabel, type ActivitySummary, type PlaceSummary } from "@/lib/places";
 import { isSealActive } from "@/lib/trust";
+import { CompatLine } from "@/components/activity/CompatLine";
+import { seriesLabel } from "@/lib/series";
+import type { ActivityCompat } from "@/lib/activityCompat";
 
 function formatDistance(m: number): string {
   return m < 1000 ? `${Math.round(m / 10) * 10} m` : `${(m / 1000).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} km`;
@@ -23,6 +26,7 @@ export function ResultList({
   onSelectPlace,
   onSelectActivity,
   emptyText,
+  compats={},
 }: {
   places: PlaceSummary[];
   activities: ActivitySummary[];
@@ -30,6 +34,7 @@ export function ResultList({
   onSelectPlace: (id: string) => void;
   onSelectActivity: (id: string) => void;
   emptyText: string;
+  compats?:Record<string,ActivityCompat|null>;
 }) {
   if (places.length === 0 && activities.length === 0) {
     return (
@@ -60,6 +65,8 @@ export function ResultList({
                       {a.is_demo && <DemoTag />}
                     </span>
                     <span className="block truncate text-[13px] text-muted">{a.meeting_label}</span>
+                    {a.series && <span className="block text-xs font-semibold text-primary">{seriesLabel(a.series.weekday,a.series.start_time)}{a.series.is_official ? " · Oficial" : ""}</span>}
+                    <CompatLine compat={compats[a.id]} compact/>
                   </span>
                   <span className="shrink-0 text-right leading-tight">
                     <span className="block text-xs font-semibold text-accent-strong">{formatDayShort(a.starts_at)}</span>

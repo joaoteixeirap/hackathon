@@ -11,8 +11,10 @@ import { SeriesBadge } from "@/components/ui/SeriesBadge";
 import { buttonAccent, buttonSecondary } from "@/components/ui/styles";
 import { ACTIVITY_LABELS, stripDemo, type ActivitySummary } from "@/lib/places";
 import { sharePage } from "@/lib/share";
+import { CompatLine } from "@/components/activity/CompatLine";
+import type { ActivityCompat } from "@/lib/activityCompat";
 
-export function ActivityDetail({ activity, onClose, route }: { activity: ActivitySummary; onClose?: () => void; route?: RouteToggle }) {
+export function ActivityDetail({ activity, onClose, route, compat }: { activity: ActivitySummary; onClose?: () => void; route?: RouteToggle; compat?:ActivityCompat|null }) {
   const [shareMsg, setShareMsg] = useState<string | null>(null);
   const state = ringState(activity);
 
@@ -45,6 +47,7 @@ export function ActivityDetail({ activity, onClose, route }: { activity: Activit
       </header>
 
       {activity.series && <SeriesBadge series={activity.series} />}
+      <CompatLine compat={compat}/>
 
       <dl className="space-y-2.5 text-[15px]">
         <div className="flex items-center gap-3">

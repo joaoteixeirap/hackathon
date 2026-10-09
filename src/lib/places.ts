@@ -1,6 +1,7 @@
 // Shared place/activity types, category config and pure filtering (F1, F2).
 import { isCallMode, isRecent } from "./radarFilters";
 import { isSealActive, type FactMeta } from "./trust";
+import type { EmergencyFact } from "./essentialServices";
 
 export type PlaceCategory = "work" | "eat" | "health" | "stay" | "tour" | "service";
 export type ChipKey = PlaceCategory | "activities";
@@ -16,6 +17,7 @@ export type PlaceSummary = {
   address: string | null;
   opening_hours: string | null;
   stay_policy?: string;
+  emergency_fact?: EmergencyFact | null;
   wifi_mbps: number | null;
   wifi_source: "osm" | "partner" | "user_test" | null;
   has_power_outlets: boolean | null;

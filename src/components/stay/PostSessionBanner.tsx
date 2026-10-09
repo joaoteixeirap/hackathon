@@ -4,16 +4,18 @@ import { Gauge } from "lucide-react";
 import { useEffect, useState } from "react";
 import { CheckinSheet } from "@/components/checkin/CheckinSheet";
 import { track } from "@/lib/track";
+import { ReviewPanel } from "@/components/activity/ReviewPanel";
+import type { PostSessionPrompt } from "@/lib/stayData";
 
-type Prompt = { activity_id: string; place: { id: string; name: string; lat: number; lng: number } };
+type Prompt = PostSessionPrompt;
 
 /** J4: after a session at a place, invite a 30-second check-in tied to the activity. */
 export function PostSessionBanner({ prompt }: { prompt: Prompt }) {
   const [open, setOpen] = useState(false);
-  const [sent, setSent] = useState(false);
+  const [sent, setSent] = useState(prompt.recorded);
 
   useEffect(() => track("post_checkin_prompt_shown", { activity_id: prompt.activity_id }), [prompt.activity_id]);
-  if (sent) return <p className="rounded-2xl bg-primary-soft p-4 text-sm font-semibold text-primary">Obrigado! O Radar ficou mais certo com o seu registro.</p>;
+  if (sent) return <section className="space-y-3 rounded-2xl bg-primary-soft p-4" aria-label="Avaliação pós-sessão"><p className="text-sm font-semibold text-primary">Obrigado! O Radar ficou mais certo com o seu registro.</p><h2 className="font-semibold">Como foi participar desta roda?</h2><p className="text-xs text-muted">Avaliar os participantes é opcional.</p><ReviewPanel activityId={prompt.activity_id} people={prompt.people} reviewed={prompt.reviewed}/></section>;
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-primary-soft p-4">
@@ -28,7 +30,7 @@ export function PostSessionBanner({ prompt }: { prompt: Prompt }) {
           place={prompt.place}
           activityId={prompt.activity_id}
           onClose={() => setOpen(false)}
-          onSaved={() => setSent(true)}
+          onSaved={() => {setOpen(false);setSent(true);}}
         />
       )}
     </div>

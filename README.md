@@ -50,12 +50,13 @@ Lista de espera: `/espera?utm_source=instagram&utm_campaign=<campanha>&bloco=wor
 - `/lugar/<id>`: marcar sessão preenchida, horário do parceiro e benefício de grupo. `/serie/<id>` cria seis datas futuras; aprovar um seguidor entra nas datas com vaga.
 - `/parceiro`: mínimo de participantes, horários e totais agregados de sessões, participantes e resgates.
 - `/cidade/santos`: indicadores com fonte, data, amostra e marcação Demo. `/admin/metricas`: funis por sessão, retenção de séries e pesquisa.
+- `/explorar`: busca de cidades cadastradas, acesso aos dados de cada cidade e diretório inicial de ferramentas de rotina. Comparação de cobertura com os concorrentes em [docs/COMPETITOR_PARITY.md](docs/COMPETITOR_PARITY.md).
 
 Limites e pesos são hipóteses em `src/config/nomad.ts`; regras SQL equivalentes ficam nas migrações. Check-ins individuais, estadias, tarefas, gastos e favoritos são privados. Não há pagamento real no piloto.
 
 ## Publicar (V0)
 
-URL pública: _ainda não publicada_. Implementação e validação locais até V7; publicação e push aguardam liberação da equipe, conforme decisão anterior. Migrações aplicadas no Supabase configurado, sem reset remoto.
+URL pública: _ainda não publicada_. Implementação e validação locais até V7; publicação e push aguardam liberação da equipe, conforme decisão anterior. Migrações 0001–0019 aplicadas no Supabase configurado, sem reset remoto. A migração 0020 dos ajustes posteriores está preparada, mas ainda não aplicada: compatibilidade nos cartões do mapa e importação da etiqueta de emergência dependem dela. Aplicação remota e seus dois testes de integração aguardam autorização. Até lá, a verificação independente é `pnpm exec vitest run --exclude supabase/tests/completion.test.ts`.
 
 1. **Banco (Supabase na nuvem):** `pnpm db:push` aplica só as migrações pendentes (usa `SUPABASE_DB_URL`). `pnpm db:reset` recusa bancos remotos, porque apaga os dados.
 2. **Contas e dados demo:** `pnpm seed:demo` (Ana, Bruno, Parceiro e três perfis adicionais pela Admin API, sem privilégios admin, com `DEMO_LOGIN_PASSWORD`) e, antes de cada demo, `pnpm demo:refresh`.

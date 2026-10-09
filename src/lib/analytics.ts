@@ -40,6 +40,8 @@ export const EVENT_NAMES = [
   "post_checkin_submit",
   "city_panel_view",
   "survey_answer",
+  "explore_view",
+  "resource_open",
 ] as const;
 export type EventName = (typeof EVENT_NAMES)[number];
 

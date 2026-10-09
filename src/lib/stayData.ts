@@ -1,11 +1,12 @@
 import "server-only";
 import { createClient } from "./supabase/server";
 import type { Stay, StayTask } from "./stay";
+import type { Person } from "./membership";
 
-export type StayTaskRow = StayTask & { hint: string | null; map_category: string | null; source_url: string | null };
+export type StayTaskRow = StayTask & { hint: string | null; map_category: string | null; map_subcategory: string | null; source_url: string | null };
 export type FavoriteRow = { place_id: string; note: string | null; name: string; category: string; subcategory: string | null; neighborhood: string | null; lat: number; lng: number };
 export type Commitment = { id: string; title: string; starts_at: string; ends_at: string; meeting_label: string | null; role: "creator" | "approved" };
-export type PostSessionPrompt = { activity_id: string; title: string; place: { id: string; name: string; lat: number; lng: number } };
+export type PostSessionPrompt = { activity_id: string; title: string; place: { id: string; name: string; lat: number; lng: number }; recorded:boolean; people:Person[]; reviewed:string[] };
 
 export async function getActiveStay(userId: string): Promise<(Stay & { city: { slug: string; name: string } }) | null> {
   const supabase = await createClient();
@@ -24,15 +25,15 @@ export async function getStayTasks(stayId: string): Promise<StayTaskRow[]> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("stay_tasks")
-    .select("id, template_id, title, area, phase, due_on, done, stay_task_templates(hint, map_category, source_url, sort)")
+    .select("id, template_id, title, area, phase, due_on, done, stay_task_templates(hint, map_category, map_subcategory, source_url, sort)")
     .eq("stay_id", stayId)
     .order("created_at");
-  type Row = StayTask & { stay_task_templates: { hint: string | null; map_category: string | null; source_url: string | null; sort: number } | null };
+  type Row = StayTask & { stay_task_templates: { hint: string | null; map_category: string | null; map_subcategory:string|null; source_url: string | null; sort: number } | null };
   const rows = (data ?? []) as unknown as Row[];
   // Template order first (sort), then the user's own tasks in creation order.
   const order = new Map(rows.map((r) => [r.id, r.stay_task_templates?.sort ?? 1000]));
   return rows
-    .map(({ stay_task_templates: t, ...task }) => ({ ...task, hint: t?.hint ?? null, map_category: t?.map_category ?? null, source_url: t?.source_url ?? null }))
+    .map(({ stay_task_templates: t, ...task }) => ({ ...task, hint: t?.hint ?? null, map_category: t?.map_category ?? null, map_subcategory:t?.map_subcategory??null, source_url: t?.source_url ?? null }))
     .sort((a, b) => order.get(a.id)! - order.get(b.id)!);
 }
 
@@ -67,8 +68,7 @@ export async function getCommitments(userId: string, limit = 20): Promise<Commit
 }
 
 /**
- * J4: activities at a place that ended in the last 24 h, where the user took part and has not
- * registered a check-in for that activity yet.
+ * J4: recent sessions with a pending check-in or participant review.
  */
 export async function getPostSessionPrompts(userId: string): Promise<PostSessionPrompt[]> {
   const supabase = await createClient();
@@ -77,16 +77,22 @@ export async function getPostSessionPrompts(userId: string): Promise<PostSession
   const nowIso = new Date(now).toISOString();
   const select = "id, title, place_id, places(name, lat, lng)";
   const [created, joined, done] = await Promise.all([
-    supabase.from("activities").select(select).eq("creator_id", userId).not("place_id", "is", null).gte("ends_at", since).lte("ends_at", nowIso),
-    supabase.from("activity_members").select(`activities!inner(${select}, ends_at)`).eq("user_id", userId).eq("status", "approved").gte("activities.ends_at", since).lte("activities.ends_at", nowIso),
+    supabase.from("activities").select(select).eq("creator_id", userId).neq("status","cancelled").not("place_id", "is", null).gte("ends_at", since).lte("ends_at", nowIso),
+    supabase.from("activity_members").select(`activities!inner(${select}, ends_at)`).eq("user_id", userId).eq("status", "approved").neq("activities.status","cancelled").gte("activities.ends_at", since).lte("activities.ends_at", nowIso),
     supabase.from("place_checkins").select("activity_id").eq("user_id", userId).not("activity_id", "is", null).gte("created_at", since),
   ]);
   type A = { id: string; title: string; place_id: string | null; places: { name: string; lat: number; lng: number } | null };
   const all: A[] = [...((created.data ?? []) as unknown as A[]), ...((joined.data ?? []) as unknown as { activities: A }[]).map((m) => m.activities)];
   const answered = new Set((done.data ?? []).map((r) => r.activity_id));
-  return all
-    .filter((a) => a.place_id && a.places && !answered.has(a.id))
-    .map((a) => ({ activity_id: a.id, title: a.title, place: { id: a.place_id!, ...a.places! } }));
+  const unique=[...new Map(all.filter(a=>a.place_id&&a.places).map(a=>[a.id,a])).values()];
+  const {data:reviews}=await supabase.from("reviews").select("target_id").eq("author_id",userId).eq("target_type","profile");
+  const reviewed=(reviews??[]).map(r=>r.target_id as string);
+  const prompts=await Promise.all(unique.map(async a=>{
+    const {data}=await supabase.rpc("activity_people",{p_activity_id:a.id});
+    const people=((data??[]) as Person[]).filter(p=>p.user_id!==userId && (p.status==="creator"||p.status==="approved"));
+    return {activity_id:a.id,title:a.title,place:{id:a.place_id!,...a.places!},recorded:answered.has(a.id),people,reviewed};
+  }));
+  return prompts.filter(p=>!p.recorded || p.people.some(person=>!reviewed.includes(person.user_id)));
 }
 
 export type WelcomeMeetup = { series_id: string; title: string; starts_at: string; meeting_label: string | null };

@@ -17,8 +17,10 @@ describe("classify", () => {
   it("includes useful essential services without inferring their hours or prices", () => {
     expect(classify({ shop: "supermarket" })).toEqual({category:"service",subcategory:"supermarket"});
     expect(classify({ shop: "mobile_phone" })).toEqual({category:"service",subcategory:"mobile"});
+    expect(classify({ amenity: "bicycle_rental" })).toEqual({category:"service",subcategory:"bike_rental"});
     const p=toPlace({type:"node",id:99,lat:-23.96,lon:-46.33,tags:{amenity:"hospital",emergency:"yes",name:"Hospital OSM"}},suburbs)!;
     expect(p.opening_hours).toBeNull();
+    expect(p.emergency).toBe(true);
     expect("price_hint" in p).toBe(false);
   });
 });

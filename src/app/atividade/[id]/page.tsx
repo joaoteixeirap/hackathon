@@ -21,7 +21,7 @@ import { ACTIVITY_LABELS, stripDemo } from "@/lib/places";
 import { directionsUrl } from "@/lib/share";
 import { PostSessionBanner } from "@/components/stay/PostSessionBanner";
 import { SeriesBadge } from "@/components/ui/SeriesBadge";
-import { COMPAT_MIN_COUNT } from "@/config/nomad";
+import { CompatLine } from "@/components/activity/CompatLine";
 import { createClient } from "@/lib/supabase/server";
 import { getPostSessionPrompts } from "@/lib/stayData";
 import { ShareActions } from "./ShareActions";
@@ -191,7 +191,7 @@ export default async function ActivityPage({ params, searchParams }: Props) {
             </ul>
           </section>
 
-          {past && (
+          {past && !postSession && (
             <section className={`${card} mt-6 p-5`} aria-labelledby="review-title">
               <h2 id="review-title" className="font-display text-xl font-bold">
                 Como foi?
@@ -223,18 +223,3 @@ export default async function ActivityPage({ params, searchParams }: Props) {
 }
 
 type Compat = { same_rhythm: number; overlap: number };
-
-/** S4: "3 pessoas com a mesma rotina que você" — only from 2 people on, so nobody is singled out. */
-function CompatLine({ compat }: { compat: Compat | null }) {
-  if (!compat) return null;
-  const lines = [
-    compat.same_rhythm >= COMPAT_MIN_COUNT && `${compat.same_rhythm} pessoas com a mesma rotina que você`,
-    compat.overlap >= COMPAT_MIN_COUNT && `${compat.overlap} estarão na cidade nas suas datas`,
-  ].filter(Boolean);
-  if (lines.length === 0) return null;
-  return (
-    <p className="rounded-2xl bg-primary-soft px-3.5 py-2.5 text-sm font-semibold text-primary" data-testid="compat">
-      {lines.join(" · ")}
-    </p>
-  );
-}

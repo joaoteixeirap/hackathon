@@ -230,6 +230,7 @@ export function PlaceDetail({
         )}
         {isHealth && (
           <>
+            {place.emergency_fact?.value && <FactRow field="health_info" label="Pronto atendimento" icon={ico(Stethoscope)} value="Emergência informada no OSM" meta={place.emergency_fact} note={place.opening_hours==="24/7" ? "Horário informado: 24/7." : "Horário 24h não confirmado; confira com o local."}/>}
             <FactRow
               field="health_info"
               label="Atende sem plano"

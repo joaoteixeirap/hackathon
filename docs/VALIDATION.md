@@ -27,4 +27,19 @@ Os cinco fluxos obrigatórios da seção 13 da especificação estão cobertos: 
 
 Não foi executado reset local com Docker, nem deploy, teste em domínio publicado ou avaliação em celular físico. Os testes de navegador usam emulação e duas sessões distintas. Dados Demo permanecem identificados; indicadores desse ambiente podem incluir testes e demonstrações. Não há pagamento real, mensagem direta, geolocalização persistida, microfone ou aconselhamento sobre vistos.
 
-Modelo de checklist sem fonte permanece como lembrete e aparece para revisão no admin. Atendimento 24h exige horário informado como 24/7; etiqueta de emergência sem horário não é tratada como funcionamento contínuo.
+Modelo de checklist sem fonte permanece como lembrete e aparece para revisão no admin. Funcionamento 24h exige horário informado como 24/7; etiqueta de emergência sem horário não é tratada como funcionamento contínuo.
+
+## Ajustes após a auditoria e revisão dos concorrentes
+
+Preparados os detalhes de S2/S3/S4, E2/E6 e J4: pedido de entrada no cartão de pessoa, rótulo semanal na lista, compatibilidade autenticada nos cartões/ficha do mapa, filtro de subcategoria pelo checklist, etiqueta de emergência separada de horário e avaliação opcional dos participantes após registro. `/explorar` acrescenta busca de cidades e ferramentas com acesso pelo mapa e perfil. Cobertura e lacunas em `COMPETITOR_PARITY.md`.
+
+A migração 0020 **não foi aplicada**: revisão automática rejeitou a alteração persistente no Supabase e solicitamos autorização explícita. Os testes novos em `supabase/tests/completion.test.ts` estão preparados, mas não executados; não há alegação de aprovação ou ativação desses dois contratos no banco. Importação OSM com nova etiqueta e validação real de compatibilidade dos cartões aguardam essa dependência.
+
+TypeScript, ESLint e build de produção aprovados para os ajustes locais. A suíte independente usa `pnpm exec vitest run --exclude supabase/tests/completion.test.ts`; a exclusão é somente dos dois contratos da migração pendente.
+
+- Vitest: **42 arquivos, 167 testes aprovados**, incluindo contratos RLS/RPC já disponíveis no banco.
+- Playwright dos ajustes (`completion.spec.ts`): **7 aprovados, 3 pulados**, sem falhas na execução final (16,5 s). O teste de compatibilidade simula a resposta do novo RPC e valida somente cartão/ficha; não comprova implantação no Supabase. Checklist, pedido de entrada e pós-sessão usam contas temporárias e o banco configurado, com limpeza.
+- Regressões afetadas V3/V6/V7 aprovadas: estadia estrangeira, tarefa, favorito, ICS, orçamento, essenciais/cidade e larguras 360/375/390 px. A última execução conjunta apontou somente o uso incorreto do input oculto de estrelas no teste novo; corrigido para clicar o alvo visível de 44 px e aprovado na repetição acima.
+- Capturas `explorar.png` e `map-completion.png` em `.cache/review/`, revisadas a 375 px: diretório sem rolagem horizontal e sem erros JavaScript. Build final isolado em `.next-completion` para evitar alterações de arquivos pelo servidor de desenvolvimento existente.
+
+Não houve deploy, push ou aplicação da migração 0020. O arquivo e os dois testes de banco permanecem disponíveis para revisão e execução após autorização.

@@ -5,9 +5,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState, useTransition } from "react";
 import { blockPerson } from "@/app/estadia/actions";
+import { requestJoin } from "@/app/atividade/[id]/actions";
 import { ReportButton } from "@/components/activity/ReportButton";
 import { INTERESTS, type Interest } from "@/lib/interests";
 import { track } from "@/lib/track";
+import { visitorId } from "@/lib/track";
 
 export type PersonCard = {
   user_id: string;
@@ -25,6 +27,8 @@ function PersonItem({ p }: { p: PersonCard }) {
   const [open, setOpen] = useState(false);
   const [blocked, setBlocked] = useState(false);
   const [pending, startTransition] = useTransition();
+  const [requested,setRequested]=useState<string[]>([]);
+  const [requestError,setRequestError]=useState("");
   if (blocked) return <li className="py-3 text-sm text-muted">Pessoa bloqueada. Vocês não aparecem mais um para o outro.</li>;
 
   return (
@@ -67,10 +71,12 @@ function PersonItem({ p }: { p: PersonCard }) {
                       {new Date(a.starts_at).toLocaleString("pt-BR", { weekday: "short", day: "numeric", hour: "2-digit", minute: "2-digit", timeZone: TZ })}
                     </span>
                   </Link>
+                  <button type="button" disabled={pending||requested.includes(a.id)} className="inline-flex min-h-11 items-center px-3 text-sm font-semibold text-primary" onClick={()=>startTransition(async()=>{setRequestError("");const r=await requestJoin(a.id,visitorId());if(r.ok)setRequested(v=>[...v,a.id]);else setRequestError(r.message);})}>{requested.includes(a.id) ? "Pedido enviado" : "Pedir para entrar"}</button>
                 </li>
               ))}
             </ul>
           )}
+          <p role="status" className="text-sm text-danger empty:hidden">{requestError}</p>
           <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"

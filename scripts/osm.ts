@@ -23,6 +23,7 @@ export type OsmPlace = {
   opening_hours: string | null;
   wheelchair: "yes" | "no" | "limited" | null;
   wifi_source: "osm" | null;
+  emergency: boolean;
 };
 
 type Rule = { key: string; values: string[]; category: PlaceCategory; sub?: (v: string) => string };
@@ -41,7 +42,7 @@ const RULES: Rule[] = [
   { key: "shop", values: ["laundry", "dry_cleaning"], category: "service", sub: () => "laundry" },
   { key: "shop", values: ["supermarket"], category: "service" },
   { key: "shop", values: ["mobile_phone"], category: "service", sub: () => "mobile" },
-  { key: "amenity", values: ["bicycle_rental", "post_office"], category: "service" },
+  { key: "amenity", values: ["bicycle_rental", "post_office"], category: "service", sub:v=>v==="bicycle_rental" ? "bike_rental" : v },
 ];
 
 export function buildOverpassQuery(bbox: string): string {
@@ -124,5 +125,6 @@ export function toPlace(el: OsmElement, suburbs: Suburb[]): OsmPlace | null {
     opening_hours: tags.opening_hours ?? null,
     wheelchair: wheelchair === "yes" || wheelchair === "no" || wheelchair === "limited" ? wheelchair : null,
     wifi_source: WIFI_VALUES.has(tags.internet_access ?? "") ? "osm" : null,
+    emergency: tags.emergency === "yes",
   };
 }

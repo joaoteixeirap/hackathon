@@ -122,6 +122,11 @@ export default async function MyProfilePage() {
         <span className="text-sm font-bold text-primary">Painel do parceiro</span>
       </Link>
 
+      <Link href="/explorar" className={`${card} mt-4 flex min-h-16 items-center justify-between gap-3 p-5 hover:bg-surface-2`}>
+        <span><span className="block font-semibold">Cidades e ferramentas</span><span className="block text-sm text-muted">Explore destinos e organize sua rotina nômade.</span></span>
+        <span className="font-bold text-primary" aria-hidden>↗</span>
+      </Link>
+
       <p className="mt-6 text-center text-sm">
         <Link href="/sobre" className="inline-flex min-h-11 items-center font-semibold text-primary underline-offset-4 hover:underline">
           Sobre, privacidade e fontes dos dados
