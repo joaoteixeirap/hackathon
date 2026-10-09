@@ -70,7 +70,7 @@ export function CategoryChips({
   onFilter: (key: (typeof TOGGLES)[number]["key"]) => void;
 }) {
   const base =
-    "flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3.5 text-sm font-semibold transition active:scale-[0.97] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20";
+    "flex h-11 shrink-0 items-center gap-1.5 rounded-full px-3.5 text-sm font-semibold transition active:scale-[0.97] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20";
   const idle = wrap ? "border border-line bg-surface text-ink hover:bg-surface-2" : "bg-surface text-ink shadow-soft-sm hover:bg-surface-2";
   return (
     <div

@@ -115,7 +115,7 @@ export function BottomSheet({
           type="button"
           onClick={() => !moved.current && cycle()}
           aria-label={snap === "full" ? "Recolher painel" : "Expandir painel"}
-          className="mx-auto flex h-6 w-24 items-center justify-center"
+          className="mx-auto -my-2.5 flex h-11 w-24 items-center justify-center"
         >
           <span className="h-1.5 w-10 rounded-full bg-line" />
         </button>

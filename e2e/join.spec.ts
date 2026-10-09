@@ -28,7 +28,7 @@ test.describe("join, approve and chat (M5)", () => {
       await creator.goto("/atividade/nova");
       await expect(creator.locator("[data-ready]")).toBeAttached({ timeout: 30_000 });
       await creator.getByLabel("O que vamos fazer?").fill(title);
-      await creator.getByLabel("Custo total (opcional)").fill("120,00");
+      await creator.getByLabel("Custo total").fill("120,00");
       await creator.getByRole("button", { name: "Criar roda" }).click();
       await expect(creator).toHaveURL(/\/atividade\/[0-9a-f-]{36}\?nova=1$/);
       activityId = creator.url().match(/atividade\/([0-9a-f-]{36})/)![1];

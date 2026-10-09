@@ -47,7 +47,7 @@ export default async function VerifyPage() {
         </div>
       )}
       <p className="mt-6 text-center text-sm">
-        <Link href="/perfil" className="font-semibold text-primary underline-offset-4 hover:underline">
+        <Link href="/perfil" className="inline-flex min-h-11 items-center font-semibold text-primary underline-offset-4 hover:underline">
           Voltar ao perfil
         </Link>
       </p>

@@ -72,3 +72,28 @@ test.describe("map (F1, F2)", () => {
     await expect(page.getByRole("button", { name: /Dia de trabalho conjunto/ }).first()).toBeVisible();
   });
 });
+
+// Regression: in dark mode the map is created light and switched to night right away; coming
+// back to the map (style already cached) used to crash with "Style is not done loading".
+test.describe("map lifecycle", () => {
+  test.use({ colorScheme: "dark" });
+
+  test("leaving and coming back to the map in dark mode, then switching themes, never errors", async ({ page, isMobile }) => {
+    const errors: string[] = [];
+    page.on("pageerror", (e) => errors.push(e.message));
+    await page.goto("/mapa/santos");
+    await expect(page.locator("[data-map-ready=true]")).toBeVisible({ timeout: 30_000 });
+
+    for (const name of isMobile ? ["Perfil", "Criar atividade"] : ["Perfil", "Criar roda"]) {
+      await page.getByRole("link", { name, exact: true }).first().click();
+      await expect(page).not.toHaveURL(/\/mapa\//);
+      await page.getByRole("link", { name: "Mapa", exact: true }).click();
+      await expect(page.locator("[data-map-ready=true]")).toBeVisible({ timeout: 30_000 });
+    }
+
+    await page.getByRole("button", { name: "Camadas do mapa" }).click();
+    for (const t of ["Claro", "Escuro", "Auto"]) await page.getByRole("radio", { name: t }).click();
+    await page.waitForTimeout(1500);
+    expect(errors).toEqual([]);
+  });
+});

@@ -60,7 +60,7 @@ export function CreateActivityForm({ citySlug, bbox, prefill }: { citySlug: stri
             <label
               key={c}
               className={`flex min-h-[72px] cursor-pointer flex-col items-center justify-center gap-1.5 rounded-2xl border p-2 text-center text-xs font-semibold transition has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-primary/20 ${
-                category === c ? "border-transparent bg-accent text-white shadow-soft-sm" : "border-line bg-surface text-ink hover:bg-surface-2"
+                category === c ? "border-transparent bg-primary text-on-fill shadow-soft-sm" : "border-line bg-surface text-ink hover:bg-surface-2"
               }`}
             >
               <input type="radio" name="category" value={c} checked={category === c} onChange={() => setCategory(c)} className="sr-only" />
@@ -72,8 +72,8 @@ export function CreateActivityForm({ citySlug, bbox, prefill }: { citySlug: stri
         <Err id="category-error" msg={e.category} />
       </fieldset>
 
-      <div className="grid grid-cols-3 gap-3">
-        <div className="col-span-3 space-y-1.5 sm:col-span-1">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <div className="col-span-2 space-y-1.5 sm:col-span-1">
           <label htmlFor="date" className={label}>
             Dia
           </label>
@@ -87,7 +87,7 @@ export function CreateActivityForm({ citySlug, bbox, prefill }: { citySlug: stri
           <input id="time" name="time" type="time" defaultValue="09:00" required className={field} />
           <Err id="time-error" msg={e.time} />
         </div>
-        <div className="col-span-2 space-y-1.5 sm:col-span-1">
+        <div className="space-y-1.5">
           <label htmlFor="duration" className={label}>
             Duração
           </label>
@@ -123,7 +123,7 @@ export function CreateActivityForm({ citySlug, bbox, prefill }: { citySlug: stri
           name="meeting_label"
           maxLength={120}
           defaultValue={prefill.label ?? ""}
-          placeholder="Referência (ex.: em frente ao Aquário)"
+          placeholder="Ex.: em frente ao Aquário"
           className={field}
         />
         <Err id="location-error" msg={e.location ?? e.meeting_label} />
@@ -153,13 +153,13 @@ export function CreateActivityForm({ citySlug, bbox, prefill }: { citySlug: stri
         </div>
         <div className="space-y-1.5">
           <label htmlFor="cost" className={label}>
-            Custo total (opcional)
+            Custo total
           </label>
           <input
             id="cost"
             name="cost"
             inputMode="decimal"
-            placeholder="R$ 0,00"
+            placeholder="Opcional"
             value={cost}
             onChange={(ev) => setCost(ev.target.value)}
             className={`${field} tabular-nums`}

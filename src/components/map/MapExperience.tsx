@@ -431,7 +431,7 @@ export function MapExperience({
         </>
       )}
 
-      <div className="absolute right-4 z-10 flex flex-col gap-2.5" style={{ top: isDesktop ? 16 : 132 }}>
+      <div className="absolute right-4 z-10 flex flex-col gap-2.5" style={{ top: isDesktop ? 16 : 140 }}>
         <LayersMenu
           showPlaces={showPlaces}
           showActivities={showActivities}

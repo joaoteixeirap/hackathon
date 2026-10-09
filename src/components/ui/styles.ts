@@ -6,7 +6,7 @@ export const label = "text-sm font-semibold text-ink";
 export const buttonPrimary =
   "inline-flex min-h-12 items-center justify-center rounded-full bg-primary px-6 font-semibold text-on-fill shadow-soft-sm transition hover:brightness-110 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/25 disabled:opacity-60";
 export const buttonAccent =
-  "inline-flex min-h-12 items-center justify-center rounded-full bg-accent px-6 font-semibold text-white shadow-soft-sm transition hover:brightness-105 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent/30";
+  "inline-flex min-h-12 items-center justify-center rounded-full bg-accent px-6 font-semibold text-[#0f1f2a] shadow-soft-sm transition hover:brightness-105 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent/30";
 export const buttonSecondary =
   "inline-flex min-h-12 items-center justify-center rounded-full border border-line bg-surface px-6 font-semibold text-ink shadow-soft-sm transition hover:bg-surface-2 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15";
 export const iconButton =

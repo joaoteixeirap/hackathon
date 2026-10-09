@@ -245,6 +245,18 @@ async function installLayers(map: maplibregl.Map, theme: MapTheme, data: Feature
   });
 }
 
+/**
+ * Style updates can race a style swap (theme change); a failed update is harmless because
+ * the next style.load re-applies the current data, so it must never crash the page.
+ */
+function safely(fn: () => void) {
+  try {
+    fn();
+  } catch {
+    // retried on the next style.load
+  }
+}
+
 const NO_STOPS: { lat: number; lng: number }[] = [];
 const NO_PRESENCE: PresenceSpot[] = [];
 
@@ -255,6 +267,10 @@ export const MapView = forwardRef<MapViewHandle, Props>(function MapView(
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const baseStyleRef = useRef<StyleSpecification | null>(null);
+  // Theme of the style currently set on the map, and a counter bumped on every setStyle,
+  // so a style.load from a replaced style never touches the new one.
+  const appliedThemeRef = useRef<MapTheme | null>(null);
+  const styleGenRef = useRef(0);
   const markersRef = useRef<maplibregl.Marker[]>([]);
   const presenceRef = useRef<maplibregl.Marker[]>([]);
   const [ready, setReady] = useState(false);
@@ -318,18 +334,28 @@ export const MapView = forwardRef<MapViewHandle, Props>(function MapView(
         map.addControl(new maplibregl.AttributionControl({ compact: true }), "bottom-right");
         mapRef.current = map;
 
+        appliedThemeRef.current = latest.current.theme;
         map.on("style.load", () => {
-          installLayers(map, latest.current.theme, toGeoJSON(latest.current.places)).then(() => {
-            if (cancelled) return;
-            const src = map.getSource("places") as GeoJSONSource | undefined;
-            src?.setData(toGeoJSON(latest.current.places));
-            installRouteLayers(map, latest.current.theme);
-            (map.getSource("route") as GeoJSONSource | undefined)?.setData(routeGeoJSON(latest.current.route));
-            map.setFilter("place-selected", ["==", ["get", "id"], latest.current.selectedPlaceId ?? ""]);
-            setReady(true);
-            containerRef.current?.setAttribute("data-map-ready", "true");
-            latest.current.onReady?.();
-          });
+          // Layers must match the style that just loaded, not whatever theme is current now.
+          const gen = styleGenRef.current;
+          const styleTheme = appliedThemeRef.current ?? latest.current.theme;
+          const stale = () => cancelled || gen !== styleGenRef.current;
+          installLayers(map, styleTheme, toGeoJSON(latest.current.places))
+            .then(() => {
+              if (stale()) return; // a newer style replaced this one; its own style.load takes over
+              const src = map.getSource("places") as GeoJSONSource | undefined;
+              src?.setData(toGeoJSON(latest.current.places));
+              installRouteLayers(map, styleTheme);
+              (map.getSource("route") as GeoJSONSource | undefined)?.setData(routeGeoJSON(latest.current.route));
+              map.setFilter("place-selected", ["==", ["get", "id"], latest.current.selectedPlaceId ?? ""]);
+              setReady(true);
+              containerRef.current?.setAttribute("data-map-ready", "true");
+              latest.current.onReady?.();
+            })
+            .catch(() => {
+              // Expected when the style is swapped mid-install (theme change); ignore stale ones.
+              if (!stale()) setError(true);
+            });
         });
 
         map.on("click", "place-pin", (e: MapLayerMouseEvent) => {
@@ -371,27 +397,31 @@ export const MapView = forwardRef<MapViewHandle, Props>(function MapView(
     };
   }, [city]);
 
-  // Theme: swap the base style; layers and images are reinstalled on style.load.
+  // Theme: swap the base style only when it differs from the one the map already uses
+  // (the map is often created with the final theme already); layers are reinstalled on style.load.
   useEffect(() => {
     const map = mapRef.current;
     const base = baseStyleRef.current;
-    if (!map || !base) return;
+    if (!map || !base || appliedThemeRef.current === theme) return;
+    appliedThemeRef.current = theme;
+    styleGenRef.current += 1;
     setReady(false);
     map.setStyle(applyTheme(base, theme), { diff: false });
   }, [theme]);
 
   useEffect(() => {
     const src = mapRef.current?.getSource("places") as GeoJSONSource | undefined;
-    if (ready && src) src.setData(toGeoJSON(places));
+    if (ready && src) safely(() => src.setData(toGeoJSON(places)));
   }, [places, ready]);
 
   useEffect(() => {
-    if (ready) mapRef.current?.setFilter("place-selected", ["==", ["get", "id"], selectedPlaceId ?? ""]);
+    const map = mapRef.current;
+    if (ready && map) safely(() => map.setFilter("place-selected", ["==", ["get", "id"], selectedPlaceId ?? ""]));
   }, [selectedPlaceId, ready]);
 
   useEffect(() => {
     const src = mapRef.current?.getSource("route") as GeoJSONSource | undefined;
-    if (ready && src) src.setData(routeGeoJSON(route));
+    if (ready && src) safely(() => src.setData(routeGeoJSON(route)));
   }, [route, ready]);
 
   useEffect(() => {
