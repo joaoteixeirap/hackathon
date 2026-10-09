@@ -21,6 +21,7 @@ import { radarScore } from "@/lib/radarScore";
 import { pendingTasks, stayProgress } from "@/lib/stay";
 import { getActiveStay, getCommitments, getCompatiblePeople, getFavorites, getPostSessionPrompts, getPublicActivitiesBy, getStayTasks, getWelcomeMeetup } from "@/lib/stayData";
 import { createClient } from "@/lib/supabase/server";
+import { CalendarDownload } from "@/components/stay/CalendarDownload";
 
 export const metadata: Metadata = { title: "Minha estadia · SoloRota" };
 export const dynamic = "force-dynamic";
@@ -28,6 +29,7 @@ export const dynamic = "force-dynamic";
 const TABS = [
   ["hoje", "Hoje"],
   ["tarefas", "Tarefas"],
+  ["agenda", "Agenda"],
   ["favoritos", "Favoritos"],
   ["pessoas", "Pessoas"],
 ] as const;
@@ -93,7 +95,7 @@ export default async function StayPage({ searchParams }: Props) {
   const [tasks, favorites, commitments, prompts, radar, welcome, people] = await Promise.all([
     getStayTasks(stay.id),
     getFavorites(user.id),
-    tab === "hoje" ? getCommitments(user.id, 1) : Promise.resolve([]),
+    tab === "hoje" || tab === "agenda" ? getCommitments(user.id, tab === "agenda" ? 300 : 1) : Promise.resolve([]),
     tab === "hoje" ? getPostSessionPrompts(user.id) : Promise.resolve([]),
     tab === "hoje" ? loadRadarPlaces(stay.city_id) : Promise.resolve([]),
     tab === "hoje" && isNewcomer ? getWelcomeMeetup(stay.city_id) : Promise.resolve(null),
@@ -240,6 +242,11 @@ export default async function StayPage({ searchParams }: Props) {
           <PeopleList people={people} discoverable={routine.discoverable} citySlug={stay.city.slug} />
         </section>
       )}
+
+      {tab === "agenda" && <section className={`${card} space-y-3 p-5`} aria-label="Agenda">
+        <CalendarDownload events={commitments} />
+        {commitments.length === 0 ? <p className="text-sm text-muted">Nada marcado. Entre numa roda para montar sua agenda.</p> : <ul className="divide-y divide-line">{commitments.map(a => <li key={a.id}><Link href={`/atividade/${a.id}`} className="block min-h-11 py-3"><span className="block font-semibold">{a.title}</span><span className="text-sm text-muted">{when(a.starts_at)} · {a.meeting_label}</span></Link></li>)}</ul>}
+      </section>}
 
       {tab === "favoritos" && (
         <section className={`${card} p-5`} aria-label="Favoritos">

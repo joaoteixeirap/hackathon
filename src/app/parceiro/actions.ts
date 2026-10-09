@@ -105,6 +105,28 @@ export async function featurePlace(placeId: string): Promise<ActionResult> {
 
 const STAY_POLICIES = ["free", "min_consumption", "time_limit", "pass_required", "unknown"];
 
+export async function createIdleSlot(placeId: string, _prev: FormState<never>, form: FormData): Promise<FormState<never>> {
+  const weekday = Number(form.get("weekday"));
+  const start_time = String(form.get("start_time"));
+  const end_time = String(form.get("end_time"));
+  const note = String(form.get("note") ?? "").trim();
+  const raw = String(form.get("seats") ?? "");
+  const seats = raw ? Number(raw) : null;
+  if (!UUID_RE.test(placeId) || !Number.isInteger(weekday) || weekday < 0 || weekday > 6 || !/^([01]\d|2[0-3]):[0-5]\d$/.test(start_time) || !/^([01]\d|2[0-3]):[0-5]\d$/.test(end_time) || end_time <= start_time || note.length > 120 || (seats !== null && (!Number.isInteger(seats) || seats < 1 || seats > 100))) return { status: "error", message: "Confira dia, intervalo e número de lugares." };
+  if (!(await approvedPartner())) return { status: "error", message: SESSION_LOST };
+  const { error } = await (await createClient()).from("place_idle_slots").insert({ place_id: placeId, weekday, start_time, end_time, seats, note: note || null });
+  if (error) return { status: "error", message: "Não foi possível salvar este horário." };
+  revalidateTag(MAP_DATA_TAG); revalidatePath(`/parceiro/lugar/${placeId}`);
+  return { status: "saved" };
+}
+export async function removeIdleSlot(placeId: string, slotId: string): Promise<ActionResult> {
+  if (!UUID_RE.test(placeId) || !UUID_RE.test(slotId) || !(await approvedPartner())) return { ok: false, message: SESSION_LOST };
+  const { data, error } = await (await createClient()).from("place_idle_slots").delete().eq("id", slotId).eq("place_id", placeId).select("id");
+  if (error || !data?.length) return { ok: false, message: "Não foi possível remover." };
+  revalidateTag(MAP_DATA_TAG); revalidatePath(`/parceiro/lugar/${placeId}`);
+  return { ok: true };
+}
+
 /** R5: the venue declares its stay policy (wins over check-in reports). */
 export async function setStayPolicy(placeId: string, _prev: FormState<never>, formData: FormData): Promise<FormState<never>> {
   const policy = String(formData.get("stay_policy") ?? "");

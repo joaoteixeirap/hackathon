@@ -121,6 +121,8 @@ export function OfferForm({ placeId }: { placeId: string }) {
         </div>
       </div>
       {(e.code || e.valid_to || e.capacity) && <p className="text-sm text-danger">{e.code ?? e.valid_to ?? e.capacity}</p>}
+      <label className={label}>Mínimo de pessoas para benefício de grupo (opcional)<input name="min_group" type="number" min={2} max={30} className={field} placeholder="Vazio: oferta individual" /></label>
+      {e.min_group && <p className="text-sm text-danger">{e.min_group}</p>}
       <button type="submit" disabled={pending} className={`${buttonPrimary} w-full`}>
         {pending ? "Publicando…" : "Publicar oferta"}
       </button>

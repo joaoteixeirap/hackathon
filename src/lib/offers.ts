@@ -17,6 +17,7 @@ export type PublicOffer = {
   description: string | null;
   valid_to: string | null;
   capacity: number | null;
+  min_group?: number | null;
 };
 
 export type OfferInput = {
@@ -27,9 +28,10 @@ export type OfferInput = {
   valid_from: string;
   valid_to: string | null;
   capacity: number | null;
+  min_group?: number | null;
 };
 
-export type OfferErrors = Partial<Record<"kind" | "title" | "description" | "code" | "valid_to" | "capacity", string>>;
+export type OfferErrors = Partial<Record<"kind" | "title" | "description" | "code" | "valid_to" | "capacity" | "min_group", string>>;
 
 const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no 0/O, 1/I
 
@@ -64,13 +66,19 @@ export function parseOfferForm(form: FormData, today: string): { ok: true; data:
   const capacity = capRaw ? Number(capRaw) : null;
   if (capacity != null && !(Number.isInteger(capacity) && capacity >= 1 && capacity <= 10_000)) errors.capacity = "Um número de 1 a 10000.";
 
+  const groupRaw = text(form.get("min_group"));
+  const min_group = groupRaw ? Number(groupRaw) : null;
+  if (min_group != null && (!Number.isInteger(min_group) || min_group < 2 || min_group > 30)) errors.min_group = "De 2 a 30 pessoas.";
   if (Object.keys(errors).length > 0) return { ok: false, errors };
-  return { ok: true, data: { kind, title, description, code, valid_from: today, valid_to: validTo, capacity } };
+  return { ok: true, data: { kind, title, description, code, valid_from: today, valid_to: validTo, capacity, min_group } };
 }
 
 /** Postgres exceptions from redeem_offer → interface text. */
 export function redeemErrorMessage(raw: string | undefined): string {
   const m = raw ?? "";
+  if (/group membership required/.test(m)) return "Entre numa sessão deste local para usar o benefício de grupo.";
+  if (/group too small/.test(m)) return "Ainda faltam pessoas para liberar o benefício.";
+  if (/outside group window/.test(m)) return "Disponível de 30 minutos antes do início até o fim da sessão.";
   if (/already redeemed today/.test(m)) return "Você já usou esta oferta hoje. Volte amanhã.";
   if (/sold out/.test(m)) return "As vagas desta oferta acabaram.";
   if (/not available/.test(m)) return "Esta oferta não está mais disponível.";

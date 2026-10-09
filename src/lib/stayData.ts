@@ -4,7 +4,7 @@ import type { Stay, StayTask } from "./stay";
 
 export type StayTaskRow = StayTask & { hint: string | null; map_category: string | null; source_url: string | null };
 export type FavoriteRow = { place_id: string; note: string | null; name: string; category: string; subcategory: string | null; neighborhood: string | null; lat: number; lng: number };
-export type Commitment = { id: string; title: string; starts_at: string; meeting_label: string | null; role: "creator" | "approved" };
+export type Commitment = { id: string; title: string; starts_at: string; ends_at: string; meeting_label: string | null; role: "creator" | "approved" };
 export type PostSessionPrompt = { activity_id: string; title: string; place: { id: string; name: string; lat: number; lng: number } };
 
 export async function getActiveStay(userId: string): Promise<(Stay & { city: { slug: string; name: string } }) | null> {
@@ -58,7 +58,7 @@ export async function getCommitments(userId: string, limit = 20): Promise<Commit
   const supabase = await createClient();
   const nowIso = new Date().toISOString();
   const [created, joined] = await Promise.all([
-    supabase.from("activities").select("id, title, starts_at, meeting_label").eq("creator_id", userId).neq("status", "cancelled").gt("ends_at", nowIso).order("starts_at").limit(limit),
+    supabase.from("activities").select("id, title, starts_at, ends_at, meeting_label").eq("creator_id", userId).neq("status", "cancelled").gt("ends_at", nowIso).order("starts_at").limit(limit),
     supabase.from("activity_members").select("activities!inner(id, title, starts_at, ends_at, meeting_label, status)").eq("user_id", userId).eq("status", "approved").gt("activities.ends_at", nowIso).neq("activities.status", "cancelled").limit(limit),
   ]);
   const mine: Commitment[] = (created.data ?? []).map((a) => ({ ...(a as Omit<Commitment, "role">), role: "creator" }));

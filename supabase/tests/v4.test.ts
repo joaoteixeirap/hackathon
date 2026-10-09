@@ -33,7 +33,8 @@ describe.skipIf(!enabled)("V4 bonds", () => {
     if (error) throw error;
     await service.from("profiles").update({ verified: true }).eq("id", data.user.id);
     const client = createClient(url, anonKey, opts);
-    await client.auth.signInWithPassword({ email, password });
+    const login = await client.auth.signInWithPassword({ email, password });
+    if (login.error) { await service.auth.admin.deleteUser(data.user.id); throw login.error; }
     return { id: data.user.id, client };
   }
 

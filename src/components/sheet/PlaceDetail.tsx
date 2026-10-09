@@ -7,6 +7,7 @@ import { voteFact } from "@/app/lugar/[id]/actions";
 import { ReportButton } from "@/components/activity/ReportButton";
 import { CheckinSheet } from "@/components/checkin/CheckinSheet";
 import { FavoriteStar } from "@/components/stay/FavoriteStar";
+import { PlaceJourney } from "@/components/stay/PlaceJourney";
 import { PlaceOffers } from "@/components/offers/PlaceOffers";
 import { RouteButton, type RouteToggle } from "@/components/route/RouteButton";
 import { FactRow } from "@/components/trust/FactRow";
@@ -256,6 +257,7 @@ export function PlaceDetail({
       </div>
 
       <PlaceOffers placeId={place.id} count={place.offers} meta={meta.offer} />
+      {(place.category === "work" || place.category === "eat") && <PlaceJourney placeId={place.id} />}
 
       {place.address && (
         <p className="flex items-start gap-2 text-sm text-muted">
@@ -267,7 +269,7 @@ export function PlaceDetail({
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-line pt-3">
         {route && <RouteButton {...route} />}
         <Link href={`/atividade/nova?lugar=${place.id}`} className="inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-accent-strong">
-          <Plus size={16} strokeWidth={2.5} aria-hidden /> Criar roda aqui
+          <Plus size={16} strokeWidth={2.5} aria-hidden /> {place.category === "work" ? "Marcar sessão aqui" : place.category === "eat" ? "Marcar encontro aqui" : "Criar roda aqui"}
         </Link>
         {!standalone && (
           <Link href={`/lugar/${place.id}`} className="inline-flex min-h-11 items-center text-sm font-semibold text-primary">

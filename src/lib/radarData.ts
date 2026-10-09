@@ -6,6 +6,7 @@ import { toPlaceTrust, type PlaceTrust } from "./placeTrust";
 import type { PlaceCategory } from "./places";
 import { isSupabaseConfigured } from "./supabase/env";
 import { createPublicClient } from "./supabase/public";
+import type { IdleSlot } from "./journey";
 
 /** Work places and cafés with everything the Radar scores and shows (no sponsorship fields, I3). */
 export type RadarPlace = PlaceTrust & {
@@ -18,6 +19,7 @@ export type RadarPlace = PlaceTrust & {
   neighborhood: string | null;
   opening_hours: string | null;
   is_demo: boolean;
+  idle_slots: IdleSlot[];
 };
 
 const COLUMNS =
@@ -43,9 +45,10 @@ const cached = unstable_cache(
       .order("last_verified_at", { ascending: false, nullsFirst: false })
       .limit(RADAR_MAX_PLACES);
     if (error) throw error;
+    const { data: slots } = await createPublicClient().from("place_idle_slots").select("id, place_id, weekday, start_time, end_time, seats, note, created_at").eq("active", true).in("place_id", (data ?? []).map(r => r.id));
     return (data ?? []).map((r) => {
       const row = r as unknown as RadarPlace;
-      return { ...row, ...toPlaceTrust(r)!, lat: Number(row.lat), lng: Number(row.lng) };
+      return { ...row, ...toPlaceTrust(r)!, idle_slots: (slots ?? []).filter(s => s.place_id === row.id), lat: Number(row.lat), lng: Number(row.lng) };
     });
   },
   ["radar-v1"],

@@ -8,6 +8,7 @@ import { getUser } from "@/lib/auth";
 import { getMyPartner, getPartnerPlaces, isFeatured } from "@/lib/partner";
 import { subcategoryLabel } from "@/lib/places";
 import { PartnerSignUpForm } from "./PartnerSignUpForm";
+import { PartnerSessions } from "@/components/stay/PartnerSessions";
 
 export const metadata: Metadata = { title: "Painel do parceiro · SoloRota" };
 export const dynamic = "force-dynamic";
@@ -100,6 +101,7 @@ export default async function PartnerPage() {
           </ul>
         )}
       </section>
+      {places.map(p => <div key={p.id}><p className="mt-6 font-semibold">{p.name}</p><PartnerSessions placeId={p.id} /></div>)}
     </PageShell>
   );
 }

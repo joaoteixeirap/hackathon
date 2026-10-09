@@ -10,7 +10,7 @@ import type { BBox } from "@/lib/geo";
 import { ACTIVITY_LABELS } from "@/lib/places";
 import { createActivity, type CreateActivityState } from "./actions";
 
-type Prefill = { lat: number; lng: number; label: string | null; placeId: string | null; zoom: number };
+type Prefill = { lat: number; lng: number; label: string | null; placeId: string | null; zoom: number; title?: string; category?: string; date?: string; time?: string; offerId?: string };
 
 function tomorrowInBrasilia(): string {
   const d = new Date(Date.now() + 86_400_000);
@@ -29,7 +29,7 @@ export function CreateActivityForm({ citySlug, bbox, prefill, stayNotice }: { ci
   const [state, action, pending] = useActionState<CreateActivityState, FormData>(createActivity, { status: "idle" });
   const e = state.errors ?? {};
   const [point, setPoint] = useState({ lat: prefill.lat, lng: prefill.lng });
-  const [category, setCategory] = useState<string>("work_together");
+  const [category, setCategory] = useState<string>(prefill.category ?? "work_together");
   const [capacity, setCapacity] = useState(6);
   const [cost, setCost] = useState("");
   const [split, setSplit] = useState(true);
@@ -45,12 +45,13 @@ export function CreateActivityForm({ citySlug, bbox, prefill, stayNotice }: { ci
       <input type="hidden" name="lat" value={point.lat} />
       <input type="hidden" name="lng" value={point.lng} />
       <input type="hidden" name="place_id" value={prefill.placeId ?? ""} />
+      <input type="hidden" name="offer_id" value={prefill.offerId ?? ""} />
 
       <div className="space-y-1.5">
         <label htmlFor="title" className={label}>
           O que vamos fazer?
         </label>
-        <input id="title" name="title" required minLength={3} maxLength={80} placeholder="Ex.: Dia de trabalho conjunto" className={field} aria-invalid={!!e.title} />
+        <input id="title" name="title" defaultValue={prefill.title} required minLength={3} maxLength={80} placeholder="Ex.: Dia de trabalho conjunto" className={field} aria-invalid={!!e.title} />
         <Err id="title-error" msg={e.title} />
       </div>
 
@@ -78,14 +79,14 @@ export function CreateActivityForm({ citySlug, bbox, prefill, stayNotice }: { ci
           <label htmlFor="date" className={label}>
             Dia
           </label>
-          <input id="date" name="date" type="date" defaultValue={defaultDate} required className={field} />
+          <input id="date" name="date" type="date" defaultValue={prefill.date ?? defaultDate} required className={field} />
           <Err id="date-error" msg={e.date} />
         </div>
         <div className="space-y-1.5">
           <label htmlFor="time" className={label}>
             Início
           </label>
-          <input id="time" name="time" type="time" defaultValue="09:00" required className={field} />
+          <input id="time" name="time" type="time" defaultValue={prefill.time ?? "09:00"} required className={field} />
           <Err id="time-error" msg={e.time} />
         </div>
         <div className="space-y-1.5">

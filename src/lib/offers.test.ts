@@ -13,7 +13,7 @@ describe("parseOfferForm", () => {
     const r = parseOfferForm(form({ kind: "discount", title: "10% no café", code: "cafe10", valid_to: "2026-12-31", capacity: "50" }), TODAY);
     expect(r).toEqual({
       ok: true,
-      data: { kind: "discount", title: "10% no café", description: null, code: "CAFE10", valid_from: TODAY, valid_to: "2026-12-31", capacity: 50 },
+      data: { kind: "discount", title: "10% no café", description: null, code: "CAFE10", valid_from: TODAY, valid_to: "2026-12-31", capacity: 50, min_group: null },
     });
   });
 

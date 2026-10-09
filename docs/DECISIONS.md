@@ -140,3 +140,7 @@ Uma linha por decisão: data, decisão, motivo.
 
 - 2026-10-09 ? V4: s?ries e boas-vindas oficiais com seis datas futuras, materializa??o ao abrir e cron opcional protegido. Aprova??o ?nica entra nas ocorr?ncias com vaga; sair de uma ocorr?ncia preserva a sa?da.
 - 2026-10-09 ? Descoberta de pessoas exige verified nos dois perfis, independentemente do modo demo de atividades; opt-in, sobreposi??o m?nima de sete dias e bloqueios nos dois sentidos. Migra??o 0014 corrigiu delimitador SQL; 0015 cobre hor?rio do dia j? passado. V4 validado por lint, 146 testes, build e Playwright com dois celulares e chat.
+
+- 2026-10-09 ? V5: agendamento a partir do lugar j? vem com t?tulo, tipo, vagas, dura??o, local, benef?cio e pr?ximo hor?rio dispon?vel (ou dia ?til ?s 14h). Hor?rios s?o declara??o do parceiro com data; sess?es e totais do painel n?o exp?em participantes.
+- 2026-10-09 ? Benef?cio de grupo validado no banco: v?nculo com lugar e sess?o, participante aprovado, m?nimo e janela de 30 min antes at? o fim; o resgate preserva o contrato antigo e registra activity_id. Agenda ICS segue RFC 5545 (UTC, UID est?vel, escape, CRLF, dobra UTF-8 em 75 octetos).
+- 2026-10-09 ? Su?tes Vitest sequenciais para respeitar o limite de autentica??o do Supabase remoto; V5 validado por lint, build, 153 testes e dois fluxos Playwright (publica??o pr?-preenchida/calend?rio e benef?cio com quatro pessoas).

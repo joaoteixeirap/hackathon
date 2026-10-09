@@ -21,7 +21,7 @@ export function PlaceOffers({ placeId, count, meta }: { placeId: string; count: 
     let alive = true;
     supabase
       .from("offers")
-      .select("id, kind, title, description, valid_to, capacity")
+      .select("id, kind, title, description, valid_to, capacity, min_group")
       .eq("place_id", placeId)
       .eq("active", true)
       .order("created_at")
@@ -76,7 +76,7 @@ function OfferItem({ offer }: { offer: PublicOffer }) {
       <p className="font-semibold">{offer.title}</p>
       {offer.description && <p className="text-sm text-muted">{offer.description}</p>}
 
-      {ticket ? (
+      {offer.min_group ? <p className="text-sm">Benefício para grupos de {offer.min_group} ou mais pessoas. Use pela página da sessão.</p> : ticket ? (
         <OfferTicket code={ticket.code} expiresAt={ticket.expiresAt} title={offer.title} />
       ) : step === "confirm" ? (
         <div className="space-y-2">

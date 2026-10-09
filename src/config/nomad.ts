@@ -64,3 +64,8 @@ export const SERIES_WEEKS_AHEAD = 6;
 export const MIN_OVERLAP_DAYS = 7;
 export const COMPAT_MIN_COUNT = 2;
 export const DEFAULT_STAY_DAYS = 30;
+/** hipóteses: session defaults and group benefit window (mirrored in SQL) */
+export const SESSION_DEFAULT_HOUR = "14:00";
+export const SESSION_DEFAULT_CAPACITY = 6;
+export const SESSION_MIN_NOTICE_MINUTES = 15;
+export const GROUP_EARLY_MINUTES = 30;

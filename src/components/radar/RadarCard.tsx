@@ -13,6 +13,7 @@ import { directionsUrl } from "@/lib/share";
 import { factLineShort, freshnessOf, type FactMeta } from "@/lib/trust";
 import { subcategoryLabel } from "@/lib/places";
 import { track } from "@/lib/track";
+import { IdleSlotLines } from "@/components/stay/PlaceJourney";
 
 function Criterion({ icon, label, value, meta }: { icon: React.ReactNode; label: string; value: string | null; meta: FactMeta | undefined }) {
   const known = value != null && meta != null;
@@ -78,6 +79,7 @@ export function RadarCard({ place, rank, score, onCheckin, favorite }: { place: 
       <p className="mt-2 text-xs text-muted tabular-nums" data-testid="radar-score">
         Adequação {score.total}/100{score.confidence === "low" ? " · provisório" : ""}
       </p>
+      <IdleSlotLines slots={place.idle_slots ?? []} />
 
       <div className="mt-3 flex flex-wrap gap-2">
         <button type="button" onClick={onCheckin} className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-primary px-4 text-sm font-semibold text-on-fill">

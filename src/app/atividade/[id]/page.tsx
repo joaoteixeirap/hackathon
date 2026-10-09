@@ -26,6 +26,9 @@ import { createClient } from "@/lib/supabase/server";
 import { getPostSessionPrompts } from "@/lib/stayData";
 import { ShareActions } from "./ShareActions";
 import { TrustedContact } from "./TrustedContact";
+import { GroupBenefitTicket } from "@/components/offers/GroupBenefitTicket";
+import { JourneyStepper } from "@/components/activity/JourneyStepper";
+import { CalendarDownload } from "@/components/stay/CalendarDownload";
 
 type Props = { params: Promise<{ id: string }>; searchParams: Promise<{ nova?: string }> };
 
@@ -67,6 +70,9 @@ export default async function ActivityPage({ params, searchParams }: Props) {
   const group = viewer.people.filter((p) => p.status === "creator" || p.status === "approved");
   const requests = viewer.people.filter((p) => p.status === "requested");
   const names = Object.fromEntries(viewer.people.map((p) => [p.user_id, p.display_name]));
+  const db = await createClient();
+  const { data: offerLink } = await db.from("activities").select("offer_id").eq("id", a.id).single();
+  const benefit = offerLink?.offer_id ? (await db.from("offers").select("id, title, min_group").eq("id", offerLink.offer_id).eq("active", true).not("min_group", "is", null).maybeSingle()).data : null;
 
   return (
     <PageShell title={title}>
@@ -129,6 +135,8 @@ export default async function ActivityPage({ params, searchParams }: Props) {
         </dl>
 
         {a.series && <SeriesBadge series={a.series} />}
+        {a.place && <JourneyStepper group={participant} benefit={Boolean(benefit && a.approved + 1 >= benefit.min_group)} recorded={past && participant && !postSession} />}
+        {benefit && a.status !== "cancelled" && <GroupBenefitTicket activityId={a.id} offer={benefit} count={a.approved + 1} starts={a.starts_at} ends={a.ends_at} participant={participant} />}
         {a.description && <p className="whitespace-pre-line">{a.description}</p>}
         <CompatLine compat={compat} />
 
@@ -137,6 +145,7 @@ export default async function ActivityPage({ params, searchParams }: Props) {
         {a.status !== "cancelled" && <JoinPanel activityId={a.id} role={viewer.role} status={a.status} started={started} />}
 
         <div className="flex flex-wrap gap-2">
+          {participant && <CalendarDownload events={[{ ...a, meeting_label: a.meeting_label }]} single />}
           <a href={directionsUrl(a.lat, a.lng)} target="_blank" rel="noopener noreferrer" className={`${buttonPrimary} gap-2`}>
             <Navigation size={16} strokeWidth={1.75} aria-hidden /> Como chegar
           </a>

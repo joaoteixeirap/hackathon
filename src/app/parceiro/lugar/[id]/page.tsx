@@ -9,6 +9,9 @@ import { OFFER_LABELS } from "@/lib/offers";
 import { getMyPartner, getPartnerPlace } from "@/lib/partner";
 import { subcategoryLabel } from "@/lib/places";
 import { FeatureButton, OfferForm, OfferToggle, StayPolicyForm } from "./PlaceControls";
+import { IdleSlotsForm } from "./IdleSlotsForm";
+import { getIdleSlots } from "@/lib/journeyData";
+import { PartnerSessions } from "@/components/stay/PartnerSessions";
 
 export const metadata: Metadata = { title: "Meu lugar · SoloRota" };
 export const dynamic = "force-dynamic";
@@ -26,6 +29,7 @@ export default async function PartnerPlacePage({ params, searchParams }: Props) 
   const data = await getPartnerPlace(partner.id, id);
   if (!data) notFound();
   const { place, offers, redemptions } = data;
+  const slots = await getIdleSlots(id);
 
   return (
     <PageShell title={place.name}>
@@ -91,6 +95,8 @@ export default async function PartnerPlacePage({ params, searchParams }: Props) 
         <h3 className="mb-3 font-semibold">Nova oferta</h3>
         <OfferForm placeId={place.id} />
       </section>
+      <section className={`${card} mt-6 p-5`} aria-label="Horários disponíveis"><h2 className="mb-3 font-display text-xl font-bold">Horários disponíveis</h2><p className="mb-3 text-sm text-muted">Declarados pelo local. Alimentam a sugestão de horário para novas sessões.</p><IdleSlotsForm placeId={id} slots={slots} /></section>
+      <PartnerSessions placeId={id} />
 
       <section className={`${card} mt-6 p-5`} aria-labelledby="redemptions-title">
         <h2 id="redemptions-title" className="mb-1 font-display text-xl font-bold">

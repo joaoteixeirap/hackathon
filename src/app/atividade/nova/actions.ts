@@ -25,6 +25,8 @@ export async function createActivity(_prev: CreateActivityState, formData: FormD
   }
 
   const supabase = await createClient();
+  const offerRaw = String(formData.get("offer_id") ?? "");
+  const offer_id = /^[0-9a-f-]{36}$/i.test(offerRaw) ? offerRaw : null;
 
   // S3: "Repetir toda semana" creates a weekly series and its next occurrences.
   if (formData.get("repeat") === "on") {
@@ -38,6 +40,7 @@ export async function createActivity(_prev: CreateActivityState, formData: FormD
         city_id: city.id,
         creator_id: user.id,
         place_id: d.place_id,
+        offer_id,
         title: d.title,
         description: d.description,
         category: d.category,
@@ -54,12 +57,13 @@ export async function createActivity(_prev: CreateActivityState, formData: FormD
     await supabase.rpc("refresh_series", { p_series_id: series.id });
     revalidateTag(MAP_DATA_TAG);
     await logEvent("series_create", { series_id: series.id, city: city.slug });
+    if (d.place_id) await logEvent("session_from_place", { place_id: d.place_id, series_id: series.id });
     redirect(`/serie/${series.id}?nova=1`);
   }
 
   const { data, error } = await supabase
     .from("activities")
-    .insert({ ...parsed.data, city_id: city.id, creator_id: user.id })
+    .insert({ ...parsed.data, offer_id, city_id: city.id, creator_id: user.id })
     .select("id")
     .single();
 
@@ -68,5 +72,6 @@ export async function createActivity(_prev: CreateActivityState, formData: FormD
   }
   revalidateTag(MAP_DATA_TAG);
   await logEvent("create_activity", { activity_id: data.id, city: city.slug });
+  if (parsed.data.place_id) await logEvent("session_from_place", { place_id: parsed.data.place_id, activity_id: data.id });
   redirect(`/atividade/${data.id}?nova=1`);
 }
