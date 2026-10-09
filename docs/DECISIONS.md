@@ -35,3 +35,6 @@ Uma linha por decisão: data, decisão, motivo.
 - 2026-10-08 — Novas atividades chegam ao mapa por Supabase Realtime (`postgres_changes` em `activities`, filtrado pela cidade).
 - 2026-10-08 — "R$ X por pessoa": antes de alguém ser aprovado, mostra a divisão "se lotar"; depois, com o grupo atual (aprovados + criador), arredondando para cima.
 - 2026-10-08 — Compartilhar atividade: botão "Enviar no WhatsApp" (`wa.me/?text=`) além do compartilhamento nativo; prévia via Open Graph (título · cidade, data e ponto).
+- 2026-10-08 — Identidade visual v2 (pedido da equipe: a "carta náutica" parecia jogo). App moderno: coral "Coral Santos" `#FF5B3A` como assinatura, "Atlântico" `#0B3B4A` para ações, mapa-base neutro, cartões brancos com sombras suaves, Bricolage Grotesque + Plus Jakarta Sans. DESIGN.md reescrito; tokens CSS renomeados para nomes semânticos (`canvas`, `surface`, `ink`, `muted`, `line`, `primary`, `accent`, `cat-*`).
+- 2026-10-08 — Removidos da v1: moldura graduada, hachura da água, rosa dos ventos, cartucho, leitura de coordenadas, grão de papel, fonte serifada e monoespaçada, carimbo do Selo (agora `NomadBadge`).
+- 2026-10-08 — Botões primários em `primary` (texto branco com contraste AA); coral reservado para marca e "criar", porque branco sobre coral não atinge AA em texto pequeno.

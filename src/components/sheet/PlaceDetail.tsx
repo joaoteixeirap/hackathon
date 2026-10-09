@@ -1,11 +1,11 @@
 "use client";
 
-import { Accessibility, Clock, MapPin, Navigation, Plug, Share2, Ticket, Volume2, X } from "lucide-react";
+import { Accessibility, Clock, MapPin, Navigation, Plug, Plus, Share2, Ticket, Volume2, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { CATEGORY_BG, CategoryIcon } from "@/components/ui/CategoryIcon";
 import { DemoTag } from "@/components/ui/DemoTag";
-import { SealStamp } from "@/components/ui/SealStamp";
+import { NomadBadge } from "@/components/ui/NomadBadge";
 import { WifiMeter } from "@/components/ui/WifiMeter";
 import { buttonPrimary, buttonSecondary } from "@/components/ui/styles";
 import { describeHours, loadOpeningHours } from "@/lib/openingHours";
@@ -15,19 +15,19 @@ import { directionsUrl, sharePage } from "@/lib/share";
 const QUIET = ["", "Barulhento", "Movimentado", "Moderado", "Tranquilo", "Silencioso"];
 const WHEELCHAIR = { yes: "Acessível", limited: "Acesso parcial", no: "Sem acesso" } as const;
 
-function Instrument({ icon, label, children }: { icon: React.ReactNode; label: string; children: React.ReactNode }) {
+function Stat({ icon, label, children }: { icon: React.ReactNode; label: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-tinta/15 p-3">
-      <p className="mb-1 flex items-center gap-1.5 text-[11px] font-bold tracking-wider text-tinta-suave uppercase">
+    <div className="rounded-2xl bg-surface-2 p-3">
+      <p className="mb-1 flex items-center gap-1.5 text-xs font-semibold text-muted">
         {icon}
         {label}
       </p>
-      <div className="font-mono text-sm">{children}</div>
+      <div className="text-sm font-semibold">{children}</div>
     </div>
   );
 }
 
-const unknown = <span className="font-sans text-xs text-tinta-suave">Sem informação</span>;
+const unknown = <span className="font-normal text-muted">Sem informação</span>;
 
 export function PlaceDetail({
   place,
@@ -56,6 +56,7 @@ export function PlaceDetail({
 
   const isWork = place.category === "work" || place.subcategory === "cafe";
   const isHealth = place.category === "health";
+  const open = hours?.startsWith("Aberto");
 
   async function share() {
     const result = await sharePage(`/lugar/${place.id}`, place.name);
@@ -63,125 +64,110 @@ export function PlaceDetail({
   }
 
   return (
-    <article className="relative space-y-4" aria-labelledby={`place-${place.id}`}>
+    <article className="space-y-4 pt-1" aria-labelledby={`place-${place.id}`}>
       <header className="flex items-start gap-3">
-        <span className={`grid size-11 shrink-0 place-items-center rounded-full border-[1.5px] border-tinta text-on-fill ${CATEGORY_BG[place.category]}`}>
-          <CategoryIcon category={place.category} subcategory={place.subcategory} size={20} />
+        <span className={`grid size-12 shrink-0 place-items-center rounded-2xl text-white ${CATEGORY_BG[place.category]}`}>
+          <CategoryIcon category={place.category} subcategory={place.subcategory} size={22} />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-bold tracking-wider text-tinta-suave uppercase">
-            {subcategoryLabel(place)}
-            {place.neighborhood && (
-              <>
-                {" · "}
-                <span className="font-serif text-sm font-semibold tracking-normal normal-case italic">{place.neighborhood}</span>
-              </>
-            )}
-          </p>
-          <h2 id={`place-${place.id}`} className="font-serif text-[22px] leading-tight font-bold text-balance">
-            {place.name} {place.is_demo && <DemoTag />}
+          <h2 id={`place-${place.id}`} className="font-display text-[22px] leading-tight font-bold tracking-[-0.01em] text-balance">
+            {place.name}
+            {place.is_demo && <DemoTag />}
           </h2>
-          <p className="mt-1 flex items-center gap-1.5 text-sm text-tinta-suave">
-            <Clock size={14} strokeWidth={1.75} aria-hidden />
-            {hours === undefined ? "…" : (hours ?? "Horário: sem informação")}
+          <p className="mt-0.5 text-sm text-muted">
+            {subcategoryLabel(place)}
+            {place.neighborhood && <> · {place.neighborhood}</>}
+          </p>
+          <p className="mt-1.5 flex items-center gap-1.5 text-sm">
+            <Clock size={14} className={open ? "text-success" : "text-muted"} aria-hidden />
+            <span className={open ? "font-semibold text-success" : "text-muted"}>
+              {hours === undefined ? "Carregando horário…" : (hours ?? "Horário sem informação")}
+            </span>
           </p>
         </div>
         {onClose && (
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Fechar"
-            className="-mt-1 -mr-2 grid size-11 shrink-0 place-items-center rounded-full hover:bg-tinta/5"
-          >
-            <X size={20} strokeWidth={1.75} />
+          <button type="button" onClick={onClose} aria-label="Fechar" className="-mt-1 -mr-1 grid size-11 shrink-0 place-items-center rounded-full bg-surface-2 text-ink hover:brightness-95">
+            <X size={18} strokeWidth={2} />
           </button>
         )}
       </header>
 
-      {place.nomad_seal && (
-        <div className="flex items-center gap-3 rounded-2xl border border-dashed border-mare/60 p-3">
-          <SealStamp size={64} />
-          <p className="text-sm">
-            <strong className="font-serif text-base">Amigo do Nômade.</strong> Wi-Fi forte confirmado por quem trabalhou aqui, e
-            tomadas disponíveis.
-          </p>
-        </div>
-      )}
+      <div className="flex flex-wrap items-center gap-2">
+        <a href={directionsUrl(place.lat, place.lng)} target="_blank" rel="noopener noreferrer" className={`${buttonPrimary} min-h-11 gap-2 px-5`}>
+          <Navigation size={16} strokeWidth={2} aria-hidden /> Como chegar
+        </a>
+        <button type="button" onClick={share} className={`${buttonSecondary} min-h-11 gap-2 px-5`}>
+          <Share2 size={16} strokeWidth={2} aria-hidden /> Compartilhar
+        </button>
+        <span role="status" className="text-sm font-semibold text-success">
+          {shareMsg}
+        </span>
+      </div>
+
+      {place.nomad_seal && <NomadBadge />}
 
       <div className="grid grid-cols-2 gap-2">
         {(isWork || place.wifi_mbps != null || place.wifi_source) && (
-          <div className="col-span-2 rounded-xl border border-tinta/15 p-3">
-            <p className="mb-2 text-[11px] font-bold tracking-wider text-tinta-suave uppercase">Wi-Fi</p>
+          <div className="col-span-2 rounded-2xl bg-surface-2 p-3">
+            <p className="mb-2 text-xs font-semibold text-muted">Wi-Fi</p>
             <WifiMeter mbps={place.wifi_mbps} source={place.wifi_source} tests={wifiTests} />
           </div>
         )}
         {isWork && (
           <>
-            <Instrument icon={<Plug size={12} aria-hidden />} label="Tomadas">
-              {place.has_power_outlets == null ? unknown : place.has_power_outlets ? "Sim" : "Poucas/não"}
-            </Instrument>
-            <Instrument icon={<Volume2 size={12} aria-hidden />} label="Ruído">
+            <Stat icon={<Plug size={13} aria-hidden />} label="Tomadas">
+              {place.has_power_outlets == null ? unknown : place.has_power_outlets ? "Disponíveis" : "Poucas"}
+            </Stat>
+            <Stat icon={<Volume2 size={13} aria-hidden />} label="Ambiente">
               {place.quiet_level ? QUIET[place.quiet_level] : unknown}
-            </Instrument>
+            </Stat>
           </>
         )}
         {isHealth && (
           <>
-            <Instrument icon={<Ticket size={12} aria-hidden />} label="Sem plano">
+            <Stat icon={<Ticket size={13} aria-hidden />} label="Sem plano">
               {place.accepts_without_plan == null ? unknown : place.accepts_without_plan ? "Atende" : "Só convênio"}
-            </Instrument>
-            <Instrument icon={<span aria-hidden>Aa</span>} label="Idiomas">
+            </Stat>
+            <Stat icon={<span aria-hidden>Aa</span>} label="Idiomas">
               {place.languages?.length ? place.languages.join(", ") : unknown}
-            </Instrument>
+            </Stat>
           </>
         )}
         {place.price_hint && (
-          <Instrument icon={<span aria-hidden>R$</span>} label="Preço">
+          <Stat icon={<span aria-hidden>R$</span>} label="Preço">
             {place.price_hint}
-          </Instrument>
+          </Stat>
         )}
         {place.wheelchair && (
-          <Instrument icon={<Accessibility size={12} aria-hidden />} label="Acesso">
+          <Stat icon={<Accessibility size={13} aria-hidden />} label="Acessibilidade">
             {WHEELCHAIR[place.wheelchair]}
-          </Instrument>
+          </Stat>
         )}
       </div>
 
       {place.offers > 0 && (
-        <p className="flex items-center gap-2 rounded-xl bg-coral/12 px-3 py-2 text-sm">
-          <Ticket size={16} strokeWidth={1.75} className="text-coral" aria-hidden />
-          {place.offers} {place.offers === 1 ? "oferta de parceiro" : "ofertas de parceiro"} para nômades
+        <p className="flex items-center gap-2 rounded-2xl bg-accent-soft px-3.5 py-3 text-sm font-semibold text-accent-strong">
+          <Ticket size={16} aria-hidden />
+          {place.offers} {place.offers === 1 ? "oferta exclusiva" : "ofertas exclusivas"} para nômades
         </p>
       )}
 
       {place.address && (
-        <p className="flex items-start gap-1.5 text-sm text-tinta-suave">
-          <MapPin size={16} strokeWidth={1.75} className="mt-0.5 shrink-0" aria-hidden />
+        <p className="flex items-start gap-2 text-sm text-muted">
+          <MapPin size={16} className="mt-0.5 shrink-0" aria-hidden />
           {place.address}
         </p>
       )}
 
-      <div className="flex flex-wrap items-center gap-2">
-        <a href={directionsUrl(place.lat, place.lng)} target="_blank" rel="noopener noreferrer" className={`${buttonPrimary} gap-2`}>
-          <Navigation size={16} strokeWidth={1.75} aria-hidden /> Como chegar
-        </a>
-        <button type="button" onClick={share} className={`${buttonSecondary} gap-2`}>
-          <Share2 size={16} strokeWidth={1.75} aria-hidden /> Compartilhar
-        </button>
-        <Link
-          href={`/atividade/nova?lugar=${place.id}`}
-          className="inline-flex min-h-11 items-center gap-1 rounded-full border-[1.5px] border-tinta bg-sol px-4 text-sm font-bold text-[#1f2a30]"
-        >
-          Criar roda aqui
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-line pt-3">
+        <Link href={`/atividade/nova?lugar=${place.id}`} className="inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-accent-strong">
+          <Plus size={16} strokeWidth={2.5} aria-hidden /> Criar roda aqui
         </Link>
         {!standalone && (
-          <Link href={`/lugar/${place.id}`} className="min-h-11 px-2 py-3 text-sm font-bold text-mare underline-offset-4 hover:underline">
-            Abrir ficha
+          <Link href={`/lugar/${place.id}`} className="inline-flex min-h-11 items-center text-sm font-semibold text-primary">
+            Ver página do lugar
           </Link>
         )}
-        <span role="status" className="text-sm text-farmacia">
-          {shareMsg}
-        </span>
       </div>
     </article>
   );

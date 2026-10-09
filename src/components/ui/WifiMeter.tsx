@@ -6,7 +6,7 @@ const SOURCE_LABEL: Record<NonNullable<PlaceSummary["wifi_source"]>, string> = {
   osm: "indicado no OpenStreetMap",
 };
 
-/** Four instrument bars + Mbps + data source (DESIGN.md §7). */
+/** Signal bars + Mbps + where the number comes from (always shown). */
 export function WifiMeter({
   mbps,
   source,
@@ -25,25 +25,26 @@ export function WifiMeter({
         : null;
 
   return (
-    <div className="flex items-end gap-3">
+    <div className="flex items-center gap-3">
       <div className="flex h-6 items-end gap-[3px]" aria-hidden>
         {[1, 2, 3, 4].map((b) => (
           <span
             key={b}
-            className={`w-[5px] rounded-[1px] border border-tinta ${b <= level ? "bg-mare" : "bg-transparent"}`}
+            className={`w-1.5 rounded-full ${b <= level ? "bg-cat-work" : "bg-line"}`}
             style={{ height: `${b * 25}%` }}
           />
         ))}
       </div>
       <div className="leading-tight">
         {mbps != null ? (
-          <p className="font-mono text-lg">
-            {mbps.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} <span className="text-xs">Mbps</span>
+          <p className="font-display text-xl font-bold tabular-nums">
+            {mbps.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}{" "}
+            <span className="font-sans text-xs font-semibold text-muted">Mbps</span>
           </p>
         ) : (
-          <p className="font-mono text-sm">{source === "osm" ? "Tem Wi-Fi" : "Sem medição"}</p>
+          <p className="text-sm font-semibold">{source === "osm" ? "Tem Wi-Fi" : "Sem medição"}</p>
         )}
-        <p className="text-xs text-tinta-suave">{sourceText ?? "Sem informação ainda. Ajude a mapear"}</p>
+        <p className="text-xs text-muted">{sourceText ?? "Sem informação ainda. Ajude a mapear"}</p>
       </div>
     </div>
   );

@@ -12,9 +12,9 @@ export function SignInForm({ next }: { next: string }) {
   if (state.status === "sent") {
     return (
       <div role="status" className="space-y-2">
-        <p className="font-serif text-xl font-bold">Confira seu e-mail</p>
-        <p className="text-tinta-suave">
-          Enviamos um link de acesso para <strong className="text-tinta">{state.email}</strong>. Abra
+        <p className="font-display text-xl font-bold">Confira seu e-mail</p>
+        <p className="text-muted">
+          Enviamos um link de acesso para <strong className="text-ink">{state.email}</strong>. Abra
           neste mesmo aparelho para entrar.
         </p>
       </div>
@@ -42,7 +42,7 @@ export function SignInForm({ next }: { next: string }) {
           aria-describedby={state.status === "error" ? "email-error" : undefined}
         />
         {state.status === "error" && (
-          <p id="email-error" className="text-sm text-erro">
+          <p id="email-error" className="text-sm text-danger">
             {state.message}
           </p>
         )}
@@ -50,7 +50,7 @@ export function SignInForm({ next }: { next: string }) {
       <button type="submit" className={`${buttonPrimary} w-full`} disabled={pending}>
         {pending ? "Enviando…" : "Receber link de acesso"}
       </button>
-      <p className="text-sm text-tinta-suave">Sem senha: você recebe um link por e-mail.</p>
+      <p className="text-sm text-muted">Sem senha: você recebe um link por e-mail.</p>
     </form>
   );
 }

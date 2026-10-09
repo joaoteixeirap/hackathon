@@ -1,81 +1,108 @@
 @import "tailwindcss";
 @import "maplibre-gl/dist/maplibre-gl.css";
 
-/* "Carta Tropical" tokens (DESIGN.md §2). Night values overridden below. */
+/* ---------------------------------------------------------------------------
+   SoloRota brand tokens (DESIGN.md §2). Light first; dark swaps the same roles.
+   --------------------------------------------------------------------------- */
 :root {
-  --papel: #f3ead7;
-  --papel-claro: #fbf6ea;
-  --tinta: #1f2a30;
-  --tinta-suave: #5a6770;
-  --mare: #1e5b66;
-  --mare-claro: #9cc9c3;
-  --coral: #e8603c;
-  --sol: #f2b632;
-  --mata: #b9cda0;
-  --farmacia: #2e8b6a;
-  --anil: #4b5ba6;
-  --ameixa: #8a4f7d;
-  --grafite: #5b6770;
-  --erro: #b3321f;
-  /* Text on category/primary fills. */
-  --on-fill: #fbf6ea;
+  --canvas: #f6f4f1; /* app background */
+  --surface: #ffffff; /* cards, sheet, bars */
+  --surface-2: #f1eee9; /* subtle fills, hovers */
+  --ink: #0f1f2a; /* text */
+  --muted: #5d6a73; /* secondary text (AA on surface and canvas) */
+  --line: #e6e1da; /* hairlines */
+
+  --primary: #0b3b4a; /* "Atlântico": primary buttons, selected states */
+  --primary-soft: #e3eef0;
+  --accent: #ff5b3a; /* "Coral Santos": brand signature, create, live */
+  --accent-strong: #d63d1e; /* coral for text on light backgrounds */
+  --accent-soft: #ffe9e3;
+  --live: #ff5b3a; /* activities */
+  --success: #10805e;
+  --danger: #c2341b;
+  --on-fill: #ffffff;
+
+  --cat-work: #0f7a83;
+  --cat-eat: #d9661a;
+  --cat-health: #d6335c;
+  --cat-stay: #6a3fd1;
+  --cat-tour: #1677c7;
+  --cat-service: #56636d;
+
+  --shadow-sm: 0 1px 2px rgb(15 31 42 / 0.06), 0 1px 3px rgb(15 31 42 / 0.08);
+  --shadow-md: 0 4px 12px rgb(15 31 42 / 0.08), 0 2px 4px rgb(15 31 42 / 0.06);
+  --shadow-lg: 0 12px 32px rgb(15 31 42 / 0.14), 0 4px 8px rgb(15 31 42 / 0.06);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="day"]):not([data-theme="night"]) {
-    --papel: #0f1e26;
-    --papel-claro: #16282f;
-    --tinta: #ede5d2;
-    --tinta-suave: #b5ad9c;
-    --mare-claro: #0b3a42;
-    --mata: #1d3a33;
-    --mare: #2b7c8a;
-    --coral: #ee7d5e;
-    --farmacia: #3ba882;
-    --anil: #6877bf;
-    --ameixa: #a66a98;
-    --grafite: #7a8790;
-    --on-fill: #0f1e26;
+    --canvas: #0d1418;
+    --surface: #162027;
+    --surface-2: #1d2a32;
+    --ink: #edf1f3;
+    --muted: #9fadb6;
+    --line: #26333c;
+    --primary: #6cc3d1;
+    --primary-soft: #183a44;
+    --accent-strong: #ff8a6e;
+    --accent-soft: #3a1d16;
+    --success: #4cc79b;
+    --danger: #ff7a62;
+    --on-fill: #0d1418;
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+    --shadow-md: 0 4px 12px rgb(0 0 0 / 0.45);
+    --shadow-lg: 0 12px 32px rgb(0 0 0 / 0.55);
     color-scheme: dark;
   }
 }
 
 :root[data-theme="night"] {
-  --papel: #0f1e26;
-  --papel-claro: #16282f;
-  --tinta: #ede5d2;
-  --tinta-suave: #b5ad9c;
-  --mare-claro: #0b3a42;
-  --mata: #1d3a33;
-  --mare: #2b7c8a;
-  --coral: #ee7d5e;
-  --farmacia: #3ba882;
-  --anil: #6877bf;
-  --ameixa: #a66a98;
-  --grafite: #7a8790;
-  --on-fill: #0f1e26;
+  --canvas: #0d1418;
+  --surface: #162027;
+  --surface-2: #1d2a32;
+  --ink: #edf1f3;
+  --muted: #9fadb6;
+  --line: #26333c;
+  --primary: #6cc3d1;
+  --primary-soft: #183a44;
+  --accent-strong: #ff8a6e;
+  --accent-soft: #3a1d16;
+  --success: #4cc79b;
+  --danger: #ff7a62;
+  --on-fill: #0d1418;
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-md: 0 4px 12px rgb(0 0 0 / 0.45);
+  --shadow-lg: 0 12px 32px rgb(0 0 0 / 0.55);
   color-scheme: dark;
 }
 
 @theme inline {
-  --color-papel: var(--papel);
-  --color-papel-claro: var(--papel-claro);
-  --color-tinta: var(--tinta);
-  --color-tinta-suave: var(--tinta-suave);
-  --color-mare: var(--mare);
-  --color-mare-claro: var(--mare-claro);
-  --color-coral: var(--coral);
-  --color-sol: var(--sol);
-  --color-mata: var(--mata);
-  --color-farmacia: var(--farmacia);
-  --color-anil: var(--anil);
-  --color-ameixa: var(--ameixa);
-  --color-grafite: var(--grafite);
-  --color-erro: var(--erro);
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-primary: var(--primary);
+  --color-primary-soft: var(--primary-soft);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-soft: var(--accent-soft);
+  --color-live: var(--live);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
   --color-on-fill: var(--on-fill);
+  --color-cat-work: var(--cat-work);
+  --color-cat-eat: var(--cat-eat);
+  --color-cat-health: var(--cat-health);
+  --color-cat-stay: var(--cat-stay);
+  --color-cat-tour: var(--cat-tour);
+  --color-cat-service: var(--cat-service);
+  --shadow-soft-sm: var(--shadow-sm);
+  --shadow-soft-md: var(--shadow-md);
+  --shadow-soft-lg: var(--shadow-lg);
   --font-sans: var(--font-jakarta), system-ui, sans-serif;
-  --font-serif: var(--font-fraunces), Georgia, serif;
-  --font-mono: var(--font-dm-mono), ui-monospace, monospace;
+  --font-display: var(--font-bricolage), var(--font-jakarta), system-ui, sans-serif;
 }
 
 html,
@@ -84,25 +111,12 @@ body {
 }
 
 body {
-  background: var(--papel);
-  color: var(--tinta);
+  background: var(--canvas);
+  color: var(--ink);
   font-family: var(--font-sans);
   font-size: 16px;
-}
-
-/* Paper grain overlay (DESIGN.md §4). */
-.paper-grain {
-  pointer-events: none;
-  position: absolute;
-  inset: 0;
-  opacity: 0.04;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
-}
-
-/* Smooth theme swap (DESIGN.md §9). */
-body,
-.surface {
-  transition: background-color 200ms ease, color 200ms ease, border-color 200ms ease;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 200ms ease, color 200ms ease;
 }
 
 .no-scrollbar {
@@ -113,83 +127,7 @@ body,
 }
 
 /* ---------------------------------------------------------------------------
-   Chart neatline: graduated border (alternating ink/paper blocks) like the
-   latitude/longitude scale on the margin of a nautical chart.
-   --------------------------------------------------------------------------- */
-.chart-frame {
-  --seg: 32px;
-  --edge: 6px;
-  pointer-events: none;
-  position: absolute;
-  inset: 0;
-  z-index: 5;
-}
-.chart-frame > span {
-  position: absolute;
-  background-color: var(--papel-claro);
-}
-.chart-frame__top,
-.chart-frame__bottom {
-  left: 0;
-  right: 0;
-  height: var(--edge);
-  background-image: repeating-linear-gradient(90deg, var(--tinta) 0 var(--seg), transparent var(--seg) calc(var(--seg) * 2));
-}
-.chart-frame__top {
-  top: 0;
-}
-.chart-frame__bottom {
-  bottom: 0;
-}
-.chart-frame__left,
-.chart-frame__right {
-  top: 0;
-  bottom: 0;
-  width: var(--edge);
-  background-image: repeating-linear-gradient(180deg, var(--tinta) 0 var(--seg), transparent var(--seg) calc(var(--seg) * 2));
-}
-.chart-frame__left {
-  left: 0;
-}
-.chart-frame__right {
-  right: 0;
-}
-.chart-frame::after {
-  content: "";
-  position: absolute;
-  inset: calc(var(--edge) + 3px);
-  border: 1px solid color-mix(in srgb, var(--tinta) 55%, transparent);
-}
-.chart-frame::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border: 1px solid var(--tinta);
-  z-index: 1;
-}
-@media (min-width: 1024px) {
-  .chart-frame {
-    --edge: 9px;
-    --seg: 48px;
-  }
-}
-
-/* Activity labels only once the chart is zoomed in enough to read them. */
-.labels-hidden .roda__label {
-  display: none;
-}
-
-/* Vignette: aged paper edges. */
-.chart-vignette {
-  pointer-events: none;
-  position: absolute;
-  inset: 0;
-  z-index: 4;
-  background: radial-gradient(ellipse at center, transparent 62%, color-mix(in srgb, var(--tinta) 14%, transparent) 100%);
-}
-
-/* ---------------------------------------------------------------------------
-   Activity "rodas" (DESIGN.md §5)
+   Activity markers: a coral "live" dot with a soft pulse and a label pill.
    --------------------------------------------------------------------------- */
 .roda {
   position: relative;
@@ -204,31 +142,31 @@ body,
 }
 .roda__ring {
   position: absolute;
-  inset: 4px;
-  border: 2px solid var(--sol);
+  inset: 6px;
   border-radius: 9999px;
+  background: color-mix(in srgb, var(--live) 28%, transparent);
 }
 .roda--pulse .roda__ring {
   animation: roda-pulse 2.4s ease-out infinite;
 }
 .roda--live .roda__ring {
-  inset: 2px;
-  border-width: 3px;
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--sol) 35%, transparent);
+  inset: 3px;
+  background: color-mix(in srgb, var(--live) 35%, transparent);
 }
 .roda--idle .roda__ring {
-  opacity: 0.55;
+  opacity: 0;
 }
 .roda__core {
   position: relative;
   display: grid;
   place-items: center;
-  width: 26px;
-  height: 26px;
+  width: 28px;
+  height: 28px;
   border-radius: 9999px;
-  background: var(--sol);
-  color: #1f2a30;
-  border: 1.5px solid #1f2a30;
+  background: var(--live);
+  color: #fff;
+  border: 2.5px solid #fff;
+  box-shadow: var(--shadow-md);
 }
 .roda__label {
   position: absolute;
@@ -238,83 +176,80 @@ body,
   display: flex;
   flex-direction: column;
   white-space: nowrap;
-  max-width: 150px;
-  padding: 2px 8px;
-  border-radius: 8px;
-  background: color-mix(in srgb, var(--papel-claro) 92%, transparent);
-  border: 1px solid color-mix(in srgb, var(--tinta) 15%, transparent);
+  max-width: 170px;
+  padding: 4px 10px;
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
   text-align: left;
   pointer-events: none;
 }
 .roda__time {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.02em;
-  color: var(--tinta-suave);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent-strong);
+  font-variant-numeric: tabular-nums;
 }
 .roda__title {
-  font-family: var(--font-serif);
-  font-weight: 600;
   font-size: 12px;
-  color: var(--tinta);
+  font-weight: 600;
+  color: var(--ink);
   overflow: hidden;
   text-overflow: ellipsis;
+}
+.labels-hidden .roda__label {
+  display: none;
 }
 @keyframes roda-pulse {
   0% {
     transform: scale(1);
-    opacity: 0.6;
+    opacity: 0.9;
   }
   100% {
-    transform: scale(1.6);
+    transform: scale(2);
     opacity: 0;
   }
 }
 
 /* ---------------------------------------------------------------------------
-   MapLibre controls in "ink" style
+   MapLibre controls, quiet and on-brand
    --------------------------------------------------------------------------- */
 .maplibregl-ctrl-bottom-left {
   bottom: var(--map-inset-bottom, 0px);
-  left: 14px;
+  left: 12px;
   transition: bottom 250ms ease;
 }
 .maplibregl-ctrl-bottom-right {
   bottom: var(--map-inset-bottom, 0px);
-  right: 12px;
+  right: 10px;
   transition: bottom 250ms ease;
 }
 .maplibregl-ctrl-scale {
   background: transparent;
-  border: 2px solid var(--tinta);
+  border: 2px solid var(--muted);
   border-top: 0;
-  color: var(--tinta);
-  font-family: var(--font-mono);
+  color: var(--ink);
   font-size: 10px;
-  line-height: 1.6;
-  padding: 0 4px;
-  background-image: repeating-linear-gradient(90deg, var(--tinta) 0 1px, transparent 1px 25%);
-  background-size: 100% 4px;
-  background-repeat: no-repeat;
-  background-position: bottom;
-  text-shadow: 0 0 3px var(--papel), 0 0 2px var(--papel);
+  font-weight: 700;
+  line-height: 1.5;
+  text-shadow: 0 0 3px var(--surface), 0 0 2px var(--surface);
 }
 .maplibregl-ctrl-attrib.maplibregl-compact {
-  background: color-mix(in srgb, var(--papel-claro) 92%, transparent);
-  color: var(--tinta);
+  background: var(--surface);
+  color: var(--muted);
   font-size: 10px;
+  box-shadow: var(--shadow-sm);
 }
 .maplibregl-ctrl-attrib a {
-  color: var(--tinta);
+  color: var(--muted);
 }
 
 @media (prefers-reduced-motion: reduce) {
   .roda--pulse .roda__ring {
     animation: none;
-    opacity: 0.5;
+    opacity: 0.6;
   }
   body,
-  .surface,
   .maplibregl-ctrl-bottom-left,
   .maplibregl-ctrl-bottom-right {
     transition: none;

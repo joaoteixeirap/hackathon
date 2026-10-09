@@ -51,23 +51,23 @@ export default async function ActivityPage({ params, searchParams }: Props) {
   return (
     <PageShell title={title}>
       {nova && (
-        <div role="status" className="-mt-2 mb-5 rounded-2xl border-[1.5px] border-tinta bg-sol p-4 text-[#1f2a30]">
-          <p className="font-serif text-lg font-bold">Roda criada!</p>
+        <div role="status" className="-mt-2 mb-5 rounded-3xl bg-accent p-5 text-white shadow-soft-md">
+          <p className="font-display text-lg font-bold">Roda criada!</p>
           <p className="text-sm">Ela já aparece no mapa. Mande o link no grupo do WhatsApp para chamar o pessoal.</p>
         </div>
       )}
 
       <article className={`${card} space-y-5 p-5`}>
-        <p className="flex items-center gap-2 text-xs font-bold tracking-wider text-tinta-suave uppercase">
-          <span className="grid size-8 place-items-center rounded-full border border-tinta bg-sol text-[#1f2a30]">
+        <p className="flex items-center gap-2 text-sm font-semibold text-muted">
+          <span className="grid size-8 place-items-center rounded-xl bg-live text-white">
             <ActivityIcon category={a.category} size={16} />
           </span>
           Roda · {ACTIVITY_LABELS[a.category]} · {a.city.name}
           {a.is_demo && <DemoTag />}
         </p>
 
-        {a.status === "cancelled" && <p className="font-bold text-erro">Esta atividade foi cancelada.</p>}
-        {past && a.status !== "cancelled" && <p className="font-bold text-tinta-suave">Esta atividade já aconteceu.</p>}
+        {a.status === "cancelled" && <p className="font-bold text-danger">Esta atividade foi cancelada.</p>}
+        {past && a.status !== "cancelled" && <p className="font-bold text-muted">Esta atividade já aconteceu.</p>}
 
         <dl className="grid grid-cols-[auto_1fr] items-start gap-x-3 gap-y-3">
           <dt className="pt-0.5">
@@ -80,7 +80,7 @@ export default async function ActivityPage({ params, searchParams }: Props) {
           <dd>
             {a.meeting_label ?? "Ponto marcado no mapa"}
             {a.place && (
-              <Link href={`/lugar/${a.place.id}`} className="ml-2 text-sm font-bold text-mare underline-offset-4 hover:underline">
+              <Link href={`/lugar/${a.place.id}`} className="ml-2 text-sm font-bold text-primary underline-offset-4 hover:underline">
                 ver lugar
               </Link>
             )}
@@ -88,7 +88,7 @@ export default async function ActivityPage({ params, searchParams }: Props) {
           <dt className="pt-0.5">
             <Users size={18} strokeWidth={1.75} aria-label="Vagas" />
           </dt>
-          <dd className="font-mono">
+          <dd className="tabular-nums">
             {a.status === "full" || spots === 0 ? "lotada" : `${spots} ${spots === 1 ? "vaga" : "vagas"} de ${a.capacity - 1}`}
           </dd>
           {a.cost_total_cents ? (
@@ -96,11 +96,11 @@ export default async function ActivityPage({ params, searchParams }: Props) {
               <dt className="pt-0.5">
                 <Wallet size={18} strokeWidth={1.75} aria-label="Custo" />
               </dt>
-              <dd className="font-mono">
+              <dd className="tabular-nums">
                 {formatBRL(a.cost_total_cents)} no total
                 {perPerson != null && (
                   <span className="mt-1 block text-lg font-medium">
-                    {formatBRL(perPerson.cents)} por pessoa <span className="text-sm text-tinta-suave">{perPerson.note}</span>
+                    {formatBRL(perPerson.cents)} por pessoa <span className="text-sm text-muted">{perPerson.note}</span>
                   </span>
                 )}
               </dd>
@@ -110,20 +110,20 @@ export default async function ActivityPage({ params, searchParams }: Props) {
 
         {a.description && <p className="whitespace-pre-line">{a.description}</p>}
 
-        <p className="rounded-xl border border-dashed border-tinta/40 px-3 py-2 text-sm">Combine em local público.</p>
+        <p className="rounded-2xl bg-surface-2 px-3.5 py-2.5 text-sm">Combine em local público.</p>
 
         <div className="flex flex-wrap gap-2">
           <a href={directionsUrl(a.lat, a.lng)} target="_blank" rel="noopener noreferrer" className={`${buttonPrimary} gap-2`}>
             <Navigation size={16} strokeWidth={1.75} aria-hidden /> Como chegar
           </a>
-          <Link href={`/mapa/${a.city.slug}?atividade=${a.id}`} className="inline-flex min-h-11 items-center px-2 text-sm font-bold text-mare underline-offset-4 hover:underline">
+          <Link href={`/mapa/${a.city.slug}?atividade=${a.id}`} className="inline-flex min-h-11 items-center px-2 text-sm font-bold text-primary underline-offset-4 hover:underline">
             Ver no mapa
           </Link>
         </div>
       </article>
 
       <section className="mt-6 space-y-3" aria-labelledby="share-title">
-        <h2 id="share-title" className="font-serif text-xl font-bold">
+        <h2 id="share-title" className="font-display text-xl font-bold">
           Chamar gente
         </h2>
         <ShareActions path={`/atividade/${a.id}`} title={title} whenText={when} />

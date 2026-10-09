@@ -1,27 +1,19 @@
 import type { Metadata, Viewport } from "next";
-import { DM_Mono, Fraunces, Plus_Jakarta_Sans } from "next/font/google";
+import { Bricolage_Grotesque, Plus_Jakarta_Sans } from "next/font/google";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 import "./globals.css";
 
-const fraunces = Fraunces({
-  variable: "--font-fraunces",
+const bricolage = Bricolage_Grotesque({
+  variable: "--font-bricolage",
   subsets: ["latin"],
-  weight: ["600", "700"],
-  style: ["normal", "italic"],
+  weight: ["600", "700", "800"],
   display: "swap",
 });
 
 const jakarta = Plus_Jakarta_Sans({
   variable: "--font-jakarta",
   subsets: ["latin"],
-  weight: ["500", "700"],
-  display: "swap",
-});
-
-const dmMono = DM_Mono({
-  variable: "--font-dm-mono",
-  subsets: ["latin"],
-  weight: ["500"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
@@ -38,8 +30,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#F3EAD7" },
-    { media: "(prefers-color-scheme: dark)", color: "#0F1E26" },
+    { media: "(prefers-color-scheme: light)", color: "#F6F4F1" },
+    { media: "(prefers-color-scheme: dark)", color: "#0D1418" },
   ],
 };
 
@@ -51,7 +43,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body
-        className={`${fraunces.variable} ${jakarta.variable} ${dmMono.variable} antialiased`}
+        className={`${bricolage.variable} ${jakarta.variable} antialiased`}
       >
         {children}
         <ServiceWorkerRegister />

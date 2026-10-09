@@ -55,11 +55,21 @@ export function ActivityIcon({ category, size = 18, className }: { category: Act
 
 /** Tailwind classes per category (kept literal so Tailwind can see them). */
 export const CATEGORY_BG: Record<ChipKey, string> = {
-  work: "bg-mare",
-  eat: "bg-coral",
-  health: "bg-farmacia",
-  stay: "bg-anil",
-  tour: "bg-ameixa",
-  service: "bg-grafite",
-  activities: "bg-sol",
+  work: "bg-cat-work",
+  eat: "bg-cat-eat",
+  health: "bg-cat-health",
+  stay: "bg-cat-stay",
+  tour: "bg-cat-tour",
+  service: "bg-cat-service",
+  activities: "bg-live",
+};
+
+export const CATEGORY_TEXT: Record<ChipKey, string> = {
+  work: "text-cat-work",
+  eat: "text-cat-eat",
+  health: "text-cat-health",
+  stay: "text-cat-stay",
+  tour: "text-cat-tour",
+  service: "text-cat-service",
+  activities: "text-accent-strong",
 };

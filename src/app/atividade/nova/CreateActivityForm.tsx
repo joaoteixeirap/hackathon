@@ -19,7 +19,7 @@ function tomorrowInBrasilia(): string {
 
 function Err({ id, msg }: { id: string; msg?: string }) {
   return msg ? (
-    <p id={id} className="text-sm text-erro">
+    <p id={id} className="text-sm text-danger">
       {msg}
     </p>
   ) : null;
@@ -59,8 +59,8 @@ export function CreateActivityForm({ citySlug, bbox, prefill }: { citySlug: stri
           {ACTIVITY_CATEGORIES.map((c) => (
             <label
               key={c}
-              className={`flex min-h-16 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border p-2 text-center text-xs font-bold transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-sol ${
-                category === c ? "border-tinta bg-sol text-[#1f2a30]" : "border-tinta/30 hover:bg-tinta/5"
+              className={`flex min-h-[72px] cursor-pointer flex-col items-center justify-center gap-1.5 rounded-2xl border p-2 text-center text-xs font-semibold transition has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-primary/20 ${
+                category === c ? "border-transparent bg-accent text-white shadow-soft-sm" : "border-line bg-surface text-ink hover:bg-surface-2"
               }`}
             >
               <input type="radio" name="category" value={c} checked={category === c} onChange={() => setCategory(c)} className="sr-only" />
@@ -112,7 +112,7 @@ export function CreateActivityForm({ citySlug, bbox, prefill }: { citySlug: stri
       <div className="space-y-2">
         <p className={label}>Ponto de encontro</p>
         <LocationPicker bbox={bbox} initial={{ lat: prefill.lat, lng: prefill.lng }} zoom={prefill.zoom} onChange={setPoint} />
-        <p className="font-mono text-xs text-tinta-suave" aria-live="polite">
+        <p className="tabular-nums text-xs text-muted" aria-live="polite">
           {point.lat.toFixed(5)}, {point.lng.toFixed(5)}
         </p>
         <label htmlFor="meeting_label" className="sr-only">
@@ -127,8 +127,8 @@ export function CreateActivityForm({ citySlug, bbox, prefill }: { citySlug: stri
           className={field}
         />
         <Err id="location-error" msg={e.location ?? e.meeting_label} />
-        <p className="flex items-center gap-2 rounded-xl border border-dashed border-tinta/40 px-3 py-2 text-sm">
-          <ShieldCheck size={18} strokeWidth={1.75} className="shrink-0 text-farmacia" aria-hidden />
+        <p className="flex items-center gap-2 rounded-2xl bg-surface-2 px-3.5 py-2.5 text-sm">
+          <ShieldCheck size={18} strokeWidth={1.75} className="shrink-0 text-success" aria-hidden />
           Combine em local público.
         </p>
       </div>
@@ -147,7 +147,7 @@ export function CreateActivityForm({ citySlug, bbox, prefill }: { citySlug: stri
             max={30}
             value={capacity}
             onChange={(ev) => setCapacity(Math.max(2, Math.min(30, Number(ev.target.value) || 2)))}
-            className={`${field} font-mono`}
+            className={`${field} tabular-nums`}
           />
           <Err id="capacity-error" msg={e.capacity} />
         </div>
@@ -162,17 +162,17 @@ export function CreateActivityForm({ citySlug, bbox, prefill }: { citySlug: stri
             placeholder="R$ 0,00"
             value={cost}
             onChange={(ev) => setCost(ev.target.value)}
-            className={`${field} font-mono`}
+            className={`${field} tabular-nums`}
           />
           <Err id="cost-error" msg={e.cost} />
         </div>
       </div>
       {cost && (
         <label className="flex min-h-11 items-center gap-3">
-          <input type="checkbox" name="split_cost" checked={split} onChange={(ev) => setSplit(ev.target.checked)} className="size-5 accent-mare" />
+          <input type="checkbox" name="split_cost" checked={split} onChange={(ev) => setSplit(ev.target.checked)} className="size-5 accent-primary" />
           <span>
             Dividir entre o grupo
-            {perPerson != null && <span className="ml-2 font-mono text-sm">≈ {formatBRL(perPerson)} por pessoa se lotar</span>}
+            {perPerson != null && <span className="ml-2 tabular-nums text-sm">≈ {formatBRL(perPerson)} por pessoa se lotar</span>}
           </span>
         </label>
       )}
@@ -185,7 +185,7 @@ export function CreateActivityForm({ citySlug, bbox, prefill }: { citySlug: stri
       </div>
 
       {state.message && (
-        <p role="alert" className="text-sm text-erro">
+        <p role="alert" className="text-sm text-danger">
           {state.message}
         </p>
       )}

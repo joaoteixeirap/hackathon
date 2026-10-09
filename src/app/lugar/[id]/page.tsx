@@ -28,11 +28,11 @@ export default async function PlacePage({ params }: Props) {
         <PlaceDetail place={data.place} wifiTests={data.wifiTests} standalone />
       </div>
       {data.citySlug && (
-        <Link href={`/mapa/${data.citySlug}`} className="mt-4 inline-flex min-h-11 items-center text-sm font-bold text-mare underline-offset-4 hover:underline">
+        <Link href={`/mapa/${data.citySlug}`} className="mt-4 inline-flex min-h-11 items-center text-sm font-bold text-primary underline-offset-4 hover:underline">
           ← Ver no mapa
         </Link>
       )}
-      <p className="mt-6 text-xs text-tinta-suave">Dados do lugar © OpenStreetMap contributors, quando importados.</p>
+      <p className="mt-6 text-xs text-muted">Dados do lugar © OpenStreetMap contributors, quando importados.</p>
     </PageShell>
   );
 }

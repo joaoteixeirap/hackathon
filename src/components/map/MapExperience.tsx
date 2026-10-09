@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, User } from "lucide-react";
+import { ArrowLeft, Plus, User } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ActivityDetail } from "@/components/sheet/ActivityDetail";
@@ -8,6 +8,7 @@ import { BottomSheet, type Snap } from "@/components/sheet/BottomSheet";
 import { PlaceDetail } from "@/components/sheet/PlaceDetail";
 import { ResultList } from "@/components/sheet/ResultList";
 import { Logo, LogoMark } from "@/components/ui/Logo";
+import { buttonAccent } from "@/components/ui/styles";
 import type { City } from "@/lib/cities";
 import { haversine } from "@/lib/geo";
 import { loadOpeningHours, makeIsOpen } from "@/lib/openingHours";
@@ -27,11 +28,9 @@ import type { MapTheme } from "./applyTheme";
 import {
   BottomNav,
   CategoryChips,
-  CompassButton,
-  CompassRoseWatermark,
-  CoordinateReadout,
   LayersMenu,
   NAV_HEIGHT,
+  RecenterButton,
   SearchPill,
   type ThemeChoice,
 } from "./MapChrome";
@@ -273,14 +272,19 @@ export function MapExperience({
   );
 
   const listHeader = (
-    <div className="flex items-baseline justify-between gap-3 pt-1">
+    <div className="flex items-center justify-between gap-3 pt-1 pb-1">
       <div className="min-w-0">
-        <p className="font-serif text-sm italic text-tinta-suave">Carta de {city.name}</p>
-        <p className="truncate font-mono text-[13px]">{countLine}</p>
+        <p className="font-display text-[17px] leading-tight font-bold">{selection ? "Detalhes" : `Explorar ${city.name}`}</p>
+        <p className="truncate text-[13px] text-muted tabular-nums">{countLine}</p>
       </div>
       {selection && (
-        <button type="button" data-no-drag onClick={() => setSelection(null)} className="min-h-11 shrink-0 text-sm font-bold text-mare">
-          ← Lista
+        <button
+          type="button"
+          data-no-drag
+          onClick={() => setSelection(null)}
+          className="inline-flex min-h-10 shrink-0 items-center gap-1 rounded-full bg-surface-2 px-3 text-sm font-semibold text-ink"
+        >
+          <ArrowLeft size={15} aria-hidden /> Lista
         </button>
       )}
     </div>
@@ -293,8 +297,8 @@ export function MapExperience({
 
   return (
     <main
-      className={`fixed inset-0 overflow-hidden bg-papel ${view && view.zoom < 14.5 ? "labels-hidden" : ""}`}
-      style={{ ["--map-inset-bottom" as string]: `${isDesktop ? 18 : bottomInset + 12}px` }}
+      className={`fixed inset-0 overflow-hidden bg-canvas ${view && view.zoom < 14.5 ? "labels-hidden" : ""}`}
+      style={{ ["--map-inset-bottom" as string]: `${isDesktop ? 16 : bottomInset + 10}px` }}
     >
       <MapView
         ref={mapRef}
@@ -309,54 +313,39 @@ export function MapExperience({
         onSelectActivity={selectActivity}
         onViewChange={setView}
       />
-      <div className="paper-grain z-[4]" aria-hidden />
-      <div className="chart-vignette" aria-hidden />
-      <CompassRoseWatermark />
-      <div className="chart-frame" aria-hidden>
-        <span className="chart-frame__top" />
-        <span className="chart-frame__bottom" />
-        <span className="chart-frame__left" />
-        <span className="chart-frame__right" />
-      </div>
 
       {isDesktop ? (
-        <>
-          <aside
-            className="surface absolute top-6 bottom-6 left-6 z-20 flex flex-col overflow-hidden rounded-3xl border border-tinta/20 bg-papel-claro shadow-[0_4px_0_color-mix(in_srgb,var(--tinta)_12%,transparent),0_18px_40px_color-mix(in_srgb,var(--tinta)_12%,transparent)]"
-            style={{ width: DESKTOP_PANEL }}
-            aria-label="Painel do mapa"
-          >
-            <div className="space-y-3 border-b-2 border-dotted border-tinta/20 p-4">
-              <div className="flex items-center justify-between">
-                <Link href="/" aria-label="SoloRota, início">
-                  <Logo />
+        <aside
+          className="absolute top-4 bottom-4 left-4 z-20 flex flex-col overflow-hidden rounded-[28px] border border-line bg-surface shadow-soft-lg"
+          style={{ width: DESKTOP_PANEL }}
+          aria-label="Painel do mapa"
+        >
+          <div className="space-y-4 border-b border-line p-5">
+            <div className="flex items-center justify-between">
+              <Link href="/" aria-label="SoloRota, início">
+                <Logo />
+              </Link>
+              <div className="flex items-center gap-1.5">
+                <Link href="/perfil" aria-label="Perfil" className="grid size-11 place-items-center rounded-full text-ink hover:bg-surface-2">
+                  <User size={20} strokeWidth={2} />
                 </Link>
-                <div className="flex items-center gap-1">
-                  <Link href="/perfil" aria-label="Perfil" className="grid size-11 place-items-center rounded-full hover:bg-tinta/5">
-                    <User size={20} strokeWidth={1.75} />
-                  </Link>
-                  <Link
-                    href="/atividade/nova"
-                    className="flex h-10 items-center gap-1 rounded-full border-[1.5px] border-tinta bg-coral px-3 text-sm font-bold text-on-fill"
-                  >
-                    <Plus size={16} strokeWidth={2} aria-hidden /> Criar roda
-                  </Link>
-                </div>
+                <Link href="/atividade/nova" className={`${buttonAccent} min-h-10 gap-1.5 px-4 text-sm`}>
+                  <Plus size={16} strokeWidth={2.5} aria-hidden /> Criar roda
+                </Link>
               </div>
-              <SearchPill value={query} onChange={onQuery} cityName={city.name} />
-              {chips}
-              {listHeader}
             </div>
-            <div className="min-h-0 flex-1 overflow-y-auto px-4 pt-2 pb-6">{body}</div>
-          </aside>
-          <Cartouche city={city} />
-        </>
+            <SearchPill value={query} onChange={onQuery} cityName={city.name} elevated={false} />
+            {chips}
+          </div>
+          <div className="px-5 pt-4">{listHeader}</div>
+          <div className="min-h-0 flex-1 overflow-y-auto px-5 pt-1 pb-6">{body}</div>
+        </aside>
       ) : (
         <>
-          <header className="pointer-events-none absolute inset-x-0 top-0 z-10 space-y-2 px-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
+          <header className="pointer-events-none absolute inset-x-0 top-0 z-10 space-y-2.5 bg-gradient-to-b from-canvas/70 to-transparent px-3 pt-[max(0.75rem,env(safe-area-inset-top))] pb-2">
             <div className="pointer-events-auto flex items-center gap-2">
-              <Link href="/" aria-label="SoloRota, início" className="grid size-12 shrink-0 place-items-center rounded-full border-[1.5px] border-tinta bg-papel-claro shadow-[0_2px_0_color-mix(in_srgb,var(--tinta)_15%,transparent)]">
-                <LogoMark size={30} />
+              <Link href="/" aria-label="SoloRota, início" className="shrink-0 rounded-[14px] shadow-soft-md">
+                <LogoMark size={48} />
               </Link>
               <SearchPill value={query} onChange={onQuery} cityName={city.name} />
             </div>
@@ -389,7 +378,7 @@ export function MapExperience({
         </>
       )}
 
-      <div className="absolute right-4 z-10 flex flex-col gap-3" style={{ top: isDesktop ? 24 : 132 }}>
+      <div className="absolute right-4 z-10 flex flex-col gap-2.5" style={{ top: isDesktop ? 16 : 132 }}>
         <LayersMenu
           showPlaces={showPlaces}
           showActivities={showActivities}
@@ -398,31 +387,8 @@ export function MapExperience({
           onToggleActivities={() => setShowActivities((v) => !v)}
           onTheme={setThemeChoice}
         />
-        <CompassButton onClick={() => mapRef.current?.recenter()} />
+        <RecenterButton onClick={() => mapRef.current?.recenter()} />
       </div>
-
-      {view && (
-        <div
-          className="absolute z-10 transition-[bottom] duration-300"
-          style={isDesktop ? { left: DESKTOP_PANEL + 48, bottom: 48 } : { left: 16, bottom: bottomInset + 42 }}
-        >
-          <CoordinateReadout lat={view.center.lat} lng={view.center.lng} zoom={view.zoom} />
-        </div>
-      )}
     </main>
-  );
-}
-
-/** Title box of the chart, like the cartouche on an old nautical chart (desktop). */
-function Cartouche({ city }: { city: City }) {
-  return (
-    <div className="surface pointer-events-none absolute right-24 bottom-16 z-10 border-[3px] border-double border-tinta bg-papel-claro/95 px-6 py-4 text-center shadow-[0_3px_0_color-mix(in_srgb,var(--tinta)_15%,transparent)]">
-      <p className="text-[10px] font-bold tracking-[0.3em] text-tinta-suave uppercase">Carta do nômade</p>
-      <p className="font-serif text-3xl leading-tight font-bold italic">{city.name}</p>
-      <p className="font-mono text-[11px] text-tinta-suave">
-        {Math.abs(city.center_lat).toFixed(2)}° S · {Math.abs(city.center_lng).toFixed(2)}° O · {city.state}
-      </p>
-      <p className="mt-1 border-t border-tinta/30 pt-1 font-serif text-[11px] italic">levantamento colaborativo · {new Date().getFullYear()}</p>
-    </div>
   );
 }

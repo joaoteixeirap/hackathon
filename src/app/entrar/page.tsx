@@ -18,7 +18,7 @@ export default async function SignInPage({ searchParams }: Props) {
     <PageShell title="Entrar">
       <div className={`${card} p-5`}>
         {erro === "link" && (
-          <p role="alert" className="mb-4 text-sm text-erro">
+          <p role="alert" className="mb-4 text-sm text-danger">
             O link expirou ou já foi usado. Peça um novo abaixo.
           </p>
         )}

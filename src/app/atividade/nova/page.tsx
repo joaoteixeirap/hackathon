@@ -24,7 +24,7 @@ export default async function NewActivityPage({ searchParams }: Props) {
 
   return (
     <PageShell title="Criar um rolê em grupo">
-      <p className="-mt-3 mb-5 text-tinta-suave">
+      <p className="-mt-3 mb-5 text-muted">
         Em {city.name}. A roda aparece no mapa para outros nômades na hora.
       </p>
       <div className={`${card} p-5`}>

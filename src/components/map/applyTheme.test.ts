@@ -15,12 +15,12 @@ const style: StyleSpecification = {
 };
 
 describe("applyTheme", () => {
-  it("paints land as papel and water as mare-claro in day theme", () => {
+  it("paints land and water with the day basemap colors", () => {
     const out = applyTheme(style, "day");
     const bg = out.layers.find((l) => l.id === "background");
     const water = out.layers.find((l) => l.id === "water");
-    expect(bg?.paint).toMatchObject({ "background-color": "#F3EAD7" });
-    expect(water?.paint).toMatchObject({ "fill-color": "#9CC9C3" });
+    expect(bg?.paint).toMatchObject({ "background-color": "#F2EFEA" });
+    expect(water?.paint).toMatchObject({ "fill-color": "#BFDDEA" });
   });
 
   it("hides base POIs and 3D buildings", () => {

@@ -19,7 +19,7 @@ export function ShareActions({ path, title, whenText }: { path: string; title: s
         href={`https://wa.me/?text=${encodeURIComponent(waText)}`}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex min-h-11 items-center gap-2 rounded-full border-[1.5px] border-tinta bg-farmacia px-5 font-bold text-on-fill"
+        className="inline-flex min-h-12 items-center gap-2 rounded-full bg-[#1A8D47] px-6 font-semibold text-white shadow-soft-sm transition hover:brightness-105 active:scale-[0.98]"
       >
         <MessageCircle size={18} strokeWidth={1.75} aria-hidden /> Enviar no WhatsApp
       </a>
@@ -30,7 +30,7 @@ export function ShareActions({ path, title, whenText }: { path: string; title: s
       >
         <Share2 size={16} strokeWidth={1.75} aria-hidden /> Compartilhar
       </button>
-      <span role="status" className="text-sm text-farmacia">
+      <span role="status" className="text-sm text-success">
         {msg}
       </span>
     </div>

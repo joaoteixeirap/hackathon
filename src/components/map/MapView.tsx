@@ -78,33 +78,10 @@ async function installLayers(map: maplibregl.Map, theme: MapTheme, data: Feature
   await addPinImages(map, theme);
   if (map.getSource("places")) return;
 
-  const style = map.getStyle();
-  const waterIdx = style.layers.findIndex((l) => l.id === "water");
-  const water = style.layers[waterIdx];
-  const beforeWater = style.layers[waterIdx + 1]?.id;
-  if (water && "source" in water) {
-    map.addLayer(
-      { id: "carta-water-hatch", type: "fill", source: water.source, "source-layer": "water", paint: { "fill-pattern": "carta-hatch" } },
-      beforeWater,
-    );
-    map.addLayer(
-      {
-        id: "carta-coast",
-        type: "line",
-        source: water.source,
-        "source-layer": "water",
-        paint: {
-          "line-color": theme === "day" ? "#1F2A30" : "#9CC9C3",
-          "line-opacity": 0.55,
-          "line-width": ["interpolate", ["linear"], ["zoom"], 10, 0.6, 16, 1.4],
-        },
-      },
-      beforeWater,
-    );
-  }
-
-  const ink = theme === "day" ? "#1F2A30" : "#EDE5D2";
-  const paper = theme === "day" ? "#FBF6EA" : "#16282F";
+  const ink = theme === "day" ? "#0F1F2A" : "#EDF1F3";
+  const surface = theme === "day" ? "#FFFFFF" : "#162027";
+  const clusterFill = theme === "day" ? "#0B3B4A" : "#6CC3D1";
+  const clusterText = theme === "day" ? "#FFFFFF" : "#0D1418";
 
   map.addSource("places", {
     type: "geojson",
@@ -117,28 +94,28 @@ async function installLayers(map: maplibregl.Map, theme: MapTheme, data: Feature
     ),
   });
 
+  // Clusters: brand-dark disc, white rim, soft halo in the dominant category color.
+  map.addLayer({
+    id: "cluster-halo",
+    type: "circle",
+    source: "places",
+    filter: ["has", "point_count"],
+    paint: {
+      "circle-color": dominantColor(theme),
+      "circle-opacity": 0.22,
+      "circle-radius": ["step", ["get", "point_count"], 24, 10, 29, 50, 35],
+    },
+  });
   map.addLayer({
     id: "cluster-ring",
     type: "circle",
     source: "places",
     filter: ["has", "point_count"],
     paint: {
-      "circle-color": paper,
-      "circle-radius": ["step", ["get", "point_count"], 17, 10, 21, 50, 26],
-      "circle-stroke-width": 3.5,
-      "circle-stroke-color": dominantColor(theme),
-    },
-  });
-  map.addLayer({
-    id: "cluster-ink",
-    type: "circle",
-    source: "places",
-    filter: ["has", "point_count"],
-    paint: {
-      "circle-color": "rgba(0,0,0,0)",
-      "circle-radius": ["step", ["get", "point_count"], 19.5, 10, 23.5, 50, 28.5],
-      "circle-stroke-width": 1,
-      "circle-stroke-color": ink,
+      "circle-color": clusterFill,
+      "circle-radius": ["step", ["get", "point_count"], 16, 10, 20, 50, 25],
+      "circle-stroke-width": 2.5,
+      "circle-stroke-color": surface,
     },
   });
   map.addLayer({
@@ -152,7 +129,7 @@ async function installLayers(map: maplibregl.Map, theme: MapTheme, data: Feature
       "text-size": 13,
       "text-allow-overlap": true,
     },
-    paint: { "text-color": ink },
+    paint: { "text-color": clusterText },
   });
   map.addLayer({
     id: "place-featured-halo",
@@ -160,11 +137,11 @@ async function installLayers(map: maplibregl.Map, theme: MapTheme, data: Feature
     source: "places",
     filter: ["all", ["!", ["has", "point_count"]], ["==", ["get", "featured"], true]],
     paint: {
-      "circle-color": "#F2B632",
-      "circle-opacity": 0.45,
-      "circle-blur": 0.6,
-      "circle-radius": 26,
-      "circle-translate": [0, -22],
+      "circle-color": "#FF5B3A",
+      "circle-opacity": 0.28,
+      "circle-blur": 0.5,
+      "circle-radius": 24,
+      "circle-translate": [0, -26],
     },
   });
   map.addLayer({
@@ -175,7 +152,7 @@ async function installLayers(map: maplibregl.Map, theme: MapTheme, data: Feature
     layout: {
       "icon-image": ["get", "icon"],
       "icon-anchor": "bottom",
-      "icon-size": ["case", ["==", ["get", "featured"], true], 1.25, 1],
+      "icon-size": ["case", ["==", ["get", "featured"], true], 1.2, 1],
       "icon-allow-overlap": true,
       "symbol-sort-key": ["case", ["==", ["get", "featured"], true], 1, 0],
     },
@@ -197,7 +174,7 @@ async function installLayers(map: maplibregl.Map, theme: MapTheme, data: Feature
       "text-offset": [0, 0.4],
       "text-optional": true,
     },
-    paint: { "text-color": ink, "text-halo-color": paper, "text-halo-width": 2 },
+    paint: { "text-color": ink, "text-halo-color": surface, "text-halo-width": 2 },
   });
 }
 
@@ -363,7 +340,7 @@ export const MapView = forwardRef<MapViewHandle, Props>(function MapView(
         aria-label={`Mapa de ${city.name}`}
       />
       {error && (
-        <p className="absolute inset-x-4 top-1/2 z-10 rounded-2xl bg-papel-claro p-4 text-center text-tinta shadow">
+        <p className="absolute inset-x-4 top-1/2 z-10 rounded-2xl bg-surface p-4 text-center text-ink shadow">
           Não foi possível carregar o mapa. Verifique sua conexão.
         </p>
       )}

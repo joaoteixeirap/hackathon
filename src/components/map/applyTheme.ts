@@ -14,29 +14,29 @@ type Palette = {
   halo: string;
 };
 
-// DESIGN.md §2 and §4.
+// DESIGN.md §4: a quiet, neutral basemap so brand pins carry the color.
 const PALETTES: Record<MapTheme, Palette> = {
   day: {
-    land: "#F3EAD7",
-    water: "#9CC9C3",
-    waterLine: "#1E5B66",
-    green: "#B9CDA0",
-    road: "#FFFDF6",
-    roadCasing: "rgba(31, 42, 48, 0.15)",
-    building: "#E7DCC3",
-    label: "#1F2A30",
-    halo: "#F3EAD7",
+    land: "#F2EFEA",
+    water: "#BFDDEA",
+    waterLine: "#A9CFE0",
+    green: "#D5E7CC",
+    road: "#FFFFFF",
+    roadCasing: "rgba(15, 31, 42, 0.10)",
+    building: "#E7E2DA",
+    label: "#4A5761",
+    halo: "#FFFFFF",
   },
   night: {
-    land: "#0F1E26",
-    water: "#0B3A42",
-    waterLine: "#2A7380",
-    green: "#1D3A33",
-    road: "#1C3038",
-    roadCasing: "rgba(237, 229, 210, 0.15)",
-    building: "#172A33",
-    label: "#EDE5D2",
-    halo: "#0F1E26",
+    land: "#121A1F",
+    water: "#0C2733",
+    waterLine: "#123545",
+    green: "#14251E",
+    road: "#24303A",
+    roadCasing: "rgba(237, 241, 243, 0.06)",
+    building: "#1A242B",
+    label: "#9FADB6",
+    halo: "#121A1F",
   },
 };
 
@@ -78,7 +78,7 @@ function themeLayer(layer: LayerSpecification, p: Palette): LayerSpecification |
           return { ...layer, paint: { ...layer.paint, "line-color": p.roadCasing } };
         }
         if (id.endsWith("_casing")) {
-          const color = isMajorRoad(id) ? p.roadCasing.replace("0.15", "0.35") : p.roadCasing;
+          const color = isMajorRoad(id) ? p.roadCasing.replace(/0\.\d+\)$/, "0.22)") : p.roadCasing;
           return { ...layer, paint: { ...layer.paint, "line-color": color } };
         }
         return { ...layer, paint: { ...layer.paint, "line-color": p.road } };
@@ -96,7 +96,7 @@ function themeLayer(layer: LayerSpecification, p: Palette): LayerSpecification |
           ...layer.paint,
           "text-color": p.label,
           "text-halo-color": p.halo,
-          "text-halo-width": 1.25,
+          "text-halo-width": 1.5,
         },
       };
     }
@@ -105,7 +105,7 @@ function themeLayer(layer: LayerSpecification, p: Palette): LayerSpecification |
   }
 }
 
-/** Recolors a vector style (OpenFreeMap "liberty" layer ids) into the "Carta Tropical" look. */
+/** Recolors a vector style (OpenFreeMap "liberty" layer ids) into the SoloRota basemap. */
 export function applyTheme(style: StyleSpecification, theme: MapTheme): StyleSpecification {
   const p = PALETTES[theme];
   const layers = style.layers

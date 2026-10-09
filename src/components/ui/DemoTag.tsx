@@ -2,7 +2,7 @@
 export function DemoTag() {
   return (
     <span
-      className="ml-1 inline-block -translate-y-0.5 rounded border border-dashed border-tinta/50 px-1.5 py-px align-middle font-mono text-[10px] font-medium tracking-widest text-tinta-suave uppercase"
+      className="ml-1.5 inline-block -translate-y-px rounded-md bg-surface-2 px-1.5 py-0.5 align-middle text-[10px] font-bold tracking-wider text-muted uppercase"
       title="Dado de demonstração"
     >
       Demo

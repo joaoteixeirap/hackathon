@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 export type Snap = "collapsed" | "half" | "full";
 const ORDER: Snap[] = ["collapsed", "half", "full"];
-const COLLAPSED_PX = 92;
+const COLLAPSED_PX = 96;
 
 function heights(vh: number, bottomOffset: number): Record<Snap, number> {
   const full = Math.round(vh * 0.92) - bottomOffset;
@@ -12,7 +12,7 @@ function heights(vh: number, bottomOffset: number): Record<Snap, number> {
 }
 
 /**
- * Draggable sheet with three stops (DESIGN.md §6): 92 px, 45%, 92%.
+ * Draggable sheet with three stops (DESIGN.md §6): 96 px, 45%, 92%.
  * Content scrolls only when full. The handle is also a button for keyboard users.
  */
 export function BottomSheet({
@@ -96,7 +96,7 @@ export function BottomSheet({
   return (
     <section
       aria-label={label}
-      className="surface fixed inset-x-0 z-20 flex flex-col rounded-t-[22px] border-t border-tinta/20 bg-papel-claro shadow-[0_-6px_24px_color-mix(in_srgb,var(--tinta)_14%,transparent)]"
+      className="fixed inset-x-0 z-20 flex flex-col rounded-t-[28px] bg-surface shadow-[0_-8px_30px_rgb(15_31_42/0.12)]"
       style={{
         bottom: bottomOffset,
         // Height (not translate) so the scroll area always matches what is visible.
@@ -105,7 +105,7 @@ export function BottomSheet({
       }}
     >
       <div
-        className="shrink-0 cursor-grab touch-none px-4 pt-1.5 select-none active:cursor-grabbing"
+        className="shrink-0 cursor-grab touch-none px-5 pt-1.5 select-none active:cursor-grabbing"
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
@@ -117,14 +117,13 @@ export function BottomSheet({
           aria-label={snap === "full" ? "Recolher painel" : "Expandir painel"}
           className="mx-auto flex h-6 w-24 items-center justify-center"
         >
-          <span className="h-1.5 w-11 rounded-full bg-tinta/30" />
+          <span className="h-1.5 w-10 rounded-full bg-line" />
         </button>
         {header}
-        {/* Perforated edge, like a ticket stub. */}
-        <div className="mt-2 border-t-2 border-dotted border-tinta/20" aria-hidden />
+        <div className="mt-2 border-t border-line" aria-hidden />
       </div>
       <div
-        className={`min-h-0 flex-1 overscroll-contain px-4 pb-6 ${drag == null && (snap === "full" || (scrollFrom === "half" && snap === "half")) ? "overflow-y-auto" : "overflow-hidden"}`}
+        className={`min-h-0 flex-1 overscroll-contain px-5 pt-2 pb-6 ${drag == null && (snap === "full" || (scrollFrom === "half" && snap === "half")) ? "overflow-y-auto" : "overflow-hidden"}`}
       >
         {children}
       </div>

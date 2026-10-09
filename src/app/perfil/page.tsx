@@ -40,8 +40,8 @@ export default async function MyProfilePage() {
   return (
     <PageShell title="Meu perfil">
       <section className={`${card} mb-6 space-y-2 p-5`} aria-label="Resumo">
-        <p className="font-serif text-2xl font-bold">{profile.display_name}</p>
-        <p className="text-sm text-tinta-suave">
+        <p className="font-display text-2xl font-bold">{profile.display_name}</p>
+        <p className="text-sm text-muted">
           {user.is_anonymous
             ? "Você está como visitante neste aparelho. Escolha um nome para o grupo te reconhecer."
             : user.email}

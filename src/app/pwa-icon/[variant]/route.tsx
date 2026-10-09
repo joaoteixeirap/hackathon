@@ -1,8 +1,8 @@
 import { ImageResponse } from "next/og";
 
 const VARIANTS = {
-  "192": { size: 192, padding: 0.12 },
-  "512": { size: 512, padding: 0.12 },
+  "192": { size: 192, padding: 0.16 },
+  "512": { size: 512, padding: 0.16 },
   // Maskable icons need the artwork inside the central 80% safe zone.
   "maskable-512": { size: 512, padding: 0.22 },
 } as const;
@@ -21,22 +21,14 @@ export async function GET(_req: Request, { params }: { params: Promise<{ variant
   if (!cfg) return new Response("Not found", { status: 404 });
   const inner = Math.round(cfg.size * (1 - cfg.padding * 2));
 
+  // Full-bleed coral (the OS applies its own mask/rounding); the glyph sits in the safe zone.
   return new ImageResponse(
     (
-      <div
-        style={{
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "#F3EAD7",
-        }}
-      >
-        <svg width={inner} height={inner} viewBox="0 0 64 64">
-          <circle cx="32" cy="32" r="29" fill="none" stroke="#1F2A30" strokeWidth="3" />
-          <path d="M32 6 L38.5 32 L32 58 L25.5 32 Z" fill="#E8603C" stroke="#1F2A30" strokeWidth="2" strokeLinejoin="round" />
-          <circle cx="32" cy="32" r="3.5" fill="#1F2A30" />
+      <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#FF5B3A" }}>
+        <svg width={inner} height={inner} viewBox="6 4 38 38">
+          <path d="M10 38 C 16 38, 16 29, 22.5 29 S 30 24, 30 21" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeDasharray="0.5 5.5" />
+          <path d="M31 6.5c-5.2 0-9.2 4-9.2 9.1 0 6.6 9.2 14.4 9.2 14.4s9.2-7.8 9.2-14.4c0-5.1-4-9.1-9.2-9.1Z" fill="#fff" />
+          <circle cx="31" cy="15.6" r="3.4" fill="#FF5B3A" />
         </svg>
       </div>
     ),

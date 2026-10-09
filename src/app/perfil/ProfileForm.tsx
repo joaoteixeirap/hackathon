@@ -26,9 +26,9 @@ function Field({
         {title}
       </label>
       {children}
-      {hint && !error && <p className="text-xs text-tinta-suave">{hint}</p>}
+      {hint && !error && <p className="text-xs text-muted">{hint}</p>}
       {error && (
-        <p id={`${id}-error`} className="text-sm text-erro">
+        <p id={`${id}-error`} className="text-sm text-danger">
           {error}
         </p>
       )}
@@ -119,14 +119,14 @@ export function ProfileForm({ profile, cities }: { profile: MyProfile; cities: C
             type="checkbox"
             name="share_presence"
             defaultChecked={profile.share_presence}
-            className="size-5 accent-mare"
+            className="size-5 accent-primary"
           />
           <span>Mostrar que estou na cidade</span>
         </label>
-        <p className="text-xs text-tinta-suave">
+        <p className="text-xs text-muted">
           Aparece só como número no seu bairro, e só quando há 3 ou mais pessoas.
         </p>
-        {e.share_presence && <p className="text-sm text-erro">{e.share_presence}</p>}
+        {e.share_presence && <p className="text-sm text-danger">{e.share_presence}</p>}
       </div>
 
       <div className="flex items-center gap-3 pt-2">
@@ -134,8 +134,8 @@ export function ProfileForm({ profile, cities }: { profile: MyProfile; cities: C
           {pending ? "Salvando…" : "Salvar perfil"}
         </button>
         <p role="status" className="text-sm">
-          {state.status === "saved" && <span className="text-farmacia">Perfil salvo.</span>}
-          {state.message && <span className="text-erro">{state.message}</span>}
+          {state.status === "saved" && <span className="text-success">Perfil salvo.</span>}
+          {state.message && <span className="text-danger">{state.message}</span>}
         </p>
       </div>
     </form>

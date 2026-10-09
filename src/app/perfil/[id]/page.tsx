@@ -39,11 +39,11 @@ export default async function ProfilePage({ params }: Props) {
         </div>
         {profile.bio && <p>{profile.bio}</p>}
         <dl className="grid grid-cols-2 gap-2 text-sm">
-          <dt className="text-tinta-suave">País de origem</dt>
-          <dd className="font-mono">{profile.home_country ?? "—"}</dd>
-          <dt className="text-tinta-suave">Idiomas</dt>
-          <dd className="font-mono">{(profile.languages ?? []).join(", ") || "—"}</dd>
-          <dt className="text-tinta-suave">Cidade atual</dt>
+          <dt className="text-muted">País de origem</dt>
+          <dd className="tabular-nums">{profile.home_country ?? "—"}</dd>
+          <dt className="text-muted">Idiomas</dt>
+          <dd className="tabular-nums">{(profile.languages ?? []).join(", ") || "—"}</dd>
+          <dt className="text-muted">Cidade atual</dt>
           <dd>{city?.name ?? "—"}</dd>
         </dl>
       </section>
