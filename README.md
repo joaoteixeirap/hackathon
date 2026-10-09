@@ -20,8 +20,9 @@ Sem chaves do Supabase o mapa abre mesmo assim (cidade padrão), sem dados.
 
 1. Crie um projeto (região São Paulo) e preencha `.env.local`, incluindo `SUPABASE_DB_URL` (Connect → Session pooler).
 2. Em Authentication → URL Configuration: Site URL `http://localhost:3000` e Redirect URL `http://localhost:3000/**`.
-3. `pnpm db:reset` aplica migrações e seed (apaga os dados das tabelas do app).
-4. Para tornar sua conta admin, entre uma vez no app e rode no SQL Editor:
+3. `pnpm db:reset` aplica migrações e seed do zero (apaga os dados das tabelas do app). Para aplicar só migrações novas sem apagar nada: `pnpm exec supabase db push --db-url "$SUPABASE_DB_URL"`.
+   Ligue também "Allow anonymous sign-ins" (Authentication → Sign In / Providers): o app usa sessão de visitante no lugar da tela de login.
+4. Para tornar sua conta admin (acesso a `/admin/verificacoes`), entre uma vez em `/entrar` e rode no SQL Editor:
    `update profiles set role = 'admin', verified = true where id = (select id from auth.users where email = 'seu@email');`
 
 ## Comandos

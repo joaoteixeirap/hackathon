@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
+import { ReportButton } from "@/components/activity/ReportButton";
 import { PageShell } from "@/components/ui/PageShell";
 import { Rating } from "@/components/ui/Rating";
 import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
@@ -7,6 +8,7 @@ import { card } from "@/components/ui/styles";
 import { getUser } from "@/lib/auth";
 import { getProfileRating } from "@/lib/ratings";
 import { createClient } from "@/lib/supabase/server";
+import { verificationRequired } from "@/lib/verification";
 
 export const metadata: Metadata = { title: "Perfil · SoloRota" };
 
@@ -19,13 +21,14 @@ export default async function ProfilePage({ params }: Props) {
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
 
   const supabase = await createClient();
-  const [{ data: profile }, rating] = await Promise.all([
+  const [{ data: profile }, rating, required] = await Promise.all([
     supabase
       .from("profiles")
       .select("id, display_name, bio, home_country, languages, verified, current_city:cities(name)")
       .eq("id", id)
       .maybeSingle(),
     getProfileRating(id),
+    verificationRequired(),
   ]);
   if (!profile) notFound();
   const city = profile.current_city as unknown as { name: string } | null;
@@ -34,7 +37,7 @@ export default async function ProfilePage({ params }: Props) {
     <PageShell title={profile.display_name}>
       <section className={`${card} space-y-3 p-5`}>
         <div className="flex flex-wrap items-center gap-3">
-          <VerifiedBadge verified={profile.verified} />
+          <VerifiedBadge verified={profile.verified} required={required} />
           <Rating avg={rating.avg} count={rating.count} />
         </div>
         {profile.bio && <p>{profile.bio}</p>}
@@ -47,6 +50,11 @@ export default async function ProfilePage({ params }: Props) {
           <dd>{city?.name ?? "—"}</dd>
         </dl>
       </section>
+      {user && (
+        <div className="mt-2 flex justify-end">
+          <ReportButton targetType="profile" targetId={profile.id} label="Denunciar perfil" />
+        </div>
+      )}
     </PageShell>
   );
 }

@@ -1,13 +1,22 @@
-import { CalendarClock, MapPin, Navigation, Users, Wallet } from "lucide-react";
+import { CalendarClock, MapPin, MessagesSquare, Navigation, Users, Wallet } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ActivityLive } from "@/components/activity/ActivityLive";
+import { ChatPanel } from "@/components/activity/ChatPanel";
+import { JoinPanel } from "@/components/activity/JoinPanel";
+import { JoinQueue } from "@/components/activity/JoinQueue";
+import { PersonRow } from "@/components/activity/PersonRow";
+import { ReportButton } from "@/components/activity/ReportButton";
+import { ReviewPanel } from "@/components/activity/ReviewPanel";
 import { ActivityIcon } from "@/components/ui/CategoryIcon";
 import { DemoTag } from "@/components/ui/DemoTag";
 import { PageShell } from "@/components/ui/PageShell";
 import { buttonPrimary, card } from "@/components/ui/styles";
-import { costPerPerson, formatBRL } from "@/lib/activityForm";
+import { formatBRL } from "@/lib/activityForm";
+import { loadActivityViewer } from "@/lib/activityViewer";
 import { loadActivity } from "@/lib/mapData";
+import { costSplit, isParticipant } from "@/lib/membership";
 import { ACTIVITY_LABELS, stripDemo } from "@/lib/places";
 import { directionsUrl } from "@/lib/share";
 import { ShareActions } from "./ShareActions";
@@ -36,17 +45,18 @@ export default async function ActivityPage({ params, searchParams }: Props) {
   const a = await loadActivity(id);
   if (!a) notFound();
 
+  const viewer = await loadActivityViewer(a.id, a.creator_id);
   const title = stripDemo(a.title);
   const when = whenText(a.starts_at, a.ends_at);
   const spots = Math.max(0, a.capacity - 1 - a.approved);
-  // With nobody approved yet, show the split for a full group instead of the whole bill.
-  const perPerson =
-    a.split_cost && a.cost_total_cents
-      ? a.approved > 0
-        ? { cents: costPerPerson(a.cost_total_cents, a.approved), note: `com ${a.approved + 1} pessoas` }
-        : { cents: costPerPerson(a.cost_total_cents, a.capacity - 1), note: "se lotar" }
-      : null;
-  const past = new Date(a.ends_at).getTime() < Date.now();
+  const perPerson = costSplit(a.cost_total_cents, a.split_cost, a.approved, a.capacity);
+  const now = Date.now();
+  const started = new Date(a.starts_at).getTime() <= now;
+  const past = new Date(a.ends_at).getTime() < now;
+  const participant = isParticipant(viewer.role);
+  const group = viewer.people.filter((p) => p.status === "creator" || p.status === "approved");
+  const requests = viewer.people.filter((p) => p.status === "requested");
+  const names = Object.fromEntries(viewer.people.map((p) => [p.user_id, p.display_name]));
 
   return (
     <PageShell title={title}>
@@ -112,6 +122,8 @@ export default async function ActivityPage({ params, searchParams }: Props) {
 
         <p className="rounded-2xl bg-surface-2 px-3.5 py-2.5 text-sm">Combine em local público.</p>
 
+        {a.status !== "cancelled" && <JoinPanel activityId={a.id} role={viewer.role} status={a.status} started={started} />}
+
         <div className="flex flex-wrap gap-2">
           <a href={directionsUrl(a.lat, a.lng)} target="_blank" rel="noopener noreferrer" className={`${buttonPrimary} gap-2`}>
             <Navigation size={16} strokeWidth={1.75} aria-hidden /> Como chegar
@@ -120,7 +132,55 @@ export default async function ActivityPage({ params, searchParams }: Props) {
             Ver no mapa
           </Link>
         </div>
+        {viewer.role !== "creator" && (
+          <div className="-mb-2 flex justify-end">
+            <ReportButton targetType="activity" targetId={a.id} label="Denunciar roda" />
+          </div>
+        )}
       </article>
+
+      {viewer.role === "creator" && a.status !== "cancelled" && !started && (
+        <section className={`${card} mt-6 p-5`} aria-labelledby="queue-title">
+          <h2 id="queue-title" className="mb-2 font-display text-xl font-bold">
+            Pedidos para entrar {requests.length > 0 && <span className="text-accent-strong tabular-nums">({requests.length})</span>}
+          </h2>
+          <JoinQueue activityId={a.id} requests={requests} spots={spots} verificationRequired={viewer.verificationRequired} />
+        </section>
+      )}
+
+      {participant && viewer.userId && (
+        <>
+          <section className={`${card} mt-6 p-5`} aria-labelledby="group-title">
+            <h2 id="group-title" className="font-display text-xl font-bold">
+              Grupo <span className="text-muted tabular-nums">· {group.length} de {a.capacity}</span>
+            </h2>
+            <ul className="divide-y divide-line">
+              {group.map((p) => (
+                <PersonRow key={p.user_id} person={p} you={p.user_id === viewer.userId} verificationRequired={viewer.verificationRequired} />
+              ))}
+            </ul>
+          </section>
+
+          {past && (
+            <section className={`${card} mt-6 p-5`} aria-labelledby="review-title">
+              <h2 id="review-title" className="font-display text-xl font-bold">
+                Como foi?
+              </h2>
+              <p className="mb-2 text-sm text-muted">Avalie quem participou. A nota aparece no perfil e nos próximos pedidos.</p>
+              <ReviewPanel activityId={a.id} people={group.filter((p) => p.user_id !== viewer.userId)} reviewed={viewer.reviewed} />
+            </section>
+          )}
+
+          <section className={`${card} mt-6 p-5`} aria-labelledby="chat-title">
+            <h2 id="chat-title" className="mb-3 flex items-center gap-2 font-display text-xl font-bold">
+              <MessagesSquare size={20} aria-hidden /> Chat do grupo
+            </h2>
+            <ChatPanel activityId={a.id} userId={viewer.userId} initial={viewer.messages} names={names} readOnly={past || a.status === "cancelled"} />
+          </section>
+        </>
+      )}
+
+      <ActivityLive activityId={a.id} userId={viewer.userId} />
 
       <section className="mt-6 space-y-3" aria-labelledby="share-title">
         <h2 id="share-title" className="font-display text-xl font-bold">

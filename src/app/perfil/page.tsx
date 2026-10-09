@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { PageShell } from "@/components/ui/PageShell";
 import { Rating } from "@/components/ui/Rating";
 import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
@@ -6,6 +7,7 @@ import { card } from "@/components/ui/styles";
 import { getMyProfile, getUser } from "@/lib/auth";
 import { getProfileRating } from "@/lib/ratings";
 import { createClient } from "@/lib/supabase/server";
+import { getVerificationState } from "@/lib/verification";
 import { ProfileForm } from "./ProfileForm";
 
 export const metadata: Metadata = { title: "Meu perfil · SoloRota" };
@@ -23,10 +25,11 @@ export default async function MyProfilePage() {
     );
   }
   const supabase = await createClient();
-  const [profile, rating, { data: cities }] = await Promise.all([
+  const [profile, rating, { data: cities }, verification] = await Promise.all([
     getMyProfile(),
     getProfileRating(user.id),
     supabase.from("cities").select("id, name").order("name"),
+    getVerificationState(user.id),
   ]);
 
   if (!profile) {
@@ -47,9 +50,14 @@ export default async function MyProfilePage() {
             : user.email}
         </p>
         <div className="flex flex-wrap items-center gap-3">
-          <VerifiedBadge verified={profile.verified} />
+          <VerifiedBadge verified={profile.verified} required={verification.required} />
           <Rating avg={rating.avg} count={rating.count} />
         </div>
+        {!profile.verified && (
+          <Link href="/verificar" className="inline-flex min-h-11 items-center text-sm font-bold text-primary underline-offset-4 hover:underline">
+            {verification.pending ? "Verificação em análise" : "Verificar meu perfil"}
+          </Link>
+        )}
       </section>
 
       <section className={`${card} p-5`} aria-label="Editar perfil">

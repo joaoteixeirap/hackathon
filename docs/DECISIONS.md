@@ -40,3 +40,14 @@ Uma linha por decisão: data, decisão, motivo.
 - 2026-10-08 — Botões primários em `primary` (texto branco com contraste AA); coral reservado para marca e "criar", porque branco sobre coral não atinge AA em texto pequeno.
 - 2026-10-08 — Desempenho: dados públicos do mapa (`places`, ofertas, atividades) e `cities` em cache no servidor (`unstable_cache`, 60 s e 1 h) com cliente anônimo sem cookies; `revalidateTag("map-data")` ao criar atividade. Middleware pula a chamada ao Auth quando não há cookie `sb-*` e a rota não exige sessão. Estilo do mapa pré-carregado e `preconnect` aos tiles na resposta HTML. Medido (build de produção, 4G simulado + CPU 4×): TTFB 150 → 20 ms; pins visíveis em ~1,6 s.
 - 2026-10-08 — Builds de teste em `.next-e2e` (`NEXT_DIST_DIR`) para não apagar o cache do `pnpm dev` em execução.
+- 2026-10-08 — M5: fila e grupo da roda por RPC `activity_people` (security definer): criador vê pedidos e aprovados, membro aprovado vê o grupo, demais nada; já traz nota média e contagem, sem colunas privadas.
+- 2026-10-08 — Página da roda se atualiza por Realtime (`activity_members` e `activities`) com `router.refresh()`; fila, estado do visitante e "R$ X por pessoa" vêm sempre do servidor, sem estado duplicado no cliente.
+- 2026-10-08 — Chat envia direto do navegador (insert com RLS) e recebe por `postgres_changes`, para ficar abaixo de 2 s; histórico inicial das últimas 200 mensagens no servidor. Fica só leitura depois de `ends_at`.
+- 2026-10-08 — Pedir para entrar abre sessão de visitante na própria server action (`ensureUser`), então `/atividade/[id]` continua pública e leve.
+- 2026-10-08 — Avaliação pós-roda é de perfil (`target_type = 'profile'`), uma por autor e pessoa no total (restrição única existente), não uma por roda. Simples e evita inflar nota com rodas repetidas.
+- 2026-10-08 — Verificação: selfie sobe do navegador para o bucket privado `verifications/<uid>/…` (só o dono envia, só admin lê e apaga), registrada em `verification_requests`. `decide_verification` grava `verified` e devolve o caminho; a server action apaga o arquivo pela API do Storage (SQL direto em `storage.objects` é bloqueado).
+- 2026-10-08 — Denúncia com motivos fixos (`REPORT_REASONS`) em mensagens, rodas e perfis; nada é ocultado automaticamente (fora do escopo).
+- 2026-10-08 — Migrações novas no projeto hospedado com `supabase db push --db-url` (aplica só as pendentes); `pnpm db:reset` apaga os dados e fica para recriar do zero.
+- 2026-10-08 — E2E do M5 com dois "celulares" (contextos Pixel 7) só no projeto `mobile`, para não repetir o fluxo pesado no desktop.
+- 2026-10-08 — Canais Realtime chamam `syncRealtimeAuth` antes de assinar: a sessão de visitante pode nascer numa server action depois que a página abriu, e sem isso o socket fica com o token anônimo e a RLS esconde o chat.
+- 2026-10-08 — Limite de logins anônimos do Supabase subido para 1000/h (o padrão, 30/h por IP, travaria a demo com avaliadores no mesmo Wi-Fi).
