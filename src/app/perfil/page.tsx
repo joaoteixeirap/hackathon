@@ -125,7 +125,6 @@ export default async function MyProfilePage() {
               )}
             </div>
           </section>
-          <QuickLinks className="hidden lg:block" />
         </aside>
 
         <div className="space-y-5">
@@ -139,10 +138,13 @@ export default async function MyProfilePage() {
             </section>
           )}
 
-          <section className={`${card} space-y-5 p-5 sm:p-6`} aria-label="Editar perfil">
-            <SectionHeader icon={<UserRound size={18} aria-hidden />} title="Sobre você" text="É assim que as pessoas te veem nas rodas e nos grupos." />
-            <ProfileForm profile={profile} />
-          </section>
+          <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_288px] lg:items-start lg:gap-5">
+            <section className={`${card} space-y-5 p-5 sm:p-6`} aria-label="Editar perfil">
+              <SectionHeader icon={<UserRound size={18} aria-hidden />} title="Sobre você" text="É assim que as pessoas te veem nas rodas e nos grupos." />
+              <ProfileForm profile={profile} />
+            </section>
+            <QuickLinks className="hidden lg:block" />
+          </div>
 
           <section className={`${card} space-y-5 p-5 sm:p-6`} aria-labelledby="routine-title">
             <SectionHeader
@@ -205,7 +207,7 @@ function QuickLinks({ className = "" }: { className?: string }) {
               </span>
               <span className="min-w-0 flex-1">
                 <span className="block text-sm font-semibold">{title}</span>
-                <span className="block truncate text-xs text-muted">{text}</span>
+                <span className="block text-xs text-muted">{text}</span>
               </span>
               <ChevronRight size={16} className="shrink-0 text-muted" aria-hidden />
             </Link>

@@ -5,7 +5,7 @@ import { MapLink } from "./MapLink";
 /** Page layout for non-map screens. */
 /** `wide` gives desktop pages with side-by-side columns more room; phones are unaffected. */
 export function PageShell({ title, children, wide = false }: { title: string; children: React.ReactNode; wide?: boolean }) {
-  const width = wide ? "max-w-xl lg:max-w-5xl" : "max-w-xl";
+  const width = wide ? "max-w-xl lg:max-w-6xl" : "max-w-xl";
   return (
     <div className="min-h-dvh">
       <header className="sticky top-0 z-10 border-b border-line bg-canvas/85 backdrop-blur-md" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
