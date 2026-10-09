@@ -34,6 +34,6 @@ Rotina de trabalho verificável (medição, validade dos selos, fontes e frescor
 
 Uma timeline com vários destinos, comparador mundial com dados licenciados e atualizados, biblioteca editorial e chat de comunidade independente são expansões reais de produto. Não se apresentam como implementadas. IA, push e aplicativo nativo continuam fora do MVP descrito em `CLAUDE.md`. A pesquisa dos concorrentes não autoriza divulgar itinerários privados ou criar comunicação direta contrariando I5.
 
-## Dependência de banco preparada
+## Dependência de banco ativada
 
-A migração `0020_completion.sql` habilita compatibilidade agregada nos cartões do mapa e preservação da etiqueta `emergency=yes` do OSM. Está preparada localmente, mas a aplicação no Supabase remoto aguarda autorização: a revisão automática bloqueou essa alteração persistente. A classificação de atendimento de emergência nunca transforma horário desconhecido em funcionamento 24h.
+A migração `0020_completion.sql` habilita compatibilidade agregada nos cartões do mapa e preservação da etiqueta `emergency=yes` do OSM. Aplicada em 09/10/2026 após autorização explícita da equipe; contratos validados no banco e navegador com respostas reais. A classificação de atendimento de emergência nunca transforma horário desconhecido em funcionamento 24h.

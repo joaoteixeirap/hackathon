@@ -56,7 +56,7 @@ Limites e pesos são hipóteses em `src/config/nomad.ts`; regras SQL equivalente
 
 ## Publicar (V0)
 
-URL pública: _ainda não publicada_. Implementação e validação locais até V7; publicação e push aguardam liberação da equipe, conforme decisão anterior. Migrações 0001–0019 aplicadas no Supabase configurado, sem reset remoto. A migração 0020 dos ajustes posteriores está preparada, mas ainda não aplicada: compatibilidade nos cartões do mapa e importação da etiqueta de emergência dependem dela. Aplicação remota e seus dois testes de integração aguardam autorização. Até lá, a verificação independente é `pnpm exec vitest run --exclude supabase/tests/completion.test.ts`.
+URL pública: _ainda não publicada_. Implementação e validação locais até V7; publicação e push aguardam liberação da equipe, conforme decisão anterior. Migrações 0001–0020 aplicadas no Supabase configurado, sem reset remoto. Em 09/10/2026, a equipe autorizou aplicar 0020: compatibilidade nos cartões do mapa e preservação da etiqueta de emergência do OSM habilitadas e testadas no banco e navegador. `pnpm test` executa a suíte completa, sem exclusões.
 
 1. **Banco (Supabase na nuvem):** `pnpm db:push` aplica só as migrações pendentes (usa `SUPABASE_DB_URL`). `pnpm db:reset` recusa bancos remotos, porque apaga os dados.
 2. **Contas e dados demo:** `pnpm seed:demo` (Ana, Bruno, Parceiro e três perfis adicionais pela Admin API, sem privilégios admin, com `DEMO_LOGIN_PASSWORD`) e, antes de cada demo, `pnpm demo:refresh`.
