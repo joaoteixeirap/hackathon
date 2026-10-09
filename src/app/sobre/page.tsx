@@ -6,7 +6,7 @@ import { buttonPrimary, buttonSecondary, card } from "@/components/ui/styles";
 import { defaultCitySlug, getCity } from "@/lib/cities";
 
 const title = "Sobre o SoloRota";
-const description = "O mapa dos nômades digitais no Brasil: comunidade, lugares para trabalhar, saúde e moradia. Privacidade e fontes de dados.";
+const description = "Radar de trabalho com fonte e data, vínculos durante a estadia e serviços essenciais. Gratuito para nômades. Privacidade e fontes de dados.";
 export const metadata: Metadata = { title: `${title} · SoloRota`, description, openGraph: { title, description, type: "website", locale: "pt_BR" } };
 
 const contact = process.env.NEXT_PUBLIC_CONTACT_EMAIL;

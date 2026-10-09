@@ -73,3 +73,9 @@ export const GROUP_EARLY_MINUTES = 30;
 export const MONEY_MAX_CENTS = 100_000_000;
 export const CITY_STATS_MIN_SAMPLE = 2;
 export const SURVEY_SMALL_SAMPLE = 30;
+/** Compatibility hypotheses, mirrored in compatible_people SQL. */
+export const COMPAT_OVERLAP_MAX_DAYS = 30;
+export const COMPAT_INTERESTS_MAX = 3;
+export const COMPAT_WEIGHTS = { overlap: 50, interests: 30, rhythm: 20 } as const;
+export const BUDGET_MONTH_DAYS = 30;
+export const MEASUREMENT_WINDOW_DAYS = 90;

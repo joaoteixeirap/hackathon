@@ -110,6 +110,7 @@ type ActivityRow = {
   status: string;
   is_demo: boolean;
   city_id: string;
+  series_id: string | null;
 };
 
 /** "Quem está aqui" (F8): aggregated counts per neighborhood, fetched when the layer is on. */
@@ -168,8 +169,9 @@ function useLiveActivities(cityId: string | null, initial: ActivitySummary[]): A
       .on<ActivityRow>(
         "postgres_changes",
         { event: "*", schema: "public", table: "activities", filter: `city_id=eq.${cityId}` },
-        (payload) => {
+        async (payload) => {
           const row = payload.new as ActivityRow;
+          const seriesRow = row?.series_id ? (await supabase.from("activity_series").select("id,weekday,start_time,is_official").eq("id",row.series_id).maybeSingle()).data : null;
           setList((prev) => {
             const rest = prev.filter((a) => a.id !== (row?.id ?? (payload.old as ActivityRow)?.id));
             const visible =
@@ -189,8 +191,11 @@ function useLiveActivities(cityId: string | null, initial: ActivitySummary[]): A
               capacity: row.capacity,
               status: row.status as "open" | "full",
               is_demo: row.is_demo,
+              series: seriesRow ? { ...seriesRow, start_time:seriesRow.start_time.slice(0,5) } : null,
             };
-            return [...rest, next].sort((a, b) => a.starts_at.localeCompare(b.starts_at));
+            const seen = new Set<string>();
+            return [...rest, next].sort((a, b) => a.starts_at.localeCompare(b.starts_at))
+              .filter(a=>!a.series || (!seen.has(a.series.id) && seen.add(a.series.id)));
           });
         },
       )

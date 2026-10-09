@@ -25,7 +25,10 @@ from (values
   ('00000000-0000-4000-8000-0000000000a2'::uuid, 'bruno.demo@example.com',    'Bruno (Demo)'),
   ('00000000-0000-4000-8000-0000000000a3'::uuid, 'carla.demo@example.com',    'Carla (Demo)'),
   ('00000000-0000-4000-8000-0000000000a4'::uuid, 'admin.demo@example.com',    'Admin (Demo)'),
-  ('00000000-0000-4000-8000-0000000000a5'::uuid, 'parceiro.demo@example.com', 'Parceiro (Demo)')
+  ('00000000-0000-4000-8000-0000000000a5'::uuid, 'parceiro.demo@example.com', 'Parceiro (Demo)'),
+  ('00000000-0000-4000-8000-0000000000a6'::uuid, 'clara.demo@example.com', 'Clara (Demo)'),
+  ('00000000-0000-4000-8000-0000000000a7'::uuid, 'diego.demo@example.com', 'Diego (Demo)'),
+  ('00000000-0000-4000-8000-0000000000a8'::uuid, 'emilia.demo@example.com', 'Emília (Demo)')
 ) as u(id, email, name)
 on conflict (id) do nothing;
 
@@ -128,3 +131,61 @@ from (values
    'Visita ao Museu Pelé no Valongo (Demo)', 'culture', interval '6 days 14 hours', interval '3 hours',
    -23.9312, -46.3329, 'Largo Marquês de Monte Alegre, Valongo', 15, 30000)
 ) as a(creator, place, title, category, starts, duration, lat, lng, label, capacity, cost);
+
+-- V7: opt-in fictional profiles, private checklists and the weekly journey.
+update profiles set verified=true, role='nomad', bio='Perfil fictício de demonstração.',
+  current_city_id='00000000-0000-4000-8000-000000000001', neighborhood='Gonzaga',
+  stay_from=current_date-5, stay_to=current_date+30, discoverable=true, share_presence=true,
+  work_rhythm='morning', work_style='mixed', interests='{coffee,surf,deep_work}', social_goals='{friends,cowork}'
+where id in ('00000000-0000-4000-8000-0000000000a1','00000000-0000-4000-8000-0000000000a2',
+  '00000000-0000-4000-8000-0000000000a3','00000000-0000-4000-8000-0000000000a6',
+  '00000000-0000-4000-8000-0000000000a7','00000000-0000-4000-8000-0000000000a8');
+insert into stays(user_id,city_id,arrive_on,leave_on,audience)
+select id,'00000000-0000-4000-8000-000000000001',current_date-5,current_date+30,
+  case when id='00000000-0000-4000-8000-0000000000a3' then 'foreign' else 'br' end
+from profiles where id in ('00000000-0000-4000-8000-0000000000a1','00000000-0000-4000-8000-0000000000a2',
+  '00000000-0000-4000-8000-0000000000a3','00000000-0000-4000-8000-0000000000a6',
+  '00000000-0000-4000-8000-0000000000a7','00000000-0000-4000-8000-0000000000a8');
+insert into stay_tasks(stay_id,user_id,template_id,title,area,phase)
+select s.id,s.user_id,t.id,t.title,t.area,t.phase from stays s cross join stay_task_templates t
+where s.active and (t.audience='all' or t.audience=s.audience) and (t.city_id is null or t.city_id=s.city_id);
+insert into place_favorites(user_id,place_id) values
+  ('00000000-0000-4000-8000-0000000000a1','00000000-0000-4000-8000-0000000000c1'),
+  ('00000000-0000-4000-8000-0000000000a1','00000000-0000-4000-8000-0000000000c3');
+insert into offers(id,place_id,kind,title,description,code,min_group,valid_from,valid_to) values
+  ('00000000-0000-4000-8000-0000000000f4','00000000-0000-4000-8000-0000000000c1','day_pass',
+   'Passe de grupo com 20% de desconto (Demo)','Benefício fictício para quatro participantes aprovados.',
+   'DEMO4',4,current_date,current_date+30);
+insert into place_idle_slots(id,place_id,weekday,start_time,end_time,seats,note) values
+  ('00000000-0000-4000-8000-0000000000f5','00000000-0000-4000-8000-0000000000c1',2,'14:00','18:00',6,'Horário fictício (Demo)'),
+  ('00000000-0000-4000-8000-0000000000f6','00000000-0000-4000-8000-0000000000c1',4,'14:00','18:00',6,'Horário fictício (Demo)');
+insert into activity_series(id,city_id,creator_id,place_id,offer_id,title,description,category,
+  weekday,start_time,duration_min,meeting_lat,meeting_lng,meeting_label,capacity,is_official,is_demo) values
+  ('00000000-0000-4000-8000-0000000000e1','00000000-0000-4000-8000-000000000001','00000000-0000-4000-8000-0000000000a4',null,null,
+   'Boas-vindas aos nômades (Demo)','Apresentações e combinados da semana.','meetup',4,'18:30',90,-23.9668,-46.3329,'Praça da Independência, Gonzaga',12,true,true),
+  ('00000000-0000-4000-8000-0000000000e2','00000000-0000-4000-8000-000000000001','00000000-0000-4000-8000-0000000000a1',
+   '00000000-0000-4000-8000-0000000000c1','00000000-0000-4000-8000-0000000000f4',
+   'Dia de trabalho conjunto semanal (Demo)','Foco e uma pausa juntos às 16h.','work_together',4,'14:00',240,-23.9655,-46.3338,'Cowork Demo Gonzaga',6,false,true),
+  ('00000000-0000-4000-8000-0000000000e3','00000000-0000-4000-8000-000000000001','00000000-0000-4000-8000-0000000000a2',null,null,
+   'Corrida na orla (Demo)','5 km leves, ritmo de conversa.','outdoor',6,'07:00',60,-23.9705,-46.3389,'Canal 2, calçadão da praia',10,false,true);
+insert into series_members(series_id,user_id,status) values
+  ('00000000-0000-4000-8000-0000000000e2','00000000-0000-4000-8000-0000000000a6','approved'),
+  ('00000000-0000-4000-8000-0000000000e2','00000000-0000-4000-8000-0000000000a7','approved'),
+  ('00000000-0000-4000-8000-0000000000e2','00000000-0000-4000-8000-0000000000a8','approved');
+select ensure_series_occurrences(id) from activity_series where is_demo;
+insert into activities(id,city_id,creator_id,place_id,title,category,starts_at,ends_at,
+  meeting_lat,meeting_lng,meeting_label,capacity,is_demo) values
+  ('00000000-0000-4000-8000-0000000000d9','00000000-0000-4000-8000-000000000001',
+   '00000000-0000-4000-8000-0000000000a1','00000000-0000-4000-8000-0000000000c1',
+   'Trabalho conjunto encerrado (Demo)','work_together',now()-interval '3 hours',now()-interval '1 hour',
+   -23.9655,-46.3338,'Cowork Demo Gonzaga',6,true);
+insert into activities(id,city_id,creator_id,place_id,offer_id,title,category,starts_at,ends_at,
+  meeting_lat,meeting_lng,meeting_label,capacity,is_demo) values
+  ('00000000-0000-4000-8000-0000000000d8','00000000-0000-4000-8000-000000000001',
+   '00000000-0000-4000-8000-0000000000a1','00000000-0000-4000-8000-0000000000c1',
+   '00000000-0000-4000-8000-0000000000f4','Passe de grupo liberado (Demo)','work_together',
+   now()+interval '15 minutes',now()+interval '3 hours',-23.9655,-46.3338,'Cowork Demo Gonzaga',6,true);
+insert into activity_members(activity_id,user_id,status) values
+  ('00000000-0000-4000-8000-0000000000d8','00000000-0000-4000-8000-0000000000a6','approved'),
+  ('00000000-0000-4000-8000-0000000000d8','00000000-0000-4000-8000-0000000000a7','approved'),
+  ('00000000-0000-4000-8000-0000000000d8','00000000-0000-4000-8000-0000000000a8','approved');

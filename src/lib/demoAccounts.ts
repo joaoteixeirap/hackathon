@@ -9,6 +9,13 @@ export const DEMO_PERSONAS = {
 
 export type DemoPersona = keyof typeof DEMO_PERSONAS;
 
+/** Additional fictional people for opt-in discovery; not exposed as login buttons. */
+export const DEMO_PEOPLE = {
+  clara: { id: "00000000-0000-4000-8000-0000000000a6", email: "clara.demo@example.com", name: "Clara (Demo)", label: "perfil Clara" },
+  diego: { id: "00000000-0000-4000-8000-0000000000a7", email: "diego.demo@example.com", name: "Diego (Demo)", label: "perfil Diego" },
+  emilia: { id: "00000000-0000-4000-8000-0000000000a8", email: "emilia.demo@example.com", name: "Emília (Demo)", label: "perfil Emília" },
+} as const;
+
 export function isDemoPersona(v: unknown): v is DemoPersona {
   return typeof v === "string" && Object.hasOwn(DEMO_PERSONAS, v);
 }

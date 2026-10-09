@@ -14,6 +14,13 @@ describe("classify", () => {
     expect(classify({ tourism: "viewpoint" })).toEqual({ category: "tour", subcategory: "viewpoint" });
     expect(classify({ shop: "bakery" })).toBeNull();
   });
+  it("includes useful essential services without inferring their hours or prices", () => {
+    expect(classify({ shop: "supermarket" })).toEqual({category:"service",subcategory:"supermarket"});
+    expect(classify({ shop: "mobile_phone" })).toEqual({category:"service",subcategory:"mobile"});
+    const p=toPlace({type:"node",id:99,lat:-23.96,lon:-46.33,tags:{amenity:"hospital",emergency:"yes",name:"Hospital OSM"}},suburbs)!;
+    expect(p.opening_hours).toBeNull();
+    expect("price_hint" in p).toBe(false);
+  });
 });
 
 describe("toPlace", () => {

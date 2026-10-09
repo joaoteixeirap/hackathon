@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { existsSync } from "node:fs";
-import { anonymousSignInsEnabled } from "./anon";
+import { testAccount } from "./account";
 
 if (existsSync(".env.local")) process.loadEnvFile(".env.local");
 const configured = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL);
@@ -9,10 +9,12 @@ const configured = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL);
 test.describe("V3: stay", () => {
   test.skip(!configured, "Supabase not configured");
 
-  test("a foreign nomad creates a stay, ticks a task, saves a favorite and sees it on the map", async ({ page, isMobile }) => {
+  test("a foreign nomad creates a stay, ticks a task, saves a favorite and exports their agenda", async ({ page, context, baseURL, isMobile }) => {
     test.skip(!isMobile, "Phone flow; runs once, in the mobile project");
-    test.skip(!(await anonymousSignInsEnabled()), "Enable anonymous sign-ins in Supabase");
+    test.skip(!process.env.SUPABASE_SERVICE_ROLE_KEY, "Configured disposable account");
     test.setTimeout(120_000);
+    const u = await testAccount(context,baseURL);
+    try {
 
     await page.goto("/estadia");
     await expect(page.getByRole("heading", { name: "Minha estadia" })).toBeVisible();
@@ -52,5 +54,17 @@ test.describe("V3: stay", () => {
     await page.getByRole("button", { name: "Camadas do mapa" }).click();
     await page.getByRole("switch", { name: "Meus favoritos" }).click();
     await expect(page.getByRole("img", { name: "Favorito: Cowork Demo Gonzaga" })).toBeAttached();
+    await page.goto("/lugar/00000000-0000-4000-8000-0000000000c1");
+    await page.getByRole("link",{name:"Marcar sessão aqui"}).click();
+    await page.getByRole("button",{name:"Criar roda"}).click();
+    await expect(page).toHaveURL(/\/atividade\/[0-9a-f-]{36}/);
+    await page.goto("/estadia?aba=agenda");
+    const download=page.waitForEvent("download");
+    await page.getByRole("button",{name:"Baixar agenda (.ics)"}).click();
+    expect((await download).suggestedFilename()).toBe("solorota.ics");
+    } finally {
+      await u.admin.from("activities").delete().eq("creator_id",u.id);
+      await u.cleanup();
+    }
   });
 });

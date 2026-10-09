@@ -2,6 +2,7 @@
 
 import { Ban, CalendarDays, ChevronDown } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useState, useTransition } from "react";
 import { blockPerson } from "@/app/estadia/actions";
 import { ReportButton } from "@/components/activity/ReportButton";
@@ -11,6 +12,7 @@ import { track } from "@/lib/track";
 export type PersonCard = {
   user_id: string;
   display_name: string;
+  avatar_url?: string | null;
   common_interests: string[];
   same_rhythm: boolean;
   overlap_days: number;
@@ -29,7 +31,7 @@ function PersonItem({ p }: { p: PersonCard }) {
     <li className="py-3">
       <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className="flex w-full items-start gap-3 text-left">
         <span aria-hidden className="grid size-11 shrink-0 place-items-center rounded-full bg-primary-soft font-display font-bold text-primary">
-          {p.display_name.slice(0, 1).toUpperCase()}
+          {p.avatar_url?.startsWith("https://") ? <Image src={p.avatar_url} alt="" width={44} height={44} unoptimized className="size-11 rounded-full object-cover" /> : p.display_name.slice(0, 1).toUpperCase()}
         </span>
         <span className="min-w-0 flex-1">
           <span className="block font-semibold">{p.display_name}</span>

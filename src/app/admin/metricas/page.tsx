@@ -131,7 +131,7 @@ export default async function MetricsPage({ searchParams }: Props) {
           <Stat label="Conversão" value={percent(f.conversion)} />
         </div>
         <p className="mt-3 text-sm">
-          Melhor bloco: <span className="font-semibold tabular-nums">{percent(bestBlock || null)}</span> dos visitantes ·{" "}
+          Maior conversão por bloco: <span className="font-semibold tabular-nums">{percent(bestBlock || null)}</span> dos visitantes ·{" "}
           {bestBlock >= TARGET_BLOCK_CONVERSION ? (
             <span className="font-semibold text-success">meta de 10% atingida</span>
           ) : (

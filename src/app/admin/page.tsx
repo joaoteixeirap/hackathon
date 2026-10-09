@@ -26,10 +26,11 @@ export default async function AdminHome() {
   }
 
   const supabase = await createClient();
-  const [reports, verifications, pendingPartners] = await Promise.all([
+  const [reports, verifications, pendingPartners, templates] = await Promise.all([
     supabase.from("reports").select("id", { count: "exact", head: true }).eq("resolved", false),
     supabase.from("verification_requests").select("user_id", { count: "exact", head: true }),
     supabase.from("partners").select("id", { count: "exact", head: true }).eq("approved", false),
+    supabase.from("stay_task_templates").select("id,title").eq("active",true).is("source_url",null).order("sort"),
   ]);
 
   const items = [
@@ -55,6 +56,11 @@ export default async function AdminHome() {
           </li>
         ))}
       </ul>
+      <section className={`${card} mt-5 p-5`} aria-label="Revisão de fontes do checklist">
+        <h2 className="font-display text-lg font-bold">Checklist: revisar fonte</h2>
+        <p className="mt-1 text-sm text-muted">Lembretes ainda sem fonte cadastrada. Revisar antes de acrescentar orientação ou prazo.</p>
+        <ul className="mt-3 space-y-2 text-sm">{(templates.data??[]).map(t=><li key={t.id}>{t.title} <span className="text-muted">· revisar fonte</span></li>)}</ul>
+      </section>
     </PageShell>
   );
 }

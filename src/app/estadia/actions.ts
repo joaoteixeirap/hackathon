@@ -128,7 +128,7 @@ export async function addTask(_prev: StayFormState, formData: FormData): Promise
   if (!user) return { status: "error", message: SESSION_LOST };
   const supabase = await createClient();
   const { data: stay } = await supabase.from("stays").select("id").eq("user_id", user.id).eq("active", true).maybeSingle();
-  if (!stay) return { status: "error", message: "Crie sua estadia primeiro." };
+  if (!stay) return { status: "error", message: "Crie sua estadia para continuar." };
   const { error } = await supabase.from("stay_tasks").insert({ stay_id: stay.id, user_id: user.id, title, phase, due_on: due, area: "work" });
   if (error) return { status: "error", message: "Não foi possível adicionar." };
   revalidatePath("/estadia");

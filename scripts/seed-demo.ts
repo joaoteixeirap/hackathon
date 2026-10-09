@@ -7,7 +7,7 @@
  */
 import { createClient } from "@supabase/supabase-js";
 import { existsSync } from "node:fs";
-import { DEMO_PERSONAS } from "../src/lib/demoAccounts";
+import { DEMO_PERSONAS, DEMO_PEOPLE } from "../src/lib/demoAccounts";
 
 if (existsSync(".env.local")) process.loadEnvFile(".env.local");
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -20,7 +20,7 @@ if (!url || !serviceKey || !password || password.length < 12) {
 const db = createClient(url, serviceKey, { auth: { persistSession: false } });
 
 async function main() {
-  for (const [key, p] of Object.entries(DEMO_PERSONAS)) {
+  for (const [key, p] of Object.entries({ ...DEMO_PERSONAS, ...DEMO_PEOPLE })) {
     const attrs = { email: p.email, password: password!, email_confirm: true, user_metadata: { display_name: p.name } };
     const existing = await db.auth.admin.getUserById(p.id);
     const { error } = existing.data.user

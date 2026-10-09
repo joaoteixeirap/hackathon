@@ -2,6 +2,7 @@
 
 import { List, Map as MapIcon } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import { CheckinSheet } from "@/components/checkin/CheckinSheet";
 import { field } from "@/components/ui/styles";
 import type { BBox } from "@/lib/geo";
@@ -12,7 +13,10 @@ import { radarScore, rankForRadar } from "@/lib/radarScore";
 import { createClient } from "@/lib/supabase/client";
 import { track } from "@/lib/track";
 import { RadarCard } from "./RadarCard";
-import { RadarMap } from "./RadarMap";
+const RadarMap = dynamic(() => import("./RadarMap").then(m=>m.RadarMap), {
+  ssr:false,
+  loading:()=> <p role="status" className="rounded-2xl bg-surface-2 p-5 text-sm text-muted">Abrindo mapa…</p>,
+});
 
 const FILTERS: RadarFilter[] = ["now", "call", "outlets", "quiet", "recent", "near"];
 

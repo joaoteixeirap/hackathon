@@ -122,6 +122,7 @@ export default async function StayPage({ searchParams }: Props) {
   return (
     <PageShell title="Minha estadia">
       <section className={`${card} -mt-2 mb-5 space-y-2 p-5`} aria-label="Progresso da estadia">
+        {profile?.display_name?.endsWith("(Demo)") && <p className="text-xs font-semibold text-muted">Dados de demonstração · {profile.display_name}</p>}
         <p className="font-display text-xl font-bold">
           {progress.status === "before"
             ? `Chega em ${new Date(`${stay.arrive_on}T12:00:00`).toLocaleDateString("pt-BR")} em ${stay.city.name}`
@@ -140,13 +141,13 @@ export default async function StayPage({ searchParams }: Props) {
         </details>
       </section>
 
-      <nav aria-label="Seções da estadia" className="no-scrollbar -mx-4 mb-5 flex gap-2 overflow-x-auto px-4">
+      <nav aria-label="Seções da estadia" className="mb-5 grid grid-cols-3 gap-2 sm:flex sm:flex-wrap">
         {TABS.map(([k, t]) => (
           <Link
             key={k}
             href={`/estadia?aba=${k}`}
             aria-current={tab === k ? "page" : undefined}
-            className={`inline-flex min-h-11 shrink-0 items-center rounded-full px-4 text-sm font-semibold ${tab === k ? "bg-primary text-on-fill" : "border border-line bg-surface"}`}
+            className={`inline-flex min-h-11 shrink-0 items-center justify-center rounded-full px-4 text-sm font-semibold ${tab === k ? "bg-primary text-on-fill" : "border border-line bg-surface"}`}
           >
             {t}
           </Link>
