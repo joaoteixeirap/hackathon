@@ -31,7 +31,7 @@ Plano B: se a rede cair, as rodas demo (com rótulo "Demo") e o painel de métri
 - 3.120 coworkings no Brasil, 78% de ocupação média (Censo Woba 2025).
 - Nômades nos EUA: 18,5 milhões em 2025 (MBO Partners; dado dos EUA).
 
-Diga "sinal de demanda" e "teste em andamento", nunca "demanda comprovada". Preços (R$ 19,90/mês, comissão de 10 a 15%, destaque R$ 49/mês) são hipóteses.
+Diga "sinal de demanda" e "teste em andamento", nunca "demanda comprovada". O app é 100% gratuito para nômades; a receita vem de parceiros (destaque R$ 49/mês, comissão de 10 a 15%), valores que ainda são hipóteses.
 
 ## Links úteis
 

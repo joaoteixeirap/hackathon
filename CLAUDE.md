@@ -1,6 +1,6 @@
 # CLAUDE.md — SoloRota (nome provisório)
 
-Leia este arquivo inteiro, depois `SPEC.md` (produto, dados, telas, critérios de aceite), `DESIGN.md` (identidade visual do mapa) e `EVIDENCE.md` (dados de demanda e como usá-los). Trabalhe por marco (M0 a M8 em `SPEC.md`), na ordem, e faça commit ao fim de cada marco.
+Leia este arquivo inteiro, depois `SPEC.md` (produto, dados, telas, critérios de aceite), `DESIGN.md` (identidade visual do mapa), `EVIDENCE.md` (dados de demanda e como usá-los) e `SPEC_V2_NOMADE.md` (diferenciais; vale onde houver conflito). Trabalhe por marco (M0 a M8 em `SPEC.md`, depois V0 a V7 em `SPEC_V2_NOMADE.md`), na ordem, e faça commit ao fim de cada marco.
 
 ## O que é
 
@@ -45,6 +45,16 @@ Variáveis de ambiente em `.env.example`: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBL
 6. **Acessibilidade:** contraste AA, alvos de toque ≥ 44 px, pins diferenciados por ícone e não só por cor, `prefers-reduced-motion` respeitado.
 7. **Simplicidade:** nada de pagamento real (a cobrança é simulada), IA, push, app nativo ou mapa em tempo real de pessoas. Estão fora do escopo (ver "Fora do escopo" em `SPEC.md`).
 8. **Não peça confirmação para decisões de rotina.** Escolha o padrão razoável, registre em `docs/DECISIONS.md` (uma linha por decisão) e siga. Pergunte só se estiver bloqueado.
+
+Invariantes do `SPEC_V2_NOMADE.md` (valem sobre as regras acima em caso de conflito):
+
+- **I1. Gratuito para o nômade.** Nenhuma função é bloqueada por pagamento: sem plano, premium, assinatura, "Plus" ou cobrança ao nômade. Se existir qualquer vestígio **voltado ao nômade** no código ou na interface (`premium`, `assinatura`, `plus`, plano pago de usuário), remova. O plano/mensalidade de destaque **do parceiro** (simulado) permanece. Receita vem só de **parceiros** (destaque, benefícios de grupo e comissão, tudo simulado no MVP).
+- **I2. Todo dado local mostra origem e data.** Nenhuma informação de lugar aparece sem: **fonte**, **data da última verificação** e **quantas pessoas confirmaram**. Sem dado, mostra "Sem verificação ainda" e convida a medir.
+- **I3. Integridade do Radar.** Pagamento de parceiro (destaque, plano) **nunca** altera a pontuação, a ordem ou os filtros do Radar. O destaque pago só aparece no mapa com o rótulo visível "Patrocinado". Há teste automático para isso.
+- **I4. Sem alegação de exclusividade.** Na interface, em `/sobre`, `/espera`, README e textos de pitch, é proibido: "único", "exclusivo", "primeiro app", "inédito", "nenhum concorrente", "revolucionário". Permitido: "reunimos X, Y e Z", "com data de verificação", "100% gratuito para nômades". Nunca citar concorrentes na interface.
+- **I5. Privacidade reforçada.** (a) Descoberta de pessoas é **opt-in** (`discoverable`, separado de `share_presence`), só entre usuários verificados, **sem mensagem direta** (o contato acontece em atividades e grupos). (b) Check-ins de lugar são **anônimos para os outros** (ninguém vê quem mediu; isso evitaria expor histórico de onde a pessoa esteve): só o próprio usuário lê as suas linhas; os demais veem agregados. (c) Geolocalização só serve para um booleano `near_place`; **nunca grave coordenadas** do usuário. (d) Nada de microfone. (e) Gastos, tarefas, favoritos e estadias são privados do dono.
+- **I6. Demo honesto.** Dados de demonstração continuam marcados com `is_demo`/"Demo". Painéis com poucos dados mostram **estado vazio honesto** ("Poucos dados ainda"), nunca números inventados.
+- **I7. Tudo que é novo emite evento** (seção 12 do `SPEC_V2_NOMADE.md`), sem dado pessoal.
 
 ## Definição de pronto de cada marco
 

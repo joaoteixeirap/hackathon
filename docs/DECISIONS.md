@@ -75,3 +75,25 @@ Uma linha por decisão: data, decisão, motivo.
 - 2026-10-09 — `/admin` reúne os painéis da equipe com contadores; roteiro e checklist do pitch em `docs/PITCH.md` (Santos, substitui o roteiro de Florianópolis da SPEC §10).
 - 2026-10-09 — Corrigido erro "Style is not done loading" ao voltar ao mapa em modo escuro: com o estilo em cache, o mapa nascia claro e trocava para noturno durante a instalação das camadas. Agora o estilo só é trocado se o tema mudou, instalações de um estilo substituído são descartadas (contador de geração) e as atualizações de camada nunca derrubam a página. Teste E2E em modo escuro.
 - 2026-10-09 — Revisão para celular dos jurados: varredura a 360×740 e 375×667 sem rolagem lateral; chips e alça do painel com 44 px; "Dia" em linha própria e "Início"/"Duração" lado a lado; botões coral com texto escuro (branco sobre coral não passa AA); tipo selecionado da roda em `primary`.
+
+## Divergências código × SPEC.md (levantamento de 2026-10-09, antes do V2)
+
+- Cidade-piloto é Santos, não Florianópolis (decisão da equipe de 08/10); o SPEC_V2 cita Florianópolis só em exemplos ("Dia 12 de 45 em Florianópolis", `import:osm florianopolis`, "Corrida na Lagoa"). Mantemos Santos e adaptamos os exemplos; tudo segue configurável por `cities`.
+- F7 login: o fluxo padrão é sessão de visitante anônima; magic link existe em `/entrar` mas não aparece na navegação (só para admin).
+- F4/F7 verificação: implementada, mas desligada por `require_verification() = false`; parceiros aprovados na hora por `require_partner_approval() = false`.
+- F7 perfil: sem foto. `profiles.avatar_url` existe, mas não há upload nem bucket de avatares; listas mostram a inicial do nome.
+- F7 avaliações: uma por autor e pessoa no total (restrição única de `reviews`), não "uma por membro e por atividade".
+- F3 atividades: resumo público também para anônimos (mapa e prévia do WhatsApp); a SPEC dizia "autenticados leem as abertas".
+- F2/F10 parceiro: não há formulário para editar dados do lugar (Wi-Fi declarado, tomadas, ruído, preço, horário); só nome/categoria/endereço ao cadastrar, ofertas e destaque.
+- F2 Selo: `nomad_seal` booleano recalculado a cada teste de Wi-Fi, sem validade (SPEC_V2 R3 muda isso).
+- F12 Wi-Fi: mede só download e ping, 1 por hora por lugar; sem upload, jitter, perda nem relato (SPEC_V2 R1/R2 muda isso).
+- F13 `/espera`: blocos `comunidade`/`trabalho`/`saude_moradia` (SPEC_V2 M3 muda para `work`/`bonds`/`week`).
+- F10 destaque: pino maior e topo da lista do mapa, sem rótulo "Patrocinado" (SPEC_V2 I3 exige o rótulo).
+- `places.quiet_level` já está em 1 = barulhento … 5 = silencioso (rótulos em `PlaceDetail`), como pede o SPEC_V2.
+- Migrações: o esquema está em `0001_init.sql` a `0006_presence_neighborhoods.sql`; a migração do V2 será `0007_nomad_v2.sql` (o nome `0002_nomad_v2.sql` do SPEC_V2 colidiria).
+- `pnpm db:reset` usa `SUPABASE_DB_URL` quando definida, ou seja, apaga o banco hospedado (que hoje é o único); o SPEC_V2 V0 exige bloquear isso.
+- Seed: `seed.sql` insere contas demo direto em `auth.users`, sem senha (não fazem login); o SPEC_V2 V0 pede `pnpm seed:demo` via Admin API e login de demonstração.
+- Rotas extras além da SPEC: `/admin` (atalhos), `/api/eventos`, `/api/speedtest`; nav inferior é Explorar · Grupos · ＋ · Perfil (SPEC_V2 muda para Mapa · Radar · ＋ · Estadia · Perfil).
+- M0 previa deploy na Vercel; o app ainda não foi publicado (pedido da equipe: só local por enquanto).
+- DESIGN: o SPEC_V2 cita DM Mono e tokens `mata`/`sol`/`grafite`/`tinta-suave` da identidade v1 (carta náutica); na v2 atual mapeamos para `success`/`accent-strong`/`muted`/`line` e números em `tabular-nums` da fonte da interface, sem nova fonte.
+- I1/I4 (09/10): removidos "Oferta(s) exclusiva(s)" da ficha e do `/espera` e a assinatura de R$ 19,90 do `docs/PITCH.md`.

@@ -35,7 +35,7 @@ export function PlaceOffers({ placeId, count }: { placeId: string; count: number
   return (
     <section aria-labelledby={`offers-${placeId}`} className="space-y-2">
       <h3 id={`offers-${placeId}`} className="flex items-center gap-2 text-sm font-bold text-accent-strong">
-        <Ticket size={16} aria-hidden /> {count === 1 ? "Oferta exclusiva" : "Ofertas exclusivas"} para nômades
+        <Ticket size={16} aria-hidden /> {count === 1 ? "Oferta" : "Ofertas"} para nômades
       </h3>
       {offers == null ? (
         <p className="text-sm text-muted">Carregando ofertas…</p>

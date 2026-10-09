@@ -20,7 +20,7 @@ const COPY: Record<Block, { icon: React.ReactNode; tone: string; title: string; 
     tone: "bg-cat-work",
     title: "Onde trabalhar e comer bem",
     lead: "Cafés e coworkings com Wi-Fi medido por quem usa.",
-    points: ["Velocidade real do Wi-Fi e tomadas", "Selo Amigo do Nômade", "Ofertas exclusivas de parceiros locais"],
+    points: ["Velocidade real do Wi-Fi e tomadas", "Selo Amigo do Nômade", "Ofertas de parceiros locais"],
   },
   saude_moradia: {
     icon: <HeartPulse size={22} aria-hidden />,
