@@ -10,7 +10,7 @@ Plataforma web (PWA, mobile-first) cuja tela principal é um **mapa**, no estilo
 - **Lugares e serviços locais:** onde trabalhar (Wi-Fi), comer, ser atendido (saúde), morar por temporada, passeios.
 - **Painel do parceiro:** negócios locais cadastram lugar e ofertas e veem quem resgatou. Parceiros são a fonte de receita (mensalidade de destaque e comissão).
 
-Cidade-piloto padrão: Florianópolis (SC). Tudo deve ser configurável por cidade (tabela `cities`), sem código específico de cidade.
+Cidade-piloto padrão: Santos (SP) (decisão da equipe em 08/10/2026; Florianópolis continua cadastrada). Tudo deve ser configurável por cidade (tabela `cities`), sem código específico de cidade.
 
 ## Stack (não troque sem motivo forte)
 

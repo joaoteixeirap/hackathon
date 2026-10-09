@@ -26,6 +26,8 @@ describe.skipIf(!enabled)("RLS", () => {
   const anon = enabled ? createClient(url, anonKey, opts) : (null as unknown as SupabaseClient);
   const users: Record<"creator" | "member" | "outsider" | "extra", TestUser> = {} as never;
   let activityId = "";
+  // Hackathon mode turns the verification gate off (0002_guest_access.sql).
+  let verificationRequired = true;
 
   async function makeUser(name: string, verified: boolean): Promise<TestUser> {
     const email = `rls-${name}-${run}@example.com`;
@@ -48,6 +50,7 @@ describe.skipIf(!enabled)("RLS", () => {
   }
 
   beforeAll(async () => {
+    verificationRequired = (await anon.rpc("require_verification")).data !== false;
     users.creator = await makeUser("creator", true);
     users.member = await makeUser("member", true);
     users.outsider = await makeUser("outsider", false);
@@ -66,6 +69,23 @@ describe.skipIf(!enabled)("RLS", () => {
     expect(waitlist).toEqual([]);
     const { error } = await anon.from("waitlist").insert({ email: `rls-${run}@example.com` });
     expect(error).toBeNull();
+  });
+
+  it("anonymous guests get a profile and can act", async (ctx) => {
+    const guest = createClient(url, anonKey, opts);
+    const { data, error } = await guest.auth.signInAnonymously();
+    if (error?.code === "anonymous_provider_disabled") {
+      ctx.skip("Enable anonymous sign-ins in Supabase (Authentication → Sign In / Providers)");
+    }
+    expect(error).toBeNull();
+    try {
+      const { data: me } = await guest.rpc("get_my_profile");
+      expect(me.display_name).toMatch(/^Viajante [0-9A-F]{4}$/);
+      const { error: e } = await guest.from("profiles").update({ display_name: "Visitante" }).eq("id", data.user!.id);
+      expect(e).toBeNull();
+    } finally {
+      await admin.auth.admin.deleteUser(data.user!.id);
+    }
   });
 
   it("a profile is created on sign-up and users cannot verify themselves", async () => {
@@ -93,7 +113,7 @@ describe.skipIf(!enabled)("RLS", () => {
     expect(data).toMatchObject({ display_name: "RLS creator", verified: true });
   });
 
-  it("only verified users create activities", async () => {
+  it("activities are created only as yourself (and only when verified, if required)", async () => {
     const base = {
       city_id: CITY_ID,
       title: "RLS test activity",
@@ -104,10 +124,12 @@ describe.skipIf(!enabled)("RLS", () => {
       meeting_lng: -48.55,
       capacity: 2,
     };
-    const denied = await users.outsider.client
-      .from("activities")
-      .insert({ ...base, creator_id: users.outsider.id });
-    expect(denied.error).not.toBeNull();
+    if (verificationRequired) {
+      const denied = await users.outsider.client
+        .from("activities")
+        .insert({ ...base, creator_id: users.outsider.id });
+      expect(denied.error).not.toBeNull();
+    }
 
     const spoof = await users.member.client
       .from("activities")
@@ -123,9 +145,11 @@ describe.skipIf(!enabled)("RLS", () => {
     activityId = ok.data!.id;
   });
 
-  it("join flow: unverified cannot request, creator approves within capacity", async () => {
-    const unverified = await users.outsider.client.rpc("request_join", { p_activity_id: activityId });
-    expect(unverified.error?.message).toMatch(/verification pending/);
+  it("join flow: creator approves within capacity", async () => {
+    if (verificationRequired) {
+      const unverified = await users.outsider.client.rpc("request_join", { p_activity_id: activityId });
+      expect(unverified.error?.message).toMatch(/verification pending/);
+    }
 
     expect((await users.member.client.rpc("request_join", { p_activity_id: activityId })).data).toBe("requested");
     expect((await users.extra.client.rpc("request_join", { p_activity_id: activityId })).data).toBe("requested");

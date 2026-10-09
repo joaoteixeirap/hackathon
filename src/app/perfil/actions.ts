@@ -1,8 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
-import { defaultCitySlug } from "@/lib/cities";
+import { ensureUser } from "@/lib/auth";
 import { parseProfileForm, type ProfileErrors } from "@/lib/profile";
 import { createClient } from "@/lib/supabase/server";
 
@@ -12,20 +11,13 @@ export async function updateProfile(_prev: ProfileFormState, formData: FormData)
   const parsed = parseProfileForm(formData);
   if (!parsed.ok) return { status: "error", errors: parsed.errors };
 
-  const supabase = await createClient();
-  const { data: auth } = await supabase.auth.getUser();
-  if (!auth.user) redirect("/entrar?next=/perfil");
+  const user = await ensureUser();
+  if (!user) return { status: "error", message: "Não foi possível identificar sua sessão. Recarregue a página." };
 
-  const { error } = await supabase.from("profiles").update(parsed.data).eq("id", auth.user.id);
+  const supabase = await createClient();
+  const { error } = await supabase.from("profiles").update(parsed.data).eq("id", user.id);
   if (error) return { status: "error", message: "Não foi possível salvar. Tente de novo." };
 
   revalidatePath("/perfil");
   return { status: "saved" };
-}
-
-export async function signOut() {
-  const supabase = await createClient();
-  await supabase.auth.signOut();
-  // Not "/": that route is itself a redirect, which server actions cannot follow.
-  redirect(`/mapa/${defaultCitySlug}`);
 }

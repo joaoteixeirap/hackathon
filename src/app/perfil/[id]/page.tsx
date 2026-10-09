@@ -4,7 +4,7 @@ import { PageShell } from "@/components/ui/PageShell";
 import { Rating } from "@/components/ui/Rating";
 import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
 import { card } from "@/components/ui/styles";
-import { requireUser } from "@/lib/auth";
+import { getUser } from "@/lib/auth";
 import { getProfileRating } from "@/lib/ratings";
 import { createClient } from "@/lib/supabase/server";
 
@@ -14,8 +14,8 @@ type Props = { params: Promise<{ id: string }> };
 
 export default async function ProfilePage({ params }: Props) {
   const { id } = await params;
-  const user = await requireUser(`/perfil/${id}`);
-  if (id === user.id) redirect("/perfil");
+  const user = await getUser();
+  if (id === user?.id) redirect("/perfil");
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
 
   const supabase = await createClient();

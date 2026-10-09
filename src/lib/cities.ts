@@ -4,6 +4,7 @@ import { isSupabaseConfigured } from "./supabase/env";
 import { createClient } from "./supabase/server";
 
 export type City = {
+  id: string | null;
   slug: string;
   name: string;
   state: string;
@@ -19,13 +20,14 @@ export type City = {
  */
 const BOOTSTRAP_CITIES: City[] = [
   {
-    slug: "florianopolis",
-    name: "Florianópolis",
-    state: "SC",
-    center_lat: -27.5954,
-    center_lng: -48.548,
-    zoom: 11.5,
-    bbox: [-48.62, -27.85, -48.33, -27.38],
+    id: null,
+    slug: "santos",
+    name: "Santos",
+    state: "SP",
+    center_lat: -23.964,
+    center_lng: -46.329,
+    zoom: 13.2,
+    bbox: [-46.4, -24.0, -46.29, -23.91],
   },
 ];
 
@@ -35,7 +37,7 @@ export async function getCity(slug: string): Promise<City | null> {
       const supabase = await createClient();
       const { data, error } = await supabase
         .from("cities")
-        .select("slug, name, state, center_lat, center_lng, zoom, bbox")
+        .select("id, slug, name, state, center_lat, center_lng, zoom, bbox")
         .eq("slug", slug)
         .maybeSingle();
       if (!error) {
@@ -48,4 +50,4 @@ export async function getCity(slug: string): Promise<City | null> {
   return BOOTSTRAP_CITIES.find((c) => c.slug === slug) ?? null;
 }
 
-export const defaultCitySlug = process.env.NEXT_PUBLIC_DEFAULT_CITY ?? "florianopolis";
+export const defaultCitySlug = process.env.NEXT_PUBLIC_DEFAULT_CITY || "santos";

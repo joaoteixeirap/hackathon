@@ -1,6 +1,6 @@
 # SoloRota
 
-PWA mobile-first em forma de mapa para nômades digitais no Brasil: comunidade (atividades em grupo, chat), lugares para trabalhar, comer, saúde e moradia, e painel de parceiros locais. Cidade-piloto: Florianópolis.
+PWA mobile-first em forma de mapa para nômades digitais no Brasil: comunidade (atividades em grupo, chat), lugares para trabalhar, comer, saúde e moradia, e painel de parceiros locais. Cidade-piloto: Santos (SP).
 
 Especificação: [SPEC.md](SPEC.md) · Visual: [DESIGN.md](DESIGN.md) · Demanda: [EVIDENCE.md](EVIDENCE.md) · Decisões: [docs/DECISIONS.md](docs/DECISIONS.md)
 

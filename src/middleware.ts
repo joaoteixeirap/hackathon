@@ -1,8 +1,10 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { needsGuestSession } from "@/lib/guest";
 import { isSupabaseConfigured, supabaseAnonKey, supabaseUrl } from "@/lib/supabase/env";
 
-// Refreshes the Supabase session cookie on every navigation.
+// Refreshes the Supabase session cookie on every navigation, and starts an anonymous
+// guest session on routes that need a user (no login screen during the hackathon).
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
   if (!isSupabaseConfigured()) return response;
@@ -19,7 +21,10 @@ export async function middleware(request: NextRequest) {
       },
     },
   });
-  await supabase.auth.getUser();
+  const { data } = await supabase.auth.getUser();
+  if (!data.user && needsGuestSession(request.nextUrl.pathname)) {
+    await supabase.auth.signInAnonymously();
+  }
   return response;
 }
 

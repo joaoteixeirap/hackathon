@@ -1,5 +1,4 @@
 import "server-only";
-import { redirect } from "next/navigation";
 import { isSupabaseConfigured } from "./supabase/env";
 import { createClient } from "./supabase/server";
 
@@ -27,11 +26,17 @@ export async function getUser() {
   return data.user;
 }
 
-/** Redirects to /entrar when signed out. */
-export async function requireUser(next: string) {
-  const user = await getUser();
-  if (!user) redirect(`/entrar?next=${encodeURIComponent(next)}`);
-  return user;
+/**
+ * Current user, or a new anonymous guest. Only callable where cookies can be written
+ * (server actions, route handlers); pages rely on the middleware for this.
+ */
+export async function ensureUser() {
+  if (!isSupabaseConfigured()) return null;
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+  if (data.user) return data.user;
+  const { data: anon } = await supabase.auth.signInAnonymously();
+  return anon.user;
 }
 
 export async function getMyProfile(): Promise<MyProfile | null> {

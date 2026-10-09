@@ -2,8 +2,8 @@ import { expect, test } from "@playwright/test";
 
 test("home redirects to the default city map and renders it", async ({ page }) => {
   await page.goto("/");
-  await expect(page).toHaveURL(/\/mapa\/florianopolis$/);
-  await expect(page.getByRole("region", { name: /Mapa de Florianópolis/ })).toBeVisible();
+  await expect(page).toHaveURL(/\/mapa\/santos$/);
+  await expect(page.getByRole("region", { name: /Mapa de Santos/ })).toBeVisible();
   const map = page.locator("[data-map-ready=true]");
   await expect(map).toBeVisible({ timeout: 30_000 });
   // The map must fill the viewport (full-screen map is the whole UI).
