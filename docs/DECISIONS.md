@@ -137,3 +137,6 @@ Uma linha por decisão: data, decisão, motivo.
 - 2026-10-09 — Favoritos privados; o Radar lê os favoritos uma vez para todos os cartões; camada "Meus favoritos" no mapa (estrela sobre o pino); "Montar a rota do dia com os favoritos" grava a rota no aparelho e abre o mapa. `?cat=` abre o mapa num chip (links "Abrir no mapa" do checklist).
 - 2026-10-09 — J4: faixa "Como foi trabalhar no {local}?" em /estadia → Hoje e na página da atividade, até 24 h após o fim, só para participantes e só se ainda não registraram check-in daquela atividade.
 - 2026-10-09 — M1: micro-pesquisa grava `micro_answers` (anônima por `session_id`; logada na estadia); o progresso por aparelho fica no `localStorage` para não repetir perguntas.
+
+- 2026-10-09 ? V4: s?ries e boas-vindas oficiais com seis datas futuras, materializa??o ao abrir e cron opcional protegido. Aprova??o ?nica entra nas ocorr?ncias com vaga; sair de uma ocorr?ncia preserva a sa?da.
+- 2026-10-09 ? Descoberta de pessoas exige verified nos dois perfis, independentemente do modo demo de atividades; opt-in, sobreposi??o m?nima de sete dias e bloqueios nos dois sentidos. Migra??o 0014 corrigiu delimitador SQL; 0015 cobre hor?rio do dia j? passado. V4 validado por lint, 146 testes, build e Playwright com dois celulares e chat.

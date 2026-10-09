@@ -88,3 +88,51 @@ export async function getPostSessionPrompts(userId: string): Promise<PostSession
     .filter((a) => a.place_id && a.places && !answered.has(a.id))
     .map((a) => ({ activity_id: a.id, title: a.title, place: { id: a.place_id!, ...a.places! } }));
 }
+
+export type WelcomeMeetup = { series_id: string; title: string; starts_at: string; meeting_label: string | null };
+
+/** S5: the city's official welcome series and its next date (for people who just arrived). */
+export async function getWelcomeMeetup(cityId: string): Promise<WelcomeMeetup | null> {
+  const supabase = await createClient();
+  const { data: series } = await supabase
+    .from("activity_series")
+    .select("id, title, meeting_label")
+    .eq("city_id", cityId)
+    .eq("is_official", true)
+    .eq("active", true)
+    .limit(1)
+    .maybeSingle();
+  if (!series) return null;
+  const { data: next } = await supabase
+    .from("activities")
+    .select("starts_at")
+    .eq("series_id", series.id)
+    .gt("starts_at", new Date().toISOString())
+    .order("starts_at")
+    .limit(1)
+    .maybeSingle();
+  return next ? { series_id: series.id, title: series.title, starts_at: next.starts_at, meeting_label: series.meeting_label } : null;
+}
+
+export type CompatiblePerson = { user_id: string; display_name: string; avatar_url: string | null; common_interests: string[]; same_rhythm: boolean; overlap_days: number; score: number };
+
+/** S2: compatible people (the RPC enforces opt-in, verification, overlap and blocks). */
+export async function getCompatiblePeople(cityId: string): Promise<CompatiblePerson[]> {
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("compatible_people", { p_city_id: cityId, p_limit: 20 });
+  return ((data ?? []) as CompatiblePerson[]).map((p) => ({ ...p, score: Number(p.score) }));
+}
+
+/** Upcoming public activities created by someone (for the people mini-profile). */
+export async function getPublicActivitiesBy(userId: string, limit = 3) {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("activities")
+    .select("id, title, starts_at")
+    .eq("creator_id", userId)
+    .in("status", ["open", "full"])
+    .gt("starts_at", new Date().toISOString())
+    .order("starts_at")
+    .limit(limit);
+  return (data ?? []) as { id: string; title: string; starts_at: string }[];
+}

@@ -48,7 +48,11 @@ export type ActivitySummary = {
   capacity: number;
   status: "open" | "full";
   is_demo: boolean;
+  /** Weekly series (SPEC_V2 S3); the map shows only the next occurrence of each. */
+  series?: SeriesInfo | null;
 };
+
+export type SeriesInfo = { id: string; weekday: number; start_time: string; is_official: boolean };
 
 /** Hypothesis (SPEC F1): "Wi-Fi forte" threshold in Mbps. */
 export const WIFI_STRONG_MBPS = 25;

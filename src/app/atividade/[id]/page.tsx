@@ -20,6 +20,9 @@ import { costSplit, isParticipant } from "@/lib/membership";
 import { ACTIVITY_LABELS, stripDemo } from "@/lib/places";
 import { directionsUrl } from "@/lib/share";
 import { PostSessionBanner } from "@/components/stay/PostSessionBanner";
+import { SeriesBadge } from "@/components/ui/SeriesBadge";
+import { COMPAT_MIN_COUNT } from "@/config/nomad";
+import { createClient } from "@/lib/supabase/server";
 import { getPostSessionPrompts } from "@/lib/stayData";
 import { ShareActions } from "./ShareActions";
 import { TrustedContact } from "./TrustedContact";
@@ -51,6 +54,8 @@ export default async function ActivityPage({ params, searchParams }: Props) {
   const viewer = await loadActivityViewer(a.id, a.creator_id);
   // J4: within 24 h after a session at a place, invite the participants to register it.
   const postSession = viewer.userId && isParticipant(viewer.role) ? (await getPostSessionPrompts(viewer.userId)).find((p) => p.activity_id === a.id) : undefined;
+  // S4: counts only, and only for signed-in people with an active stay.
+  const compat = viewer.userId ? (((await (await createClient()).rpc("activity_compat", { p_activity_id: a.id })).data as Compat | null) ?? null) : null;
   const title = stripDemo(a.title);
   const when = whenText(a.starts_at, a.ends_at);
   const spots = Math.max(0, a.capacity - 1 - a.approved);
@@ -123,7 +128,9 @@ export default async function ActivityPage({ params, searchParams }: Props) {
           ) : null}
         </dl>
 
+        {a.series && <SeriesBadge series={a.series} />}
         {a.description && <p className="whitespace-pre-line">{a.description}</p>}
+        <CompatLine compat={compat} />
 
         <p className="rounded-2xl bg-surface-2 px-3.5 py-2.5 text-sm">Combine em local público.</p>
 
@@ -203,5 +210,22 @@ export default async function ActivityPage({ params, searchParams }: Props) {
         <ShareActions path={`/atividade/${a.id}`} title={title} whenText={when} />
       </section>
     </PageShell>
+  );
+}
+
+type Compat = { same_rhythm: number; overlap: number };
+
+/** S4: "3 pessoas com a mesma rotina que você" — only from 2 people on, so nobody is singled out. */
+function CompatLine({ compat }: { compat: Compat | null }) {
+  if (!compat) return null;
+  const lines = [
+    compat.same_rhythm >= COMPAT_MIN_COUNT && `${compat.same_rhythm} pessoas com a mesma rotina que você`,
+    compat.overlap >= COMPAT_MIN_COUNT && `${compat.overlap} estarão na cidade nas suas datas`,
+  ].filter(Boolean);
+  if (lines.length === 0) return null;
+  return (
+    <p className="rounded-2xl bg-primary-soft px-3.5 py-2.5 text-sm font-semibold text-primary" data-testid="compat">
+      {lines.join(" · ")}
+    </p>
   );
 }

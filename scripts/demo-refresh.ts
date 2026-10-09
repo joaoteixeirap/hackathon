@@ -8,6 +8,7 @@ import { createClient } from "@supabase/supabase-js";
 import { existsSync } from "node:fs";
 import { addDays, DEMO_PROFILE_IDS, localDay, shiftDemoActivities } from "../src/lib/demo";
 import { DEMO_CHECKIN_PLACES, demoCheckinRows } from "../src/lib/demoCheckins";
+import { DEMO_SERIES } from "../src/lib/demoSeries";
 
 if (existsSync(".env.local")) process.loadEnvFile(".env.local");
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -28,7 +29,8 @@ function fail(what: string, error: { message: string } | null) {
 async function main() {
   const today = localDay(new Date());
 
-  const { data: acts, error: actsError } = await db.from("activities").select("id, starts_at, ends_at").eq("is_demo", true);
+  // One-off demo rodas only: series occurrences keep their weekday and are refreshed below.
+  const { data: acts, error: actsError } = await db.from("activities").select("id, starts_at, ends_at").eq("is_demo", true).is("series_id", null);
   fail("Lendo rodas demo", actsError);
   const { shiftDays, rows } = shiftDemoActivities(acts ?? []);
   for (const r of rows) {
@@ -66,6 +68,15 @@ async function main() {
     fail(`Recalculando ${id}`, rcError);
   }
   console.log("Check-ins demo: Gonzaga recente (Selo + chamadas), Ponta da Praia há 70 dias, Centro há 120 dias.");
+
+  // Weekly demo series and the official welcome meetup (S3/S5), with their next 6 dates.
+  const { error: seriesError } = await db.from("activity_series").upsert(DEMO_SERIES.map((s) => ({ ...s, active: true })));
+  fail("Criando séries demo", seriesError);
+  for (const s of DEMO_SERIES) {
+    const { error: rsError } = await db.rpc("refresh_series", { p_series_id: s.id });
+    fail(`Datas da série ${s.title}`, rsError);
+  }
+  console.log(`Séries demo: ${DEMO_SERIES.length} (inclui o encontro oficial de boas-vindas).`);
 }
 
 main().catch((err) => {

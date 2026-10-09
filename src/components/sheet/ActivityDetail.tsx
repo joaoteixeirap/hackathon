@@ -7,6 +7,7 @@ import { formatDayShort, formatHour, ringState } from "@/components/map/activity
 import { RouteButton, type RouteToggle } from "@/components/route/RouteButton";
 import { ActivityIcon } from "@/components/ui/CategoryIcon";
 import { DemoTag } from "@/components/ui/DemoTag";
+import { SeriesBadge } from "@/components/ui/SeriesBadge";
 import { buttonAccent, buttonSecondary } from "@/components/ui/styles";
 import { ACTIVITY_LABELS, stripDemo, type ActivitySummary } from "@/lib/places";
 import { sharePage } from "@/lib/share";
@@ -42,6 +43,8 @@ export function ActivityDetail({ activity, onClose, route }: { activity: Activit
           </button>
         )}
       </header>
+
+      {activity.series && <SeriesBadge series={activity.series} />}
 
       <dl className="space-y-2.5 text-[15px]">
         <div className="flex items-center gap-3">

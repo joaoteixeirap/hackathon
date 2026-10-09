@@ -141,3 +141,15 @@ export async function saveFavoriteNote(placeId: string, note: string): Promise<R
   revalidatePath("/estadia");
   return { ok: true };
 }
+
+/** S2: block someone (they disappear from your people list and you from theirs). */
+export async function blockPerson(userId: string): Promise<Result> {
+  if (!UUID_RE.test(userId)) return { ok: false, message: "Pessoa inválida." };
+  const user = await getUser();
+  if (!user) return { ok: false, message: SESSION_LOST };
+  const supabase = await createClient();
+  const { error } = await supabase.from("user_blocks").upsert({ blocker_id: user.id, blocked_id: userId });
+  if (error) return { ok: false, message: "Não foi possível bloquear." };
+  revalidatePath("/estadia");
+  return { ok: true };
+}

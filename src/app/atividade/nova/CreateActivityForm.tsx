@@ -33,6 +33,7 @@ export function CreateActivityForm({ citySlug, bbox, prefill, stayNotice }: { ci
   const [capacity, setCapacity] = useState(6);
   const [cost, setCost] = useState("");
   const [split, setSplit] = useState(true);
+  const [repeat, setRepeat] = useState(false);
   const defaultDate = useMemo(tomorrowInBrasilia, []);
 
   const costCents = parseBRL(cost);
@@ -149,9 +150,9 @@ export function CreateActivityForm({ citySlug, bbox, prefill, stayNotice }: { ci
             type="number"
             inputMode="numeric"
             min={2}
-            max={30}
+            max={repeat ? 12 : 30}
             value={capacity}
-            onChange={(ev) => setCapacity(Math.max(2, Math.min(30, Number(ev.target.value) || 2)))}
+            onChange={(ev) => setCapacity(Math.max(2, Math.min(repeat ? 12 : 30, Number(ev.target.value) || 2)))}
             className={`${field} tabular-nums`}
           />
           <Err id="capacity-error" msg={e.capacity} />
@@ -172,6 +173,23 @@ export function CreateActivityForm({ citySlug, bbox, prefill, stayNotice }: { ci
           <Err id="cost-error" msg={e.cost} />
         </div>
       </div>
+      <label className="flex min-h-11 items-start gap-3 rounded-2xl bg-surface-2 p-3">
+        <input
+          type="checkbox"
+          name="repeat"
+          checked={repeat}
+          onChange={(ev) => {
+            setRepeat(ev.target.checked);
+            if (ev.target.checked) setCapacity((c) => Math.min(c, 12));
+          }}
+          className="mt-0.5 size-5 shrink-0 accent-primary"
+        />
+        <span>
+          <span className="block font-semibold">Repetir toda semana</span>
+          <span className="block text-sm text-muted">Mesmo dia e horário pelas próximas 6 semanas. Quem você aprovar uma vez entra em todas (até 12 vagas).</span>
+        </span>
+      </label>
+
       {cost && (
         <label className="flex min-h-11 items-center gap-3">
           <input type="checkbox" name="split_cost" checked={split} onChange={(ev) => setSplit(ev.target.checked)} className="size-5 accent-primary" />

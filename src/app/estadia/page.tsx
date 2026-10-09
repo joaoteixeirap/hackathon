@@ -1,7 +1,8 @@
-import { CalendarClock, Video } from "lucide-react";
+import { BadgeCheck, CalendarClock, Video } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { FavoritesList } from "@/components/stay/FavoritesList";
+import { PeopleList, type PersonCard } from "@/components/stay/PeopleList";
 import { MicroSurvey } from "@/components/stay/MicroSurvey";
 import { PostSessionBanner } from "@/components/stay/PostSessionBanner";
 import { StaySetup } from "@/components/stay/StaySetup";
@@ -18,7 +19,7 @@ import { loadRadarPlaces } from "@/lib/radarData";
 import { isCallMode, radarInput } from "@/lib/radarFilters";
 import { radarScore } from "@/lib/radarScore";
 import { pendingTasks, stayProgress } from "@/lib/stay";
-import { getActiveStay, getCommitments, getFavorites, getPostSessionPrompts, getStayTasks } from "@/lib/stayData";
+import { getActiveStay, getCommitments, getCompatiblePeople, getFavorites, getPostSessionPrompts, getPublicActivitiesBy, getStayTasks, getWelcomeMeetup } from "@/lib/stayData";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Minha estadia · SoloRota" };
@@ -28,12 +29,23 @@ const TABS = [
   ["hoje", "Hoje"],
   ["tarefas", "Tarefas"],
   ["favoritos", "Favoritos"],
+  ["pessoas", "Pessoas"],
 ] as const;
 type Tab = (typeof TABS)[number][0];
 
 type Props = { searchParams: Promise<{ aba?: string }> };
 
 const TZ = "America/Sao_Paulo";
+const weekdayOf = (iso: string) => {
+  const d = new Date(iso).toLocaleDateString("pt-BR", { weekday: "long", timeZone: TZ }).replace("-feira", "");
+  return ["sábado", "domingo"].includes(d) ? `no ${d}` : `na ${d}`;
+};
+
+async function loadPeople(cityId: string): Promise<PersonCard[]> {
+  const people = await getCompatiblePeople(cityId);
+  return Promise.all(people.map(async (p) => ({ ...p, upcoming: await getPublicActivitiesBy(p.user_id) })));
+}
+
 const when = (iso: string) =>
   new Date(iso).toLocaleString("pt-BR", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: TZ });
 
@@ -77,12 +89,15 @@ export default async function StayPage({ searchParams }: Props) {
   const { aba } = await searchParams;
   const tab: Tab = (TABS.find(([k]) => k === aba)?.[0] ?? "hoje") as Tab;
   const progress = stayProgress(stay, todayInBrasilia());
-  const [tasks, favorites, commitments, prompts, radar] = await Promise.all([
+  const isNewcomer = progress.status === "before" || progress.day <= 7;
+  const [tasks, favorites, commitments, prompts, radar, welcome, people] = await Promise.all([
     getStayTasks(stay.id),
     getFavorites(user.id),
     tab === "hoje" ? getCommitments(user.id, 1) : Promise.resolve([]),
     tab === "hoje" ? getPostSessionPrompts(user.id) : Promise.resolve([]),
     tab === "hoje" ? loadRadarPlaces(stay.city_id) : Promise.resolve([]),
+    tab === "hoje" && isNewcomer ? getWelcomeMeetup(stay.city_id) : Promise.resolve(null),
+    tab === "pessoas" ? loadPeople(stay.city_id) : Promise.resolve([]),
   ]);
 
   // "Melhor local para chamadas perto dos seus favoritos": the Radar's best call-ready
@@ -134,6 +149,19 @@ export default async function StayPage({ searchParams }: Props) {
           {prompts.map((pr) => (
             <PostSessionBanner key={pr.activity_id} prompt={pr} />
           ))}
+
+          {welcome && (
+            <Link href={`/serie/${welcome.series_id}`} className="flex items-center gap-3 rounded-2xl bg-accent-soft p-4 hover:brightness-95" data-testid="welcome">
+              <BadgeCheck size={20} className="shrink-0 text-accent-strong" aria-hidden />
+              <span className="text-sm">
+                <span className="block font-semibold">Chegou agora? Encontro de boas-vindas {weekdayOf(welcome.starts_at)}</span>
+                <span className="block text-muted">
+                  {when(welcome.starts_at)}
+                  {welcome.meeting_label && ` · ${welcome.meeting_label}`}
+                </span>
+              </span>
+            </Link>
+          )}
 
           <section className={`${card} p-5`} aria-labelledby="next-title">
             <h2 id="next-title" className="mb-2 flex items-center gap-2 font-display text-lg font-bold">
@@ -203,6 +231,13 @@ export default async function StayPage({ searchParams }: Props) {
       {tab === "tarefas" && (
         <section className={`${card} p-5`} aria-label="Checklist da estadia">
           <TaskList tasks={tasks} citySlug={stay.city.slug} />
+        </section>
+      )}
+
+      {tab === "pessoas" && (
+        <section className={`${card} p-5`} aria-label="Pessoas compatíveis">
+          <p className="mb-3 text-sm text-muted">Quem fica em {stay.city.name} nas mesmas semanas que você, com interesses em comum.</p>
+          <PeopleList people={people} discoverable={routine.discoverable} citySlug={stay.city.slug} />
         </section>
       )}
 
