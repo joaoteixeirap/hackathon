@@ -81,6 +81,8 @@ export function CategoryChips({
       className={wrap ? "flex flex-wrap gap-2" : "no-scrollbar -mx-3 flex gap-2 overflow-x-auto px-3 pt-0.5 pb-2"}
       role="toolbar"
       aria-label="Categorias e filtros"
+      // Mouse wheels only scroll vertically; turn that into sideways scrolling for the single-row strip.
+      onWheel={wrap ? undefined : (e) => { if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) e.currentTarget.scrollLeft += e.deltaY; }}
     >
       {CHIP_ORDER.map((k) => {
         const on = active === k;
@@ -132,6 +134,7 @@ export function LayersMenu({
   onTogglePresence,
   onToggleFavorites,
   onTheme,
+  opensUp = false,
 }: {
   showPlaces: boolean;
   showActivities: boolean;
@@ -143,6 +146,7 @@ export function LayersMenu({
   onTogglePresence: () => void;
   onToggleFavorites: () => void;
   onTheme: (t: ThemeChoice) => void;
+  opensUp?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -174,7 +178,7 @@ export function LayersMenu({
         <Layers size={20} strokeWidth={2} />
       </button>
       {open && (
-        <div className="absolute top-0 right-14 w-64 rounded-3xl border border-line bg-surface p-4 shadow-soft-lg">
+        <div className={`absolute ${opensUp ? "bottom-0" : "top-0"} right-14 w-64 rounded-3xl border border-line bg-surface p-4 shadow-soft-lg`}>
           <p className="mb-1 font-display text-lg font-bold">Camadas</p>
           <Switch on={showPlaces} onClick={onTogglePlaces} label="Lugares" />
           <Switch on={showActivities} onClick={onToggleActivities} label="Atividades" />

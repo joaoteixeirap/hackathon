@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Gauge, Plus, User } from "lucide-react";
+import { ArrowLeft, ChevronDown, Gauge, Luggage, Plus, User, Users } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { RouteTray } from "@/components/route/RouteTray";
@@ -253,6 +253,7 @@ export function MapExperience({
   const [period,setPeriod]=useState<EventPeriod>("upcoming"),[from,setFrom]=useState(todayInBrasilia),[to,setTo]=useState(todayInBrasilia);
   const [searching,setSearching]=useState(false),[areaStatus,setAreaStatus]=useState("");
   const [fetchedBounds,setFetchedBounds]=useState("");
+  const [stateCardOpen,setStateCardOpen]=useState(true);
   const controller=useRef<AbortController|null>(null),viewRef=useRef<MapViewState|null>(null);viewRef.current=view;
   const citySearchPending=useRef(false);
   const citySlug=currentCity?.slug??(city.slug==="sp"?"santos":city.slug);
@@ -423,7 +424,7 @@ export function MapExperience({
         <p className="font-display text-[17px] leading-tight font-bold">{selection ? "Detalhes" : statewide ? "Explorar São Paulo" : `Explorar ${city.name}`}</p>
         <p className="truncate text-[13px] text-muted tabular-nums">{countLine}</p>
         {essential && <button type="button" className="min-h-11 text-sm font-semibold text-primary" onClick={() => setEssential(null)}>Limpar filtro de serviços essenciais</button>}
-        <div className={`${!isDesktop && snap === "collapsed" ? "hidden" : "flex"} flex-wrap gap-x-4`} data-no-drag><Link href={`/estadia?aba=pessoas`} className="inline-flex min-h-11 items-center text-xs font-semibold text-primary">Pessoas compatíveis</Link><Link href="/explorar" className="inline-flex min-h-11 items-center text-xs font-semibold text-primary">Cidades e ferramentas ↗</Link><Link href="/estadias" className="inline-flex min-h-11 items-center text-xs font-semibold text-primary">Minhas estadias</Link>{!statewide&&<Link href={`/mapa/sp?city=${city.slug}`} className="inline-flex min-h-11 items-center text-xs font-semibold text-primary">Explorar todo SP</Link>}</div>
+        <div className={`${!isDesktop && snap === "collapsed" ? "hidden" : "flex"} flex-wrap gap-x-4`} data-no-drag><Link href={`/estadia?aba=pessoas`} className="inline-flex min-h-11 items-center text-xs font-semibold text-primary">Pessoas compatíveis</Link><Link href="/explorar" className="inline-flex min-h-11 items-center text-xs font-semibold text-primary">Cidades e ferramentas ↗</Link>{!isDesktop&&<Link href="/estadias" className="inline-flex min-h-11 items-center text-xs font-semibold text-primary">Minhas estadias</Link>}{!statewide&&<Link href={`/mapa/sp?city=${city.slug}`} className="inline-flex min-h-11 items-center text-xs font-semibold text-primary">Explorar todo SP</Link>}</div>
       </div>
       {selection && (
         <button
@@ -439,9 +440,11 @@ export function MapExperience({
   );
 
   const bottomInset = isDesktop ? 0 : sheetPx + NAV_HEIGHT;
-  const controls=stateCities&&!selection?<StateControls cities={stateCities} current={currentCity} onCity={selectCity} onLocated={locate} period={period} onPeriod={setPeriod} from={from} to={to} onDates={(f,t)=>{setFrom(f);setTo(t);}} search={!isDesktop&&snap==="full"?{run:()=>void searchArea(),pending:searching,status:areaStatus}:undefined}/>:null;
+  const stateControls=stateCities?<StateControls cities={stateCities} current={currentCity} onCity={selectCity} onLocated={locate} period={period} onPeriod={setPeriod} from={from} to={to} onDates={(f,t)=>{setFrom(f);setTo(t);}} search={!isDesktop&&snap==="full"?{run:()=>void searchArea(),pending:searching,status:areaStatus}:undefined}/>:null;
+  const controls=selection?null:stateControls;
+  const desktopNavLink="inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 text-sm font-semibold text-ink transition hover:bg-surface-2";
   const chips = (
-    <CategoryChips active={chip} onToggle={toggleChip} filters={filters} onFilter={toggleFilter} wrap={isDesktop} />
+    <CategoryChips active={chip} onToggle={toggleChip} filters={filters} onFilter={toggleFilter} />
   );
 
   return (
@@ -472,34 +475,67 @@ export function MapExperience({
       {!mapReady && <MapLoading cityName={city.name} />}
 
       {isDesktop ? (
-        <aside
-          className="absolute top-4 bottom-4 left-4 z-20 flex flex-col overflow-hidden rounded-[28px] border border-line bg-surface shadow-soft-lg"
-          style={{ width: DESKTOP_PANEL }}
-          aria-label="Painel do mapa"
-        >
-          <div className="space-y-4 border-b border-line p-5">
-            <div className="flex items-center justify-between">
-              <Link href="/" aria-label="SoloRota, início">
-                <Logo />
-              </Link>
-              <div className="flex items-center gap-1.5">
-                <Link href="/perfil" aria-label="Perfil" className="grid size-11 place-items-center rounded-full text-ink hover:bg-surface-2">
-                  <User size={20} strokeWidth={2} />
-                </Link>
-                <Link href={`/radar/${citySlug}`} className="inline-flex min-h-10 items-center gap-1.5 rounded-full px-3 text-sm font-semibold hover:bg-surface-2">
-                  <Gauge size={16} aria-hidden /> Radar
-                </Link>
-                <Link href={`/atividade/nova?cidade=${citySlug}`} className={`${buttonAccent} min-h-10 gap-1.5 px-4 text-sm`}>
-                  <Plus size={16} strokeWidth={2.5} aria-hidden /> Criar roda
-                </Link>
-              </div>
+        <>
+          <header className="absolute top-4 right-4 left-4 z-30 flex h-16 items-center gap-4 rounded-[24px] border border-line bg-surface/95 pr-3 pl-5 shadow-soft-lg backdrop-blur-md">
+            <Link href="/" aria-label="SoloRota, início" className="shrink-0">
+              <Logo />
+            </Link>
+            <div className="flex min-w-0 max-w-xl flex-1">
+              <SearchPill value={query} onChange={onQuery} cityName={city.name} elevated={false} />
             </div>
-            <SearchPill value={query} onChange={onQuery} cityName={city.name} elevated={false} />
+            <nav aria-label="Navegação principal" className="ml-auto flex shrink-0 items-center gap-1">
+              <Link href={`/radar/${citySlug}`} aria-label="Radar" className={desktopNavLink}>
+                <Gauge size={17} aria-hidden /> <span className="hidden xl:inline">Radar</span>
+              </Link>
+              <Link href="/estadias" aria-label="Estadias" className={desktopNavLink}>
+                <Luggage size={17} aria-hidden /> <span className="hidden xl:inline">Estadias</span>
+              </Link>
+              <Link href={currentCity ? `/comunidades?city=${currentCity.slug}` : "/comunidades"} aria-label="Comunidades" className={desktopNavLink}>
+                <Users size={17} aria-hidden /> <span className="hidden xl:inline">Comunidades</span>
+              </Link>
+              <Link href="/perfil" aria-label="Perfil" className={desktopNavLink}>
+                <User size={17} aria-hidden /> <span className="hidden xl:inline">Perfil</span>
+              </Link>
+              <Link href={`/atividade/nova?cidade=${citySlug}`} className={`${buttonAccent} ml-2 min-h-11 shrink-0 gap-1.5 px-5 text-sm whitespace-nowrap`}>
+                <Plus size={16} strokeWidth={2.5} aria-hidden /> Criar roda
+              </Link>
+            </nav>
+          </header>
+
+          <div className="absolute top-24 right-4 z-10 [mask-image:linear-gradient(to_right,black_calc(100%-56px),transparent)]" style={{ left: DESKTOP_PANEL + 32 }}>
             {chips}
           </div>
-            <div className="px-5 pt-4">{listHeader}</div>
-          <div className="min-h-0 flex-1 overflow-y-auto px-5 pt-1 pb-6">{controls}{body}</div>
-        </aside>
+
+          <aside
+            className="absolute top-24 bottom-4 left-4 z-20 flex flex-col overflow-hidden rounded-[28px] border border-line bg-surface shadow-soft-lg"
+            style={{ width: DESKTOP_PANEL }}
+            aria-label="Painel do mapa"
+          >
+            <div className="border-b border-line px-5 pt-4 pb-1">{listHeader}</div>
+            <div className="min-h-0 flex-1 overflow-y-auto px-5 pt-3 pb-6">
+              {initialTruncated && <p className="mb-3 text-xs text-muted">Cobertura parcial neste mapa. Use Buscar nesta área para ver mais resultados.</p>}
+              {body}
+            </div>
+          </aside>
+
+          {stateControls && (
+            <section
+              aria-label="Cidades e datas"
+              className={`absolute top-[152px] right-4 z-10 flex max-h-[calc(100%-330px)] flex-col overflow-hidden rounded-[24px] border border-line bg-surface shadow-soft-lg ${stateCardOpen ? "w-[340px]" : ""}`}
+            >
+              <button
+                type="button"
+                onClick={() => setStateCardOpen((o) => !o)}
+                aria-expanded={stateCardOpen}
+                className="flex min-h-12 shrink-0 items-center justify-between gap-3 px-4 text-sm font-semibold hover:bg-surface-2"
+              >
+                {stateCardOpen ? "Cidades e datas" : `${currentCity?.name ?? "Cidades"} · datas`}
+                <ChevronDown size={18} aria-hidden className={`text-muted transition-transform ${stateCardOpen ? "rotate-180" : ""}`} />
+              </button>
+              {stateCardOpen && <div className="min-h-0 flex-1 overflow-y-auto border-t border-line px-4">{stateControls}</div>}
+            </section>
+          )}
+        </>
       ) : (
         <>
           <header className="pointer-events-none absolute inset-x-0 top-0 z-10 space-y-2.5 bg-gradient-to-b from-canvas/70 to-transparent px-3 pt-[max(0.75rem,env(safe-area-inset-top))] pb-2">
@@ -534,7 +570,7 @@ export function MapExperience({
         </>
       )}
 
-      <div className="absolute right-4 z-10 flex flex-col gap-2.5" style={{ top: isDesktop ? 16 : 140 }}>
+      <div className={`absolute right-4 z-20 flex flex-col gap-2.5 ${isDesktop ? "bottom-14" : "top-[140px]"}`}>
         <LayersMenu
           showPlaces={showPlaces}
           showActivities={showActivities}
@@ -546,15 +582,16 @@ export function MapExperience({
           onTogglePresence={() => setShowPresence((v) => !v)}
           onToggleFavorites={() => setShowFavorites((v) => !v)}
           onTheme={setThemeChoice}
+          opensUp={isDesktop}
         />
         <RecenterButton onClick={() => mapRef.current?.recenter()} />
-        {statewide&&<button type="button" onClick={()=>{setSnap("full");setSelection(null);}} className="min-h-11 rounded-full border border-line bg-surface px-3 text-xs font-semibold shadow-soft-md">Cidades e datas</button>}
+        {statewide&&!isDesktop&&<button type="button" onClick={()=>{setSnap("full");setSelection(null);}} className="min-h-11 rounded-full border border-line bg-surface px-3 text-xs font-semibold shadow-soft-md">Cidades e datas</button>}
       </div>
-      {statewide&&(isDesktop||snap!=="full")&&<div className={`absolute z-10 ${isDesktop?"left-[448px] top-4 max-w-sm":"inset-x-3 top-[140px] mr-[68px] max-w-xs"}`}><button type="button" onClick={()=>void searchArea()} disabled={searching} className="min-h-11 rounded-full border border-line bg-surface px-4 text-sm font-semibold text-primary shadow-soft-md">{searching?"Buscando…":"Buscar nesta área"}</button><p role="status" className="mt-1 rounded-xl bg-surface/95 px-3 py-1 text-xs text-muted">{areaStatus || (!fetchedBounds?"Explore uma cidade e busque os lugares por perto.":"Mova o mapa e busque novamente para atualizar.")}</p></div>}
+      {statewide&&(isDesktop||snap!=="full")&&<div className={`absolute z-10 ${isDesktop?`top-[152px] flex flex-col items-center text-center ${stateCardOpen?"right-[372px]":"right-[260px]"}`:"inset-x-3 top-[140px] mr-[68px] max-w-xs"}`} style={isDesktop?{left:DESKTOP_PANEL+32}:undefined}><button type="button" onClick={()=>void searchArea()} disabled={searching} className="min-h-11 rounded-full border border-line bg-surface px-4 text-sm font-semibold text-primary shadow-soft-md">{searching?"Buscando…":"Buscar nesta área"}</button><p role="status" className="mt-1 rounded-xl bg-surface/95 px-3 py-1 text-xs text-muted shadow-soft-sm">{areaStatus || (!fetchedBounds?"Explore uma cidade e busque os lugares por perto.":"Mova o mapa e busque novamente para atualizar.")}</p></div>}
 
       {dayRoute.stops.length > 0 && (
         <div
-          className={`absolute z-10 ${isDesktop ? "right-4 bottom-4 w-96" : "inset-x-3 flex justify-center"}`}
+          className={`absolute z-10 ${isDesktop ? "right-20 bottom-4 w-96" : "inset-x-3 flex justify-center"}`}
           // Phones: just above the bottom sheet, like a mini player; the list opens upwards.
           style={isDesktop ? undefined : { bottom: "var(--map-inset-bottom)" }}
         >
