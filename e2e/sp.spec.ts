@@ -49,12 +49,12 @@ test("SP: GPS identifies Santos without saving coordinates or enabling presence"
  const keys=await page.evaluate(()=>Object.keys(localStorage));expect(keys.some(k=>/location|latitude|longitude/i.test(k))).toBe(false);
  expect(analytics.some(s=>s.includes("-23.964")||s.includes("-46.329")||/latitude|longitude/.test(s))).toBe(false);
 });
-test("SP: edit flexible plans into a residence, then remove only the private plan",async({page,context,baseURL})=>{
+test("SP: edit a flexible plan into exact dates, then remove only the private plan",async({page,context,baseURL})=>{
  test.skip(!process.env.SUPABASE_SERVICE_ROLE_KEY,"Configured database required");const u=await testAccount(context,baseURL);
  try{
   const p=await u.client.from("destination_plans").insert({user_id:u.id,city_id:"00000000-0000-4000-8000-000000000001",date_mode:"flexible"}).select("id").single();expect(p.error).toBeNull();
-  await page.goto(`/estadias/${p.data!.id}/editar`);await page.getByLabel("O que quero conferir antes de ir (opcional)").fill("Nota privada (Teste)");await page.getByRole("button",{name:"Voltar",exact:true}).click();await page.getByRole("button",{name:"Moro aqui",exact:false}).click();await page.getByRole("button",{name:"Próximo",exact:true}).click();await page.getByRole("button",{name:"Salvar estadia",exact:true}).click();
-  await expect(page.getByText("Moro aqui · sem data de saída",{exact:true})).toBeVisible();expect((await u.client.from("destination_plans").select("date_mode,leave_on,note").eq("id",p.data!.id).single()).data).toMatchObject({date_mode:"resident",leave_on:null,note:"Nota privada (Teste)"});
+  await page.goto(`/estadias/${p.data!.id}/editar`);await page.getByLabel("O que quero conferir antes de ir (opcional)").fill("Nota privada (Teste)");await page.getByRole("button",{name:"Voltar",exact:true}).click();await expect(page.getByRole("button",{name:/Moro aqui/})).toHaveCount(0);await page.getByRole("button",{name:"Escolher datas específicas",exact:false}).click();await page.getByLabel("Chegada",{exact:true}).fill("2026-12-01");await page.getByLabel("Saída",{exact:true}).fill("2026-12-20");await page.getByRole("button",{name:"Próximo",exact:true}).click();await page.getByRole("button",{name:"Salvar estadia",exact:true}).click();
+  await expect(page.getByText(/até/).first()).toBeVisible();expect((await u.client.from("destination_plans").select("date_mode,arrive_on,leave_on,note").eq("id",p.data!.id).single()).data).toMatchObject({date_mode:"exact",arrive_on:"2026-12-01",leave_on:"2026-12-20",note:"Nota privada (Teste)"});
   await page.getByRole("button",{name:"Remover este planejamento",exact:true}).click();await page.getByRole("button",{name:"Confirmar remoção",exact:true}).click();await expect(page).toHaveURL(/\/estadias$/);expect((await u.client.from("destination_plans").select("id").eq("id",p.data!.id)).data).toEqual([]);
  }finally{await u.cleanup();}
 });
