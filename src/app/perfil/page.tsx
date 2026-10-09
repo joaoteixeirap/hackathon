@@ -161,7 +161,7 @@ export default async function MyProfilePage() {
                 </>
               }
             />
-            <RoutineForm initial={routine} neighborhoods={cities.find((c) => c.id === profile.current_city_id)?.neighborhoods ?? []} />
+            <RoutineForm wide initial={routine} neighborhoods={cities.find((c) => c.id === profile.current_city_id)?.neighborhoods ?? []} />
           </section>
 
           <QuickLinks className="lg:hidden" />
