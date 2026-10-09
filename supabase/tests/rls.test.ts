@@ -239,17 +239,5 @@ describe.skipIf(!enabled)("RLS", () => {
     expect(three.data).toContainEqual({ neighborhood: hood, people: 3 });
   });
 
-  it("wifi tests are rate limited and raw rows stay private", async () => {
-    const { data: place } = await anon.from("places").select("id").eq("is_demo", true).limit(1).single();
-    const insert = (u: TestUser) =>
-      u.client.from("wifi_tests").insert({ place_id: place!.id, user_id: u.id, download_mbps: 50 });
-
-    expect((await insert(users.member)).error).toBeNull();
-    expect((await insert(users.member)).error?.message).toMatch(/per hour/);
-
-    const { data: others } = await users.extra.client.from("wifi_tests").select("id").eq("place_id", place!.id);
-    expect(others).toEqual([]);
-    const { data: stats } = await anon.rpc("place_wifi_stats", { p_place_id: place!.id }).single();
-    expect((stats as { tests: number }).tests).toBeGreaterThanOrEqual(3);
-  });
+  // Check-ins (ex-wifi_tests) are covered in v1.test.ts (privacy, cooldown, seals, votes).
 });

@@ -19,6 +19,26 @@ export const EVENT_NAMES = [
   "open_place",
   "create_activity",
   "request_join",
+  // SPEC_V2 §12
+  "view_radar",
+  "radar_filter",
+  "checkin_start",
+  "checkin_submit",
+  "vote_fact",
+  "series_create",
+  "series_follow",
+  "people_view",
+  "stay_create",
+  "stay_task_toggle",
+  "favorite_add",
+  "ics_download",
+  "budget_add",
+  "session_from_place",
+  "offer_group_redeem",
+  "post_checkin_prompt_shown",
+  "post_checkin_submit",
+  "city_panel_view",
+  "survey_answer",
 ] as const;
 export type EventName = (typeof EVENT_NAMES)[number];
 

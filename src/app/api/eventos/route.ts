@@ -17,6 +17,7 @@ export async function POST(request: NextRequest) {
   }
   const ev = sanitizeEvent(body.name, body.props);
   if (!ev) return new NextResponse(null, { status: 400 });
-  if (isSupabaseConfigured()) await createPublicClient().from("events").insert(ev);
+  // session_id: the random per-device id (no personal data), also kept in props for old queries.
+  if (isSupabaseConfigured()) await createPublicClient().from("events").insert({ ...ev, session_id: ev.props.sid ?? null });
   return new NextResponse(null, { status: 204 });
 }

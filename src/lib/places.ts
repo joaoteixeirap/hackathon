@@ -1,4 +1,5 @@
 // Shared place/activity types, category config and pure filtering (F1, F2).
+import { isSealActive, type FactMeta } from "./trust";
 
 export type PlaceCategory = "work" | "eat" | "health" | "stay" | "tour" | "service";
 export type ChipKey = PlaceCategory | "activities";
@@ -21,7 +22,12 @@ export type PlaceSummary = {
   accepts_without_plan: boolean | null;
   languages: string[] | null;
   wheelchair: "yes" | "no" | "limited" | null;
-  nomad_seal: boolean;
+  /** Seals with validity (SPEC_V2 R3): read through isSealActive / isCallReady, never a boolean. */
+  seal_valid_until: string | null;
+  call_ready_valid_until: string | null;
+  last_verified_at: string | null;
+  /** facts_meta.wifi only, for freshness on the map; the full facts load with the card. */
+  wifi_fact: FactMeta | null;
   featured: boolean;
   offers: number;
   is_demo: boolean;
@@ -134,7 +140,7 @@ export function filterPlaces(
     if (q && !normalize(`${p.name} ${p.neighborhood ?? ""}`).includes(q)) return false;
     if (f.wifiStrong && !(p.wifi_mbps != null && p.wifi_mbps >= WIFI_STRONG_MBPS)) return false;
     if (f.hasOffer && p.offers === 0) return false;
-    if (f.seal && !p.nomad_seal) return false;
+    if (f.seal && !isSealActive(p)) return false;
     if (f.openNow && isOpen && isOpen(p) !== true) return false;
     return true;
   });

@@ -71,14 +71,17 @@ insert into places (id, city_id, partner_id, name, category, subcategory, lat, l
    -23.9822, -46.3048, 'Ponta da Praia', 'Lugar fictício para demonstração.', 'Mo-Fr 09:00-19:00',
    true, 5, '$$', null, true);
 
--- Two Wi-Fi tests per place from demo users → recompute_wifi grants the Selo.
-insert into wifi_tests (place_id, user_id, download_mbps, ping_ms, created_at) values
-  ('00000000-0000-4000-8000-0000000000c1', '00000000-0000-4000-8000-0000000000a1', 92, 14, now() - interval '3 days'),
-  ('00000000-0000-4000-8000-0000000000c1', '00000000-0000-4000-8000-0000000000a2', 105, 12, now() - interval '1 day'),
-  ('00000000-0000-4000-8000-0000000000c2', '00000000-0000-4000-8000-0000000000a2', 38, 25, now() - interval '2 days'),
-  ('00000000-0000-4000-8000-0000000000c2', '00000000-0000-4000-8000-0000000000a3', 44, 22, now() - interval '5 hours'),
-  ('00000000-0000-4000-8000-0000000000c3', '00000000-0000-4000-8000-0000000000a1', 61, 18, now() - interval '4 days'),
-  ('00000000-0000-4000-8000-0000000000c3', '00000000-0000-4000-8000-0000000000a3', 57, 19, now() - interval '2 days');
+-- Demo check-ins in three freshness states (SPEC_V2 §11; same rows as src/lib/demoCheckins.ts):
+-- Gonzaga recent (Selo + "Pronto para chamadas"), Ponta da Praia 70 days (seal expired), Centro 120 days.
+insert into place_checkins (place_id, user_id, download_mbps, upload_mbps, ping_ms, jitter_ms, loss_pct, measured,
+                            on_venue_wifi, near_place, outlets_level, noise_level, call_result, stay_policy, created_at) values
+  ('00000000-0000-4000-8000-0000000000c1', '00000000-0000-4000-8000-0000000000a1', 92, 38, 14, 3, 0, true, true, true, 'many', 4, 'ok', 'pass_required', now() - interval '25 days'),
+  ('00000000-0000-4000-8000-0000000000c1', '00000000-0000-4000-8000-0000000000a2', 105, 41, 12, 2, 0, true, true, true, 'many', 5, 'ok', 'pass_required', now() - interval '2 days'),
+  ('00000000-0000-4000-8000-0000000000c3', '00000000-0000-4000-8000-0000000000a1', 61, 20, 18, 5, 0, true, true, true, 'many', 5, 'ok', 'pass_required', now() - interval '72 days'),
+  ('00000000-0000-4000-8000-0000000000c3', '00000000-0000-4000-8000-0000000000a3', 57, 18, 19, 6, 0, true, true, true, 'few', 4, 'ok', 'pass_required', now() - interval '70 days'),
+  ('00000000-0000-4000-8000-0000000000c2', '00000000-0000-4000-8000-0000000000a2', 38, 8, 25, 9, 0, true, true, true, 'few', 3, 'choppy', 'min_consumption', now() - interval '122 days'),
+  ('00000000-0000-4000-8000-0000000000c2', '00000000-0000-4000-8000-0000000000a3', 44, 9, 22, 8, 0, true, true, true, 'few', 3, 'ok', 'min_consumption', now() - interval '120 days');
+select recompute_place(id) from places where is_demo;
 
 insert into offers (place_id, kind, title, description, code, valid_from, valid_to, capacity) values
   ('00000000-0000-4000-8000-0000000000c1', 'day_pass', 'Diária com 20% de desconto (Demo)',

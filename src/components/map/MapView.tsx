@@ -9,6 +9,7 @@ import maplibregl, {
 import type { Feature, FeatureCollection, LineString, Point } from "geojson";
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import type { City } from "@/lib/cities";
+import { isSealActive } from "@/lib/trust";
 import type { ActivitySummary, PlaceCategory, PlaceSummary } from "@/lib/places";
 import { createActivityMarker } from "./activityMarker";
 import { createPresenceMarker, type PresenceSpot } from "./presenceMarker";
@@ -121,7 +122,7 @@ function toGeoJSON(places: PlaceSummary[]): FeatureCollection<Point> {
       properties: {
         id: p.id,
         category: p.category,
-        icon: pinIconKey(p.category, p.subcategory, p.nomad_seal),
+        icon: pinIconKey(p.category, p.subcategory, isSealActive(p)),
         featured: p.featured,
         name: p.name,
       },

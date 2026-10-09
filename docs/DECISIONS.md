@@ -108,3 +108,16 @@ Uma linha por decisão: data, decisão, motivo.
 - 2026-10-09 — `/entrar` não redireciona mais o visitante anônimo (antes, quem tinha sessão de visitante nunca via o formulário).
 - 2026-10-09 — Bucket público `avatars` (pasta por usuário) criado na migração `0007_avatars.sql`; upload de foto fica para quando houver tela de perfil com foto. `vercel.json` com região `gru1`.
 - 2026-10-09 — Playwright aceita `PLAYWRIGHT_BASE_URL` (nome do SPEC_V2) além de `E2E_BASE_URL`.
+- 2026-10-09 — V1: migrações do V2 numeradas a partir de `0008_nomad_v2.sql` (o nome `0002` do SPEC colidiria) e divididas por marco (`0009`…), cada uma aplicada com `pnpm db:push`.
+- 2026-10-09 — `wifi_tests` aposentada: as linhas viraram `place_checkins` (medidas, no Wi-Fi do local, sem `near_place`); tabela, gatilhos e `recompute_wifi`/`place_wifi_stats` removidos; código passou a usar `submit_checkin`, `recompute_place` e `place_trust`.
+- 2026-10-09 — Constantes do SQL espelham `src/config/nomad.ts` (funções `checkin_cooldown`, `seal_window`, `vote_cooldown`, `seal_requires_near_place`, e os limites de chamada no corpo de `recompute_place`). `SEAL_REQUIRES_NEAR_PLACE` é função SQL (padrão `true`), não variável de ambiente, porque o cálculo roda no banco.
+- 2026-10-09 — Medianas usam os check-ins de 90 dias; sem nada recente, usam todo o histórico (o dado aparece, mas classificado como "Possivelmente desatualizado"). Precedência usuários > parceiro (`declared_wifi_mbps`) > OSM; `stay_policy` declarada pelo parceiro vence.
+- 2026-10-09 — Janela do selo ancorada no check-in qualificante mais recente (não em "agora"): validade = esse check-in + 60 dias, então o selo vence sozinho e aparece como "Selo vencido em dd/mm", sem job (`0009_seal_anchor.sql`).
+- 2026-10-09 — "Pronto para chamadas" exige ruído mediano ≥ 3 nos relatos ou, sem relatos, `quiet_level` do lugar ≥ 3; upload nulo (medições antigas) não qualifica.
+- 2026-10-09 — Data OSM em `facts_meta` = `places.created_at` (primeira importação), rotulada "importado em".
+- 2026-10-09 — Mapa carrega só `facts_meta->wifi` (frescor) e as datas dos selos; a ficha busca `place_trust` ao abrir (fatos completos), para não engordar o payload do mapa. Cache `map-data-v2`.
+- 2026-10-09 — Rotas `/api/speed/{ping,down,up}` com limite por IP em memória: 240 requisições e 80 MB por minuto (o SPEC sugeria 20 req/min, mas jurados no mesmo Wi-Fi compartilham o IP e um teste já faz ~14 requisições).
+- 2026-10-09 — Medição: 10 pings (timeout 2 s), download de 1 MB e, se rápido, mais 4 MB (cronometrado do 1º ao último byte), upload de 512 KB; orçamento de 15 s; rede lenta salva o parcial com aviso; "Só relatar, sem medir" também vale.
+- 2026-10-09 — "Você ajudou N pessoas" = eventos `open_place` daquela ficha em 30 dias (`place_open_count`), omitido quando zero.
+- 2026-10-09 — `pnpm demo:refresh` recria check-ins demo: Gonzaga (2 e 25 dias, Selo + chamadas), Ponta da Praia (70 dias, selo vencido), Centro (120 dias, desatualizado). O `seed.sql` tem as mesmas linhas.
+- 2026-10-09 — Corrigido: a janela de check-in cancelava a medição a cada re-render da ficha (efeito dependia de `onClose`).

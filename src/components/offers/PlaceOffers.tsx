@@ -6,12 +6,13 @@ import { redeemOffer } from "@/app/lugar/[id]/actions";
 import { buttonPrimary, buttonSecondary } from "@/components/ui/styles";
 import { OFFER_LABELS, type PublicOffer } from "@/lib/offers";
 import { createClient } from "@/lib/supabase/client";
+import { factLine, type FactMeta } from "@/lib/trust";
 import { OfferTicket } from "./OfferTicket";
 
 const formatDate = (d: string) => new Date(`${d}T12:00:00-03:00`).toLocaleDateString("pt-BR", { day: "numeric", month: "short" });
 
 /** Active offers of a place with "Usar oferta" (F10/F11). Loaded on demand; the map only knows the count. */
-export function PlaceOffers({ placeId, count }: { placeId: string; count: number }) {
+export function PlaceOffers({ placeId, count, meta }: { placeId: string; count: number; meta?: FactMeta }) {
   const supabase = useMemo(() => createClient(), []);
   const [offers, setOffers] = useState<PublicOffer[] | null>(null);
 
@@ -37,6 +38,7 @@ export function PlaceOffers({ placeId, count }: { placeId: string; count: number
       <h3 id={`offers-${placeId}`} className="flex items-center gap-2 text-sm font-bold text-accent-strong">
         <Ticket size={16} aria-hidden /> {count === 1 ? "Oferta" : "Ofertas"} para nômades
       </h3>
+      {meta && <p className="text-xs text-muted">{factLine(meta)}</p>}
       {offers == null ? (
         <p className="text-sm text-muted">Carregando ofertas…</p>
       ) : (

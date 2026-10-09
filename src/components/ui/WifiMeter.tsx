@@ -11,10 +11,13 @@ export function WifiMeter({
   mbps,
   source,
   tests,
+  hideSource = false,
 }: {
   mbps: number | null;
   source: PlaceSummary["wifi_source"];
   tests?: number;
+  /** The source line is shown by FactRow instead. */
+  hideSource?: boolean;
 }) {
   const level = mbps == null ? 0 : mbps >= 100 ? 4 : mbps >= 50 ? 3 : mbps >= WIFI_STRONG_MBPS ? 2 : 1;
   const sourceText =
@@ -44,7 +47,7 @@ export function WifiMeter({
         ) : (
           <p className="text-sm font-semibold">{source === "osm" ? "Tem Wi-Fi" : "Sem medição"}</p>
         )}
-        <p className="text-xs text-muted">{sourceText ?? "Sem informação ainda. Ajude a mapear"}</p>
+        {!hideSource && <p className="text-xs text-muted">{sourceText ?? "Sem informação ainda. Ajude a mapear"}</p>}
       </div>
     </div>
   );

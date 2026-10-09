@@ -25,7 +25,7 @@ export default async function PlacePage({ params }: Props) {
   return (
     <PageShell title="Ficha do lugar">
       <div className={`${card} p-5`}>
-        <PlaceDetail place={data.place} wifiTests={data.wifiTests} standalone />
+        <PlaceDetail place={data.place} trust={data.trust} standalone />
       </div>
       {data.citySlug && (
         <Link href={`/mapa/${data.citySlug}`} className="mt-4 inline-flex min-h-11 items-center text-sm font-bold text-primary underline-offset-4 hover:underline">

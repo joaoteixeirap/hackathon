@@ -1,6 +1,7 @@
 import "server-only";
 import { unstable_cache } from "next/cache";
 import type { ActivitySummary, PlaceSummary } from "./places";
+import { toPlaceTrust, type PlaceTrust } from "./placeTrust";
 import { isSupabaseConfigured } from "./supabase/env";
 import { createPublicClient } from "./supabase/public";
 import { createClient } from "./supabase/server";
@@ -9,7 +10,7 @@ import { createClient } from "./supabase/server";
 export const MAP_DATA_TAG = "map-data";
 
 const PLACE_COLUMNS =
-  "id, name, category, subcategory, lat, lng, neighborhood, address, opening_hours, wifi_mbps, wifi_source, has_power_outlets, quiet_level, price_hint, accepts_without_plan, languages, wheelchair, nomad_seal, featured_until, is_demo";
+  "id, name, category, subcategory, lat, lng, neighborhood, address, opening_hours, wifi_mbps, wifi_source, has_power_outlets, quiet_level, price_hint, accepts_without_plan, languages, wheelchair, seal_valid_until, call_ready_valid_until, last_verified_at, wifi_fact:facts_meta->wifi, featured_until, is_demo";
 
 type PlaceRow = Omit<PlaceSummary, "featured" | "offers" | "wifi_mbps"> & {
   featured_until: string | null;
@@ -43,7 +44,7 @@ export async function loadMapData(cityId: string | null): Promise<MapData> {
   }
 }
 
-const cachedMapData = unstable_cache(fetchMapData, ["map-data-v1"], { revalidate: 60, tags: [MAP_DATA_TAG] });
+const cachedMapData = unstable_cache(fetchMapData, ["map-data-v2"], { revalidate: 60, tags: [MAP_DATA_TAG] });
 
 async function fetchMapData(cityId: string): Promise<MapData> {
   const supabase = createPublicClient();
@@ -85,20 +86,20 @@ async function fetchMapData(cityId: string): Promise<MapData> {
   return { places, activities };
 }
 
-/** One place with its live offer count and Wi-Fi test count (for /lugar/[id]). */
-export async function loadPlace(id: string): Promise<{ place: PlaceSummary; wifiTests: number; citySlug: string } | null> {
+/** One place with its live offer count and full trust data (for /lugar/[id]). */
+export async function loadPlace(id: string): Promise<{ place: PlaceSummary; trust: PlaceTrust | null; citySlug: string } | null> {
   if (!isSupabaseConfigured() || !/^[0-9a-f-]{36}$/i.test(id)) return null;
   const supabase = await createClient();
-  const [placeRes, offersRes, statsRes] = await Promise.all([
+  const [placeRes, offersRes, trustRes] = await Promise.all([
     supabase.from("places").select(`${PLACE_COLUMNS}, cities(slug)`).eq("id", id).maybeSingle(),
     supabase.from("offers").select("id", { count: "exact", head: true }).eq("place_id", id),
-    supabase.rpc("place_wifi_stats", { p_place_id: id }).maybeSingle(),
+    supabase.rpc("place_trust", { p_place_id: id }),
   ]);
   if (!placeRes.data) return null;
   const { cities, ...row } = placeRes.data as unknown as PlaceRow & { cities: { slug: string } | null };
   return {
     place: toPlaceSummary(row, offersRes.count ?? 0),
-    wifiTests: (statsRes.data as { tests: number } | null)?.tests ?? 0,
+    trust: toPlaceTrust(trustRes.data),
     citySlug: cities?.slug ?? "",
   };
 }

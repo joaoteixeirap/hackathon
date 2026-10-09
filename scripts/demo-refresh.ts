@@ -7,6 +7,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { existsSync } from "node:fs";
 import { addDays, DEMO_PROFILE_IDS, localDay, shiftDemoActivities } from "../src/lib/demo";
+import { DEMO_CHECKIN_PLACES, demoCheckinRows } from "../src/lib/demoCheckins";
 
 if (existsSync(".env.local")) process.loadEnvFile(".env.local");
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -54,6 +55,17 @@ async function main() {
     .not("featured_until", "is", null);
   fail("Renovando destaque demo", featError);
   console.log(`Ofertas e destaque demo renovados (${placeIds.length} lugares demo).`);
+
+  // Demo check-ins in three freshness states (SPEC_V2 §11), re-dated relative to today.
+  const { error: delError } = await db.from("place_checkins").delete().in("place_id", DEMO_CHECKIN_PLACES).in("user_id", DEMO_PROFILE_IDS);
+  fail("Limpando check-ins demo", delError);
+  const { error: insError } = await db.from("place_checkins").insert(demoCheckinRows());
+  fail("Criando check-ins demo", insError);
+  for (const id of DEMO_CHECKIN_PLACES) {
+    const { error: rcError } = await db.rpc("recompute_place", { p_place_id: id });
+    fail(`Recalculando ${id}`, rcError);
+  }
+  console.log("Check-ins demo: Gonzaga recente (Selo + chamadas), Ponta da Praia há 70 dias, Centro há 120 dias.");
 }
 
 main().catch((err) => {

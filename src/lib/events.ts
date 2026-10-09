@@ -8,7 +8,7 @@ export async function logEvent(name: EventName, props: EventProps = {}): Promise
   const ev = sanitizeEvent(name, props);
   if (!ev || !isSupabaseConfigured()) return;
   try {
-    await createPublicClient().from("events").insert(ev);
+    await createPublicClient().from("events").insert({ ...ev, session_id: ev.props.sid ?? null });
   } catch {
     // Analytics must never break the app.
   }

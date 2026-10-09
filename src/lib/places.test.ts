@@ -19,7 +19,10 @@ const base: PlaceSummary = {
   accepts_without_plan: null,
   languages: null,
   wheelchair: null,
-  nomad_seal: false,
+  seal_valid_until: null,
+  call_ready_valid_until: null,
+  last_verified_at: null,
+  wifi_fact: null,
   featured: false,
   offers: 0,
   is_demo: false,
@@ -27,7 +30,7 @@ const base: PlaceSummary = {
 
 const places: PlaceSummary[] = [
   base,
-  { ...base, id: "2", name: "Cowork Demo", category: "work", wifi_mbps: 90, nomad_seal: true, offers: 2 },
+  { ...base, id: "2", name: "Cowork Demo", category: "work", wifi_mbps: 90, seal_valid_until: "2999-01-01T00:00:00Z", offers: 2 },
   { ...base, id: "3", name: "Farmácia Ponta", category: "health", neighborhood: "Ponta da Praia", wifi_mbps: 10 },
 ];
 

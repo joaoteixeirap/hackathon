@@ -47,7 +47,7 @@ test.describe("map (F1, F2)", () => {
     const detail = page.getByRole("article", { name: /Cowork Demo Gonzaga/ });
     await expect(detail).toBeVisible();
     await expect(detail.getByText("Selo Amigo do Nômade")).toBeVisible();
-    await expect(detail.getByText(/Mbps/)).toBeVisible();
+    await expect(detail.getByText("Mbps", { exact: true })).toBeVisible();
     await expect(detail.getByRole("link", { name: "Como chegar" })).toHaveAttribute("href", /google\.com\/maps\/dir/);
 
     await detail.getByRole("button", { name: "Fechar" }).click();

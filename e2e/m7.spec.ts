@@ -1,8 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
-import { devices, expect, test, type Browser, type Page } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import { existsSync } from "node:fs";
 import { signInAsAdmin } from "./admin";
-import { anonymousSignInsEnabled } from "./anon";
 
 if (existsSync(".env.local")) process.loadEnvFile(".env.local");
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
@@ -10,7 +9,6 @@ const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
 const CITY_ID = "00000000-0000-4000-8000-000000000001";
 const admin = () => createClient(url, serviceKey, { auth: { persistSession: false } });
-const phone = async (browser: Browser) => (await browser.newContext({ ...devices["Pixel 7"] })).newPage();
 
 async function openMap(page: Page, isMobile: boolean) {
   await page.goto("/mapa/santos");
@@ -20,38 +18,6 @@ async function openMap(page: Page, isMobile: boolean) {
 
 test.describe("M7: Wi-Fi, presence, route, moderation", () => {
   test.skip(!url || !serviceKey, "Supabase not configured");
-
-  test("two visitors' Wi-Fi tests update the place card and its source", async ({ browser, isMobile }) => {
-    test.skip(!isMobile, "Two phones in their own contexts; runs once, in the mobile project");
-    test.skip(!(await anonymousSignInsEnabled()), "Enable anonymous sign-ins in Supabase");
-    test.setTimeout(120_000);
-    const { data: place } = await admin()
-      .from("places")
-      .insert({ city_id: CITY_ID, name: `Café Wi-Fi E2E ${Date.now().toString(36)}`, category: "work", subcategory: "cafe", lat: -23.966, lng: -46.333, has_power_outlets: true })
-      .select("id")
-      .single();
-
-    try {
-      for (const [i, page] of [await phone(browser), await phone(browser)].entries()) {
-        await page.goto(`/lugar/${place!.id}`);
-        await expect(page.getByText(i === 0 ? "Nenhuma medição de nômades ainda." : "1 medição de nômades.", { exact: false })).toBeVisible();
-        await page.getByRole("button", { name: "Medir Wi-Fi" }).click();
-        await expect(page.getByTestId("wifi-result")).toBeVisible({ timeout: 15_000 }); // SPEC: under 15 s
-        await expect(page.getByTestId("wifi-result")).toContainText("Mbps");
-        await page.getByRole("button", { name: "Sim, salvar medição" }).click();
-        await expect(page.getByText("Obrigado! Sua medição entrou na ficha.")).toBeVisible();
-      }
-      // After the second test the card shows the measured median and its source.
-      const page = await phone(browser);
-      await page.goto(`/lugar/${place!.id}`);
-      await expect(page.getByText("medido por 2 nômades")).toBeVisible();
-      const { data: saved } = await admin().from("places").select("wifi_source, wifi_mbps").eq("id", place!.id).single();
-      expect(saved!.wifi_source).toBe("user_test");
-      expect(Number(saved!.wifi_mbps)).toBeGreaterThan(0);
-    } finally {
-      await admin().from("places").delete().eq("id", place!.id);
-    }
-  });
 
   test("'Quem está aqui' shows a neighborhood only from 3 people on", async ({ page, isMobile }) => {
     test.setTimeout(90_000);

@@ -1,47 +1,65 @@
 "use client";
 
-import { Accessibility, Clock, MapPin, Navigation, Plug, Plus, Share2, Ticket, Volume2, X } from "lucide-react";
+import { Accessibility, Armchair, Clock, Gauge, Languages, MapPin, Navigation, Plug, Plus, Share2, Stethoscope, Video, Volume2, Wallet, Wifi, X } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { voteFact } from "@/app/lugar/[id]/actions";
 import { ReportButton } from "@/components/activity/ReportButton";
+import { CheckinSheet } from "@/components/checkin/CheckinSheet";
 import { PlaceOffers } from "@/components/offers/PlaceOffers";
 import { RouteButton, type RouteToggle } from "@/components/route/RouteButton";
+import { FactRow } from "@/components/trust/FactRow";
+import { CallReadyBadge, SealStatus, VerifiedStamp } from "@/components/trust/TrustBadges";
 import { CATEGORY_BG, CategoryIcon } from "@/components/ui/CategoryIcon";
 import { DemoTag } from "@/components/ui/DemoTag";
-import { NomadBadge } from "@/components/ui/NomadBadge";
 import { WifiMeter } from "@/components/ui/WifiMeter";
-import { WifiTest } from "@/components/wifi/WifiTest";
 import { buttonPrimary, buttonSecondary } from "@/components/ui/styles";
+import { DECLARED_DIVERGENCE_PCT } from "@/config/nomad";
 import { describeHours, loadOpeningHours } from "@/lib/openingHours";
+import { NOISE_LABEL, outletsText, STAY_LABEL, toPlaceTrust, type PlaceTrust } from "@/lib/placeTrust";
 import { subcategoryLabel, type PlaceSummary } from "@/lib/places";
 import { directionsUrl, sharePage } from "@/lib/share";
+import { createClient } from "@/lib/supabase/client";
+import { track } from "@/lib/track";
+import { freshnessOf, type FactField } from "@/lib/trust";
 
-const QUIET = ["", "Barulhento", "Movimentado", "Moderado", "Tranquilo", "Silencioso"];
 const WHEELCHAIR = { yes: "Acessível", limited: "Acesso parcial", no: "Sem acesso" } as const;
+const ico = (I: typeof Wifi) => <I size={13} aria-hidden />;
 
-function Stat({ icon, label, children }: { icon: React.ReactNode; label: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-2xl bg-surface-2 p-3">
-      <p className="mb-1 flex items-center gap-1.5 text-xs font-semibold text-muted">
-        {icon}
-        {label}
-      </p>
-      <div className="text-sm font-semibold">{children}</div>
-    </div>
-  );
+/** Trust fields known from the map payload, until the full place_trust arrives. */
+function initialTrust(p: PlaceSummary): PlaceTrust {
+  return {
+    wifi_mbps: p.wifi_mbps,
+    wifi_source: p.wifi_source,
+    declared_wifi_mbps: null,
+    upload_mbps: null,
+    ping_ms: null,
+    jitter_ms: null,
+    loss_pct: null,
+    outlets_level: null,
+    has_power_outlets: p.has_power_outlets,
+    quiet_level: p.quiet_level,
+    call_ok_share: null,
+    stay_policy: "unknown",
+    stay_note: null,
+    facts_meta: p.wifi_fact ? { wifi: p.wifi_fact } : {},
+    last_verified_at: p.last_verified_at,
+    distinct_users_90d: 0,
+    seal_valid_until: p.seal_valid_until,
+    call_ready_valid_until: p.call_ready_valid_until,
+  };
 }
-
-const unknown = <span className="font-normal text-muted">Sem informação</span>;
 
 export function PlaceDetail({
   place,
-  wifiTests,
+  trust: trustProp,
   onClose,
   standalone = false,
   route,
 }: {
   place: PlaceSummary;
-  wifiTests?: number;
+  /** Full trust data when the server already has it (/lugar/[id]); otherwise fetched on open. */
+  trust?: PlaceTrust | null;
   onClose?: () => void;
   standalone?: boolean;
   /** "Rota do dia" toggle; only on the map. */
@@ -49,8 +67,9 @@ export function PlaceDetail({
 }) {
   const [hours, setHours] = useState<string | null | undefined>(undefined);
   const [shareMsg, setShareMsg] = useState<string | null>(null);
-  // Updated in place after a Wi-Fi test is saved (F12).
-  const [wifi, setWifi] = useState({ mbps: place.wifi_mbps, source: place.wifi_source, seal: place.nomad_seal, tests: wifiTests });
+  const [trust, setTrust] = useState<PlaceTrust>(() => trustProp ?? initialTrust(place));
+  const [checkin, setCheckin] = useState(false);
+  const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
     let alive = true;
@@ -63,14 +82,65 @@ export function PlaceDetail({
     };
   }, [place.opening_hours]);
 
+  // The map only carries a summary; load sources, dates and confirmations when the card opens.
+  useEffect(() => {
+    if (trustProp) return;
+    let alive = true;
+    supabase.rpc("place_trust", { p_place_id: place.id }).then(({ data }) => {
+      const t = toPlaceTrust(data);
+      if (alive && t) setTrust(t);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [supabase, place.id, trustProp]);
+
+  const onVote = useCallback(
+    async (field: FactField, vote: "confirm" | "outdated") => {
+      const res = await voteFact(place.id, field, vote);
+      if (!res.ok) return res.message;
+      setTrust(res.trust);
+      track("vote_fact", { field, vote });
+      return null;
+    },
+    [place.id],
+  );
+
   const isWork = place.category === "work" || place.subcategory === "cafe";
+  const canCheckin = place.category === "work" || place.category === "eat";
   const isHealth = place.category === "health";
   const open = hours?.startsWith("Aberto");
+  const meta = trust.facts_meta;
+  const fresh = trust.last_verified_at && freshnessOf(meta.wifi) === "fresh";
 
   async function share() {
     const result = await sharePage(`/lugar/${place.id}`, place.name);
     setShareMsg(result === "copied" ? "Link copiado" : null);
   }
+
+  // Wi-Fi: measured median first; the partner's number only next to it when they diverge (T1).
+  const declaredDiverges =
+    trust.wifi_source === "user_test" &&
+    trust.declared_wifi_mbps != null &&
+    trust.wifi_mbps != null &&
+    Math.abs(trust.wifi_mbps - trust.declared_wifi_mbps) / trust.declared_wifi_mbps > DECLARED_DIVERGENCE_PCT / 100;
+  const wifiValue =
+    trust.wifi_mbps != null || trust.wifi_source ? (
+      <div className="space-y-1">
+        <WifiMeter mbps={trust.wifi_mbps} source={trust.wifi_source} hideSource />
+        {(trust.upload_mbps != null || trust.ping_ms != null) && (
+          <p className="text-xs font-normal text-muted tabular-nums">
+            {trust.upload_mbps != null && `upload ${trust.upload_mbps.toLocaleString("pt-BR")} Mbps`}
+            {trust.ping_ms != null && ` · ping ${Math.round(trust.ping_ms)} ms`}
+            {trust.jitter_ms != null && ` · jitter ${trust.jitter_ms.toLocaleString("pt-BR")} ms`}
+            {trust.loss_pct != null && ` · perda ${trust.loss_pct.toLocaleString("pt-BR")}%`}
+          </p>
+        )}
+      </div>
+    ) : null;
+  const noise = trust.quiet_level ? NOISE_LABEL[trust.quiet_level] : null;
+  const calls = trust.call_ok_share != null ? `Funcionou em ${Math.round(trust.call_ok_share * 100)}% dos testes` : null;
+  const stay = trust.stay_policy !== "unknown" ? `${STAY_LABEL[trust.stay_policy]}${trust.stay_note ? ` · ${trust.stay_note}` : ""}` : null;
 
   return (
     <article className="space-y-4 pt-1" aria-labelledby={`place-${place.id}`}>
@@ -111,60 +181,77 @@ export function PlaceDetail({
         <span role="status" className="text-sm font-semibold text-success">
           {shareMsg}
         </span>
+        {fresh && trust.last_verified_at && (
+          <span className="ml-auto">
+            <VerifiedStamp at={trust.last_verified_at} />
+          </span>
+        )}
       </div>
 
-      {wifi.seal && <NomadBadge />}
+      <SealStatus place={trust} />
+      <CallReadyBadge place={trust} />
 
-      <div className="grid grid-cols-2 gap-2">
-        {(isWork || wifi.mbps != null || wifi.source) && (
-          <div className="col-span-2 space-y-3 rounded-2xl bg-surface-2 p-3">
-            <p className="text-xs font-semibold text-muted">Wi-Fi</p>
-            <WifiMeter mbps={wifi.mbps} source={wifi.source} tests={wifi.tests} />
-            {wifi.tests != null && wifi.tests < 2 && wifi.source !== "user_test" && (
-              <p className="text-xs text-muted">
-                {wifi.tests === 0 ? "Nenhuma medição de nômades ainda." : "1 medição de nômades."} A velocidade passa a valer com 2.
-              </p>
-            )}
-            <WifiTest
-              placeId={place.id}
-              placeName={place.name}
-              onSaved={(s) => setWifi({ mbps: s.wifi_mbps, source: s.wifi_source, seal: s.nomad_seal, tests: s.tests })}
+      {canCheckin && (
+        <div className="space-y-1">
+          <button type="button" onClick={() => setCheckin(true)} className={`${buttonSecondary} min-h-11 w-full gap-2 px-4`}>
+            <Gauge size={16} aria-hidden /> Medir agora
+          </button>
+          <p className="text-center text-xs text-muted">Wi-Fi, tomadas e ruído em cerca de 1 minuto</p>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 gap-2 min-[420px]:grid-cols-2">
+        {(isWork || wifiValue) && (
+          <div className="min-[420px]:col-span-2">
+            <FactRow
+              field="wifi"
+              label="Wi-Fi"
+              icon={ico(Wifi)}
+              value={wifiValue}
+              meta={meta.wifi}
+              measured
+              note={declaredDiverges ? `(declarado: ${trust.declared_wifi_mbps!.toLocaleString("pt-BR")} Mbps)` : undefined}
+              onVote={onVote}
             />
           </div>
         )}
         {isWork && (
           <>
-            <Stat icon={<Plug size={13} aria-hidden />} label="Tomadas">
-              {place.has_power_outlets == null ? unknown : place.has_power_outlets ? "Disponíveis" : "Poucas"}
-            </Stat>
-            <Stat icon={<Volume2 size={13} aria-hidden />} label="Ambiente">
-              {place.quiet_level ? QUIET[place.quiet_level] : unknown}
-            </Stat>
+            <FactRow field="outlets" label="Tomadas" icon={ico(Plug)} value={outletsText(trust)} meta={meta.outlets} onVote={onVote} />
+            <FactRow field="noise" label="Ruído" icon={ico(Volume2)} value={noise} meta={meta.noise} onVote={onVote} />
+            <FactRow field="calls" label="Chamadas de vídeo" icon={ico(Video)} value={calls} meta={meta.calls} onVote={onVote} />
+            <FactRow field="stay_policy" label="Permanência" icon={ico(Armchair)} value={stay} meta={meta.stay_policy} onVote={onVote} />
           </>
         )}
         {isHealth && (
           <>
-            <Stat icon={<Ticket size={13} aria-hidden />} label="Sem plano">
-              {place.accepts_without_plan == null ? unknown : place.accepts_without_plan ? "Atende" : "Só convênio"}
-            </Stat>
-            <Stat icon={<span aria-hidden>Aa</span>} label="Idiomas">
-              {place.languages?.length ? place.languages.join(", ") : unknown}
-            </Stat>
+            <FactRow
+              field="health_info"
+              label="Atende sem plano"
+              icon={ico(Stethoscope)}
+              value={place.accepts_without_plan == null ? null : place.accepts_without_plan ? "Sim" : "Só convênio"}
+              meta={meta.health_info}
+              onVote={onVote}
+            />
+            <FactRow field="languages" label="Idiomas" icon={ico(Languages)} value={place.languages?.length ? place.languages.join(", ") : null} meta={meta.languages} onVote={onVote} />
           </>
         )}
-        {place.price_hint && (
-          <Stat icon={<span aria-hidden>R$</span>} label="Preço">
-            {place.price_hint}
-          </Stat>
+        {place.opening_hours && (
+          <FactRow field="opening_hours" label="Horário" icon={ico(Clock)} value={<span className="text-sm">{place.opening_hours}</span>} meta={meta.opening_hours} onVote={onVote} />
         )}
+        {place.price_hint && <FactRow field="price" label="Preço" icon={ico(Wallet)} value={place.price_hint} meta={meta.price} onVote={onVote} />}
         {place.wheelchair && (
-          <Stat icon={<Accessibility size={13} aria-hidden />} label="Acessibilidade">
-            {WHEELCHAIR[place.wheelchair]}
-          </Stat>
+          <div className="rounded-2xl bg-surface-2 p-3">
+            <p className="flex items-center gap-1.5 text-xs font-semibold text-muted">
+              <Accessibility size={13} aria-hidden /> Acessibilidade
+            </p>
+            <p className="mt-1 text-[15px] font-semibold">{WHEELCHAIR[place.wheelchair]}</p>
+            <p className="mt-0.5 text-xs text-muted">OpenStreetMap</p>
+          </div>
         )}
       </div>
 
-      <PlaceOffers placeId={place.id} count={place.offers} />
+      <PlaceOffers placeId={place.id} count={place.offers} meta={meta.offer} />
 
       {place.address && (
         <p className="flex items-start gap-2 text-sm text-muted">
@@ -187,6 +274,14 @@ export function PlaceDetail({
           <ReportButton targetType="place" targetId={place.id} label="Denunciar lugar" />
         </span>
       </div>
+
+      {checkin && (
+        <CheckinSheet
+          place={place}
+          onClose={() => setCheckin(false)}
+          onSaved={(t) => setTrust(t)}
+        />
+      )}
     </article>
   );
 }

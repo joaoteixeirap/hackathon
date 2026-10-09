@@ -100,15 +100,19 @@ describe.skipIf(!enabled)("M7 RLS", () => {
     expect(await spot()).toBeUndefined();
   });
 
-  it("two Wi-Fi tests set the median, the source and the Selo", async () => {
-    const test = (x: TestUser, mbps: number) => x.client.from("wifi_tests").insert({ place_id: placeId, user_id: x.id, download_mbps: mbps, ping_ms: 20 });
-    expect((await test(u.a, 30)).error).toBeNull();
-    let { data: place } = await anon.from("places").select("wifi_mbps, wifi_source, nomad_seal").eq("id", placeId).single();
-    expect(place).toEqual({ wifi_mbps: null, wifi_source: null, nomad_seal: false }); // one test is not enough
+  it("two check-ins from different people set the median, the source and the Selo", async () => {
+    const checkin = (x: TestUser, mbps: number) =>
+      x.client.rpc("submit_checkin", {
+        p: { place_id: placeId, download_mbps: mbps, upload_mbps: 10, ping_ms: 20, jitter_ms: 3, loss_pct: 0, on_venue_wifi: true, near_place: true, outlets_level: "many", noise_level: 4 },
+      });
+    expect((await checkin(u.a, 30)).error).toBeNull();
+    let { data: place } = await anon.from("places").select("wifi_mbps, wifi_source, seal_valid_until").eq("id", placeId).single();
+    expect(place).toMatchObject({ wifi_mbps: 30, wifi_source: "user_test", seal_valid_until: null }); // one person is not enough
 
-    expect((await test(u.b, 40)).error).toBeNull();
-    ({ data: place } = await anon.from("places").select("wifi_mbps, wifi_source, nomad_seal").eq("id", placeId).single());
-    expect(place).toEqual({ wifi_mbps: 35, wifi_source: "user_test", nomad_seal: true });
+    expect((await checkin(u.b, 40)).error).toBeNull();
+    ({ data: place } = await anon.from("places").select("wifi_mbps, wifi_source, seal_valid_until").eq("id", placeId).single());
+    expect(place).toMatchObject({ wifi_mbps: 35, wifi_source: "user_test" });
+    expect(new Date(place!.seal_valid_until).getTime()).toBeGreaterThan(Date.now() + 59 * 86_400_000);
 
     // Users cannot fake the result by writing the place directly.
     const fake = await u.a.client.from("places").update({ wifi_mbps: 999 }).eq("id", placeId).select("id");

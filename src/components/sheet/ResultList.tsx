@@ -4,9 +4,10 @@ import { ChevronRight, MapPinned, Wifi } from "lucide-react";
 import { formatDayShort, formatHour } from "@/components/map/activityMarker";
 import { ActivityIcon, CATEGORY_BG, CategoryIcon } from "@/components/ui/CategoryIcon";
 import { DemoTag } from "@/components/ui/DemoTag";
-import { NomadBadge } from "@/components/ui/NomadBadge";
+import { SealStatus } from "@/components/trust/TrustBadges";
 import { haversine } from "@/lib/geo";
 import { stripDemo, subcategoryLabel, type ActivitySummary, type PlaceSummary } from "@/lib/places";
+import { isSealActive } from "@/lib/trust";
 
 function formatDistance(m: number): string {
   return m < 1000 ? `${Math.round(m / 10) * 10} m` : `${(m / 1000).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} km`;
@@ -91,8 +92,8 @@ export function ResultList({
                   </span>
                   <span className="flex shrink-0 flex-col items-end gap-1 text-xs">
                     <span className="font-semibold text-muted tabular-nums">{formatDistance(haversine(center, p))}</span>
-                    {p.nomad_seal ? (
-                      <NomadBadge compact />
+                    {isSealActive(p) ? (
+                      <SealStatus place={p} compact />
                     ) : (
                       p.wifi_mbps != null && (
                         <span className="flex items-center gap-1 font-semibold text-cat-work tabular-nums">
