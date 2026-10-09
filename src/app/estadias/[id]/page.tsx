@@ -48,7 +48,7 @@ export default async function PlanPage({params,searchParams}:{params:Promise<{id
  </section>
  <section className={`${card} p-5 sm:p-6 lg:col-start-2 lg:row-start-3 lg:self-start`}>{counts.unavailable?<p>Comunidades indisponíveis no momento. Seu plano está salvo.</p>:<CommunityPicker cityId={p.city_id} cityName={p.city.name} communities={counts.communities} joined={mine.groups.map(g=>g.id)} suggested={p.with_children?["remote_work","arrival","families"]:["remote_work","arrival"]} verified={Boolean(profile?.verified)}/>}</section>
  <div className="lg:col-start-1 lg:row-start-2"><CityDecisionIntro name={p.city.name}/></div>
- <div className="lg:col-start-1 lg:row-span-2 lg:row-start-3"><CityDecision inPlan slug={p.city.slug} name={p.city.name} places={evidence.places} incomplete={evidence.incomplete} preferences={p}/></div>
+ <div className="lg:col-start-1 lg:row-span-2 lg:row-start-3"><CityDecision intro={false} slug={p.city.slug} name={p.city.name} places={evidence.places} incomplete={evidence.incomplete} preferences={p}/></div>
  <section className={`${card} space-y-3 p-5 sm:p-6 lg:col-start-2 lg:row-start-4 lg:self-start`} aria-labelledby="next-steps"><h2 id="next-steps" className="font-display text-lg font-bold">Próximos passos</h2><PlanActions plan={p}/></section>
  </div></PageShell>;
 }
