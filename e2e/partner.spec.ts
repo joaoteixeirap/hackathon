@@ -86,7 +86,7 @@ test.describe("partner panel and offers (M6)", () => {
     } finally {
       if (serviceKey) {
         const admin = createClient(url, serviceKey, { auth: { persistSession: false } });
-        if (placeId) await admin.from("places").delete().eq("id", placeId);
+        await admin.from("places").delete().eq("name", placeName); // also when the id was never read
         await admin.from("partners").delete().eq("business_name", business);
       }
     }

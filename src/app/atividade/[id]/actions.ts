@@ -70,8 +70,8 @@ export async function reviewPerson(activityId: string, targetId: string, formDat
 }
 
 /** "Denunciar" (F5/F14): goes to the admin queue; nothing is hidden automatically. */
-export async function report(targetType: "message" | "activity" | "profile", targetId: string, reason: string): Promise<ActionResult> {
-  if (!["message", "activity", "profile"].includes(targetType) || !UUID_RE.test(targetId)) {
+export async function report(targetType: "message" | "activity" | "profile" | "place", targetId: string, reason: string): Promise<ActionResult> {
+  if (!["message", "activity", "profile", "place"].includes(targetType) || !UUID_RE.test(targetId)) {
     return { ok: false, message: "Denúncia inválida." };
   }
   if (!(REPORT_REASONS as readonly string[]).includes(reason)) return { ok: false, message: "Escolha um motivo." };

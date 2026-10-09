@@ -6,11 +6,12 @@ import maplibregl, {
   type MapLayerMouseEvent,
   type StyleSpecification,
 } from "maplibre-gl";
-import type { FeatureCollection, Point } from "geojson";
+import type { Feature, FeatureCollection, LineString, Point } from "geojson";
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import type { City } from "@/lib/cities";
 import type { ActivitySummary, PlaceCategory, PlaceSummary } from "@/lib/places";
 import { createActivityMarker } from "./activityMarker";
+import { createPresenceMarker, type PresenceSpot } from "./presenceMarker";
 import { applyTheme, type MapTheme } from "./applyTheme";
 import { addPinImages, CATEGORY_HEX, pinIconKey } from "./pins";
 import { loadBaseStyle } from "./style";
@@ -42,7 +43,73 @@ type Props = {
   onSelectActivity: (id: string) => void;
   onViewChange: (view: MapViewState) => void;
   onReady?: () => void;
+  /** "Rota do dia" stops, in order (F9). */
+  route?: { lat: number; lng: number }[];
+  /** "Quem está aqui" spots, already aggregated (F8). */
+  presence?: PresenceSpot[];
 };
+
+function routeGeoJSON(stops: { lat: number; lng: number }[]): FeatureCollection {
+  const features: Feature[] = stops.map((s, i) => ({
+    type: "Feature",
+    geometry: { type: "Point", coordinates: [s.lng, s.lat] } as Point,
+    properties: { n: String(i + 1) },
+  }));
+  if (stops.length >= 2) {
+    features.unshift({
+      type: "Feature",
+      geometry: { type: "LineString", coordinates: stops.map((s) => [s.lng, s.lat]) } as LineString,
+      properties: {},
+    });
+  }
+  return { type: "FeatureCollection", features };
+}
+
+/** Route line under the pins, numbered stops above them. */
+function installRouteLayers(map: maplibregl.Map, theme: MapTheme) {
+  if (map.getSource("route")) return;
+  const line = theme === "day" ? "#0B3B4A" : "#6CC3D1";
+  const surface = theme === "day" ? "#FFFFFF" : "#162027";
+  const onLine = theme === "day" ? "#FFFFFF" : "#0D1418";
+  map.addSource("route", { type: "geojson", data: routeGeoJSON([]) });
+  map.addLayer(
+    {
+      id: "route-casing",
+      type: "line",
+      source: "route",
+      filter: ["==", ["geometry-type"], "LineString"],
+      layout: { "line-cap": "round", "line-join": "round" },
+      paint: { "line-color": surface, "line-width": 8 },
+    },
+    "cluster-halo",
+  );
+  map.addLayer(
+    {
+      id: "route-line",
+      type: "line",
+      source: "route",
+      filter: ["==", ["geometry-type"], "LineString"],
+      layout: { "line-cap": "round", "line-join": "round" },
+      paint: { "line-color": line, "line-width": 4, "line-dasharray": [1.5, 1.2] },
+    },
+    "cluster-halo",
+  );
+  map.addLayer({
+    id: "route-stop",
+    type: "circle",
+    source: "route",
+    filter: ["==", ["geometry-type"], "Point"],
+    paint: { "circle-color": line, "circle-radius": 11, "circle-stroke-color": surface, "circle-stroke-width": 2.5, "circle-translate": [0, 10] },
+  });
+  map.addLayer({
+    id: "route-stop-n",
+    type: "symbol",
+    source: "route",
+    filter: ["==", ["geometry-type"], "Point"],
+    layout: { "text-field": ["get", "n"], "text-font": ["Noto Sans Bold"], "text-size": 12, "text-allow-overlap": true, "text-offset": [0, 0.85] },
+    paint: { "text-color": onLine },
+  });
+}
 
 function toGeoJSON(places: PlaceSummary[]): FeatureCollection<Point> {
   return {
@@ -178,20 +245,24 @@ async function installLayers(map: maplibregl.Map, theme: MapTheme, data: Feature
   });
 }
 
+const NO_STOPS: { lat: number; lng: number }[] = [];
+const NO_PRESENCE: PresenceSpot[] = [];
+
 export const MapView = forwardRef<MapViewHandle, Props>(function MapView(
-  { city, theme, places, activities, selectedPlaceId, sheetFraction, leftInset, onSelectPlace, onSelectActivity, onViewChange, onReady },
+  { city, theme, places, activities, selectedPlaceId, sheetFraction, leftInset, onSelectPlace, onSelectActivity, onViewChange, onReady, route = NO_STOPS, presence = NO_PRESENCE },
   ref,
 ) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const baseStyleRef = useRef<StyleSpecification | null>(null);
   const markersRef = useRef<maplibregl.Marker[]>([]);
+  const presenceRef = useRef<maplibregl.Marker[]>([]);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState(false);
 
   // Latest values for map callbacks registered once.
-  const latest = useRef({ theme, places, selectedPlaceId, sheetFraction, leftInset, onSelectPlace, onSelectActivity, onViewChange, onReady });
-  latest.current = { theme, places, selectedPlaceId, sheetFraction, leftInset, onSelectPlace, onSelectActivity, onViewChange, onReady };
+  const latest = useRef({ theme, places, route, selectedPlaceId, sheetFraction, leftInset, onSelectPlace, onSelectActivity, onViewChange, onReady });
+  latest.current = { theme, places, route, selectedPlaceId, sheetFraction, leftInset, onSelectPlace, onSelectActivity, onViewChange, onReady };
 
   useImperativeHandle(ref, () => ({
     recenter() {
@@ -252,6 +323,8 @@ export const MapView = forwardRef<MapViewHandle, Props>(function MapView(
             if (cancelled) return;
             const src = map.getSource("places") as GeoJSONSource | undefined;
             src?.setData(toGeoJSON(latest.current.places));
+            installRouteLayers(map, latest.current.theme);
+            (map.getSource("route") as GeoJSONSource | undefined)?.setData(routeGeoJSON(latest.current.route));
             map.setFilter("place-selected", ["==", ["get", "id"], latest.current.selectedPlaceId ?? ""]);
             setReady(true);
             containerRef.current?.setAttribute("data-map-ready", "true");
@@ -290,8 +363,9 @@ export const MapView = forwardRef<MapViewHandle, Props>(function MapView(
 
     return () => {
       cancelled = true;
-      for (const m of markersRef.current) m.remove();
+      for (const m of [...markersRef.current, ...presenceRef.current]) m.remove();
       markersRef.current = [];
+      presenceRef.current = [];
       mapRef.current?.remove();
       mapRef.current = null;
     };
@@ -314,6 +388,20 @@ export const MapView = forwardRef<MapViewHandle, Props>(function MapView(
   useEffect(() => {
     if (ready) mapRef.current?.setFilter("place-selected", ["==", ["get", "id"], selectedPlaceId ?? ""]);
   }, [selectedPlaceId, ready]);
+
+  useEffect(() => {
+    const src = mapRef.current?.getSource("route") as GeoJSONSource | undefined;
+    if (ready && src) src.setData(routeGeoJSON(route));
+  }, [route, ready]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !ready) return;
+    for (const m of presenceRef.current) m.remove();
+    presenceRef.current = presence.map((p) =>
+      new maplibregl.Marker({ element: createPresenceMarker(p), anchor: "center" }).setLngLat([p.lng, p.lat]).addTo(map),
+    );
+  }, [presence, ready]);
 
   useEffect(() => {
     const map = mapRef.current;

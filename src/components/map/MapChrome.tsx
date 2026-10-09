@@ -120,16 +120,20 @@ export type ThemeChoice = "auto" | "day" | "night";
 export function LayersMenu({
   showPlaces,
   showActivities,
+  showPresence,
   theme,
   onTogglePlaces,
   onToggleActivities,
+  onTogglePresence,
   onTheme,
 }: {
   showPlaces: boolean;
   showActivities: boolean;
+  showPresence: boolean;
   theme: ThemeChoice;
   onTogglePlaces: () => void;
   onToggleActivities: () => void;
+  onTogglePresence: () => void;
   onTheme: (t: ThemeChoice) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -166,6 +170,8 @@ export function LayersMenu({
           <p className="mb-1 font-display text-lg font-bold">Camadas</p>
           <Switch on={showPlaces} onClick={onTogglePlaces} label="Lugares" />
           <Switch on={showActivities} onClick={onToggleActivities} label="Atividades" />
+          <Switch on={showPresence} onClick={onTogglePresence} label="Quem está aqui" />
+          <p className="text-xs text-muted">Nômades por bairro, só onde há 3 ou mais. Nunca a posição de alguém.</p>
           <p className="mt-3 mb-2 text-xs font-semibold text-muted">Aparência</p>
           <div className="grid grid-cols-3 gap-1 rounded-full bg-surface-2 p-1 text-sm" role="radiogroup" aria-label="Tema do mapa">
             {(["auto", "day", "night"] as const).map((t) => (

@@ -3,6 +3,8 @@
 import { ArrowLeft, Plus, User } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { RouteTray } from "@/components/route/RouteTray";
+import { useDayRoute } from "@/components/route/useDayRoute";
 import { ActivityDetail } from "@/components/sheet/ActivityDetail";
 import { BottomSheet, type Snap } from "@/components/sheet/BottomSheet";
 import { PlaceDetail } from "@/components/sheet/PlaceDetail";
@@ -24,6 +26,7 @@ import {
   type PlaceCategory,
   type PlaceFilters,
   type PlaceSummary,
+  stripDemo,
 } from "@/lib/places";
 import type { MapTheme } from "./applyTheme";
 import {
@@ -36,6 +39,7 @@ import {
   type ThemeChoice,
 } from "./MapChrome";
 import { MapView, type MapViewHandle, type MapViewState } from "./MapView";
+import type { PresenceSpot } from "./presenceMarker";
 
 const LIST_LIMIT = 60;
 const DESKTOP_PANEL = 400;
@@ -105,6 +109,25 @@ type ActivityRow = {
   is_demo: boolean;
   city_id: string;
 };
+
+/** "Quem está aqui" (F8): aggregated counts per neighborhood, fetched when the layer is on. */
+function usePresence(cityId: string | null, enabled: boolean): PresenceSpot[] {
+  const [spots, setSpots] = useState<PresenceSpot[]>([]);
+  useEffect(() => {
+    if (!enabled || !cityId || !isSupabaseConfigured()) {
+      setSpots([]);
+      return;
+    }
+    let alive = true;
+    createClient()
+      .rpc("presence_map", { p_city_id: cityId })
+      .then(({ data }) => alive && setSpots((data ?? []) as PresenceSpot[]));
+    return () => {
+      alive = false;
+    };
+  }, [cityId, enabled]);
+  return spots;
+}
 
 /** New/changed activities from other users appear without reloading (F3: < 5 s). */
 function useLiveActivities(cityId: string | null, initial: ActivitySummary[]): ActivitySummary[] {
@@ -179,6 +202,9 @@ export function MapExperience({
   const [view, setView] = useState<MapViewState | null>(null);
   const [showPlaces, setShowPlaces] = useState(true);
   const [showActivities, setShowActivities] = useState(true);
+  const [showPresence, setShowPresence] = useState(false);
+  const presence = usePresence(city.id, showPresence);
+  const dayRoute = useDayRoute(city.slug);
   const [mapReady, setMapReady] = useState(false);
   const [isOpen, setIsOpen] = useState<((p: PlaceSummary) => boolean | null) | undefined>(undefined);
 
@@ -262,9 +288,27 @@ export function MapExperience({
       : "Nada mapeado neste trecho ainda. Ajude a mapear.";
 
   const body = selectedPlace ? (
-    <PlaceDetail key={selectedPlace.id} place={selectedPlace} onClose={() => selectPlace(null)} />
+    <PlaceDetail
+      key={selectedPlace.id}
+      place={selectedPlace}
+      onClose={() => selectPlace(null)}
+      route={{
+        inRoute: dayRoute.has({ kind: "place", id: selectedPlace.id }),
+        full: dayRoute.full,
+        onToggle: () => dayRoute.toggle({ kind: "place", id: selectedPlace.id, name: selectedPlace.name, lat: selectedPlace.lat, lng: selectedPlace.lng }),
+      }}
+    />
   ) : selectedActivity ? (
-    <ActivityDetail activity={selectedActivity} onClose={() => selectPlace(null)} />
+    <ActivityDetail
+      activity={selectedActivity}
+      onClose={() => selectPlace(null)}
+      route={{
+        inRoute: dayRoute.has({ kind: "activity", id: selectedActivity.id }),
+        full: dayRoute.full,
+        onToggle: () =>
+          dayRoute.toggle({ kind: "activity", id: selectedActivity.id, name: stripDemo(selectedActivity.title), lat: selectedActivity.lat, lng: selectedActivity.lng }),
+      }}
+    />
   ) : (
     <ResultList
       places={visible.places.slice(0, LIST_LIMIT)}
@@ -318,6 +362,8 @@ export function MapExperience({
         onSelectActivity={selectActivity}
         onViewChange={setView}
         onReady={() => setMapReady(true)}
+        route={dayRoute.stops}
+        presence={presence}
       />
       {!mapReady && <MapLoading cityName={city.name} />}
 
@@ -389,13 +435,31 @@ export function MapExperience({
         <LayersMenu
           showPlaces={showPlaces}
           showActivities={showActivities}
+          showPresence={showPresence}
           theme={themeChoice}
           onTogglePlaces={() => setShowPlaces((v) => !v)}
           onToggleActivities={() => setShowActivities((v) => !v)}
+          onTogglePresence={() => setShowPresence((v) => !v)}
           onTheme={setThemeChoice}
         />
         <RecenterButton onClick={() => mapRef.current?.recenter()} />
       </div>
+
+      {dayRoute.stops.length > 0 && (
+        <div
+          className={`absolute z-10 ${isDesktop ? "right-4 bottom-4 w-96" : "inset-x-3 flex justify-center"}`}
+          // Phones: just above the bottom sheet, like a mini player; the list opens upwards.
+          style={isDesktop ? undefined : { bottom: "var(--map-inset-bottom)" }}
+        >
+          <RouteTray
+            stops={dayRoute.stops}
+            onOpen={(s) => (s.kind === "place" ? selectPlace(s.id) : activities.some((a) => a.id === s.id) && selectActivity(s.id))}
+            onRemove={dayRoute.remove}
+            onMove={dayRoute.move}
+            onClear={dayRoute.clear}
+          />
+        </div>
+      )}
     </main>
   );
 }

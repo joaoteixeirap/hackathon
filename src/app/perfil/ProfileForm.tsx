@@ -1,11 +1,11 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { buttonPrimary, field, label } from "@/components/ui/styles";
 import type { MyProfile } from "@/lib/auth";
 import { updateProfile, type ProfileFormState } from "./actions";
 
-type CityOption = { id: string; name: string };
+type CityOption = { id: string; name: string; neighborhoods: string[] };
 
 function Field({
   id,
@@ -41,6 +41,10 @@ export function ProfileForm({ profile, cities }: { profile: MyProfile; cities: C
     status: "idle",
   });
   const e = state.errors ?? {};
+  const [cityId, setCityId] = useState(profile.current_city_id ?? "");
+  const hoods = cities.find((c) => c.id === cityId)?.neighborhoods ?? [];
+  // Keep a legacy free-text value selectable until the user picks one from the list.
+  const options = profile.neighborhood && !hoods.includes(profile.neighborhood) && cityId === profile.current_city_id ? [profile.neighborhood, ...hoods] : hoods;
 
   return (
     <form action={action} className="space-y-4" noValidate>
@@ -80,7 +84,8 @@ export function ProfileForm({ profile, cities }: { profile: MyProfile; cities: C
         <select
           id="current_city_id"
           name="current_city_id"
-          defaultValue={profile.current_city_id ?? ""}
+          value={cityId}
+          onChange={(ev) => setCityId(ev.target.value)}
           className={field}
         >
           <option value="">Não informar</option>
@@ -105,13 +110,21 @@ export function ProfileForm({ profile, cities }: { profile: MyProfile; cities: C
         error={e.neighborhood}
         hint="Usado só na contagem por bairro, nunca como posição."
       >
-        <input
+        <select
+          key={cityId}
           id="neighborhood"
           name="neighborhood"
-          maxLength={60}
-          defaultValue={profile.neighborhood ?? ""}
+          defaultValue={cityId === profile.current_city_id ? (profile.neighborhood ?? "") : ""}
+          disabled={!cityId}
           className={field}
-        />
+        >
+          <option value="">{cityId ? "Não informar" : "Escolha a cidade primeiro"}</option>
+          {options.map((n) => (
+            <option key={n} value={n}>
+              {n}
+            </option>
+          ))}
+        </select>
       </Field>
       <div className="space-y-1.5">
         <label className="flex min-h-11 items-center gap-3">

@@ -3,11 +3,14 @@
 import { Accessibility, Clock, MapPin, Navigation, Plug, Plus, Share2, Ticket, Volume2, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { ReportButton } from "@/components/activity/ReportButton";
 import { PlaceOffers } from "@/components/offers/PlaceOffers";
+import { RouteButton, type RouteToggle } from "@/components/route/RouteButton";
 import { CATEGORY_BG, CategoryIcon } from "@/components/ui/CategoryIcon";
 import { DemoTag } from "@/components/ui/DemoTag";
 import { NomadBadge } from "@/components/ui/NomadBadge";
 import { WifiMeter } from "@/components/ui/WifiMeter";
+import { WifiTest } from "@/components/wifi/WifiTest";
 import { buttonPrimary, buttonSecondary } from "@/components/ui/styles";
 import { describeHours, loadOpeningHours } from "@/lib/openingHours";
 import { subcategoryLabel, type PlaceSummary } from "@/lib/places";
@@ -35,14 +38,19 @@ export function PlaceDetail({
   wifiTests,
   onClose,
   standalone = false,
+  route,
 }: {
   place: PlaceSummary;
   wifiTests?: number;
   onClose?: () => void;
   standalone?: boolean;
+  /** "Rota do dia" toggle; only on the map. */
+  route?: RouteToggle;
 }) {
   const [hours, setHours] = useState<string | null | undefined>(undefined);
   const [shareMsg, setShareMsg] = useState<string | null>(null);
+  // Updated in place after a Wi-Fi test is saved (F12).
+  const [wifi, setWifi] = useState({ mbps: place.wifi_mbps, source: place.wifi_source, seal: place.nomad_seal, tests: wifiTests });
 
   useEffect(() => {
     let alive = true;
@@ -105,13 +113,23 @@ export function PlaceDetail({
         </span>
       </div>
 
-      {place.nomad_seal && <NomadBadge />}
+      {wifi.seal && <NomadBadge />}
 
       <div className="grid grid-cols-2 gap-2">
-        {(isWork || place.wifi_mbps != null || place.wifi_source) && (
-          <div className="col-span-2 rounded-2xl bg-surface-2 p-3">
-            <p className="mb-2 text-xs font-semibold text-muted">Wi-Fi</p>
-            <WifiMeter mbps={place.wifi_mbps} source={place.wifi_source} tests={wifiTests} />
+        {(isWork || wifi.mbps != null || wifi.source) && (
+          <div className="col-span-2 space-y-3 rounded-2xl bg-surface-2 p-3">
+            <p className="text-xs font-semibold text-muted">Wi-Fi</p>
+            <WifiMeter mbps={wifi.mbps} source={wifi.source} tests={wifi.tests} />
+            {wifi.tests != null && wifi.tests < 2 && wifi.source !== "user_test" && (
+              <p className="text-xs text-muted">
+                {wifi.tests === 0 ? "Nenhuma medição de nômades ainda." : "1 medição de nômades."} A velocidade passa a valer com 2.
+              </p>
+            )}
+            <WifiTest
+              placeId={place.id}
+              placeName={place.name}
+              onSaved={(s) => setWifi({ mbps: s.wifi_mbps, source: s.wifi_source, seal: s.nomad_seal, tests: s.tests })}
+            />
           </div>
         )}
         {isWork && (
@@ -156,6 +174,7 @@ export function PlaceDetail({
       )}
 
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-line pt-3">
+        {route && <RouteButton {...route} />}
         <Link href={`/atividade/nova?lugar=${place.id}`} className="inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-accent-strong">
           <Plus size={16} strokeWidth={2.5} aria-hidden /> Criar roda aqui
         </Link>
@@ -164,6 +183,9 @@ export function PlaceDetail({
             Ver página do lugar
           </Link>
         )}
+        <span className="ml-auto">
+          <ReportButton targetType="place" targetId={place.id} label="Denunciar lugar" />
+        </span>
       </div>
     </article>
   );

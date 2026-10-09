@@ -20,6 +20,7 @@ import { costSplit, isParticipant } from "@/lib/membership";
 import { ACTIVITY_LABELS, stripDemo } from "@/lib/places";
 import { directionsUrl } from "@/lib/share";
 import { ShareActions } from "./ShareActions";
+import { TrustedContact } from "./TrustedContact";
 
 type Props = { params: Promise<{ id: string }>; searchParams: Promise<{ nova?: string }> };
 
@@ -132,6 +133,9 @@ export default async function ActivityPage({ params, searchParams }: Props) {
             Ver no mapa
           </Link>
         </div>
+        {participant && !past && a.status !== "cancelled" && (
+          <TrustedContact path={`/atividade/${a.id}`} title={title} whenText={when} meetingLabel={a.meeting_label} directions={directionsUrl(a.lat, a.lng)} />
+        )}
         {viewer.role !== "creator" && (
           <div className="-mb-2 flex justify-end">
             <ReportButton targetType="activity" targetId={a.id} label="Denunciar roda" />

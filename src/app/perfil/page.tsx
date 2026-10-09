@@ -5,6 +5,7 @@ import { Rating } from "@/components/ui/Rating";
 import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
 import { card } from "@/components/ui/styles";
 import { getMyProfile, getUser } from "@/lib/auth";
+import { getCityNeighborhoods } from "@/lib/neighborhoods";
 import { getProfileRating } from "@/lib/ratings";
 import { createClient } from "@/lib/supabase/server";
 import { getVerificationState } from "@/lib/verification";
@@ -25,12 +26,14 @@ export default async function MyProfilePage() {
     );
   }
   const supabase = await createClient();
-  const [profile, rating, { data: cities }, verification] = await Promise.all([
+  const [profile, rating, { data: cityRows }, verification] = await Promise.all([
     getMyProfile(),
     getProfileRating(user.id),
     supabase.from("cities").select("id, name").order("name"),
     getVerificationState(user.id),
   ]);
+
+  const cities = await Promise.all((cityRows ?? []).map(async (c) => ({ ...c, neighborhoods: await getCityNeighborhoods(c.id) })));
 
   if (!profile) {
     return (
@@ -61,7 +64,7 @@ export default async function MyProfilePage() {
       </section>
 
       <section className={`${card} p-5`} aria-label="Editar perfil">
-        <ProfileForm profile={profile} cities={cities ?? []} />
+        <ProfileForm profile={profile} cities={cities} />
       </section>
 
       <Link href="/parceiro" className={`${card} mt-6 flex min-h-16 items-center justify-between gap-3 p-5 hover:bg-surface-2`}>

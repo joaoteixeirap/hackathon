@@ -4,13 +4,14 @@ import { CalendarClock, MapPin, Share2, ShieldCheck, Users, X } from "lucide-rea
 import Link from "next/link";
 import { useState } from "react";
 import { formatDayShort, formatHour, ringState } from "@/components/map/activityMarker";
+import { RouteButton, type RouteToggle } from "@/components/route/RouteButton";
 import { ActivityIcon } from "@/components/ui/CategoryIcon";
 import { DemoTag } from "@/components/ui/DemoTag";
 import { buttonAccent, buttonSecondary } from "@/components/ui/styles";
 import { ACTIVITY_LABELS, stripDemo, type ActivitySummary } from "@/lib/places";
 import { sharePage } from "@/lib/share";
 
-export function ActivityDetail({ activity, onClose }: { activity: ActivitySummary; onClose?: () => void }) {
+export function ActivityDetail({ activity, onClose, route }: { activity: ActivitySummary; onClose?: () => void; route?: RouteToggle }) {
   const [shareMsg, setShareMsg] = useState<string | null>(null);
   const state = ringState(activity);
 
@@ -72,6 +73,7 @@ export function ActivityDetail({ activity, onClose }: { activity: ActivitySummar
         <button type="button" onClick={share} className={`${buttonSecondary} min-h-11 gap-2 px-5`}>
           <Share2 size={16} strokeWidth={2} aria-hidden /> Compartilhar
         </button>
+        {route && <RouteButton {...route} />}
         <span role="status" className="text-sm font-semibold text-success">
           {shareMsg}
         </span>

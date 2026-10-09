@@ -75,6 +75,10 @@ test.describe("join, approve and chat (M5)", () => {
         );
         await admin.from("activities").delete().eq("id", activityId);
       }
+      if (serviceKey) {
+        // Also by title, in case the test failed before reading the id.
+        await createClient(url, serviceKey, { auth: { persistSession: false } }).from("activities").delete().eq("title", title);
+      }
     }
   });
 });
