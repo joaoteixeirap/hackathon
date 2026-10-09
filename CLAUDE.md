@@ -1,6 +1,6 @@
 # CLAUDE.md — SoloRota (nome provisório)
 
-Leia este arquivo inteiro, depois `SPEC.md` (produto, dados, telas, critérios de aceite), `DESIGN.md` (identidade visual do mapa), `EVIDENCE.md` (dados de demanda e como usá-los) e `SPEC_V2_NOMADE.md` (diferenciais; vale onde houver conflito). Trabalhe por marco (M0 a M8 em `SPEC.md`, depois V0 a V7 em `SPEC_V2_NOMADE.md`), na ordem, e faça commit ao fim de cada marco.
+Leia este arquivo inteiro, depois `SPEC.md` (produto, dados, telas, critérios de aceite), `DESIGN.md` (identidade visual do mapa), `EVIDENCE.md` (dados de demanda e como usá-los) e `SPEC_V2_NOMADE.md` (diferenciais; vale onde houver conflito). Para a expansão autorizada em 09/10/2026, leia também `docs/CONTINUITY_SP.md` (estado atual e retomada) e `SPEC_SP_NOMADS.md` (novo escopo; vale sobre restrições geográficas antigas). Trabalhe por marco e faça commit ao fim de cada marco.
 
 ## O que é
 

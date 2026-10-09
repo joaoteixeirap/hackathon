@@ -42,6 +42,7 @@ export const EVENT_NAMES = [
   "survey_answer",
   "explore_view",
   "resource_open",
+  "state_map_search", "location_request", "location_result", "plan_view", "plan_save", "plan_remove", "plan_arrive", "community_view", "community_join", "community_leave", "community_mute", "community_message",
 ] as const;
 export type EventName = (typeof EVENT_NAMES)[number];
 

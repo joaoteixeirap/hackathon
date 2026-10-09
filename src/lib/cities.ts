@@ -3,6 +3,7 @@ import type { BBox } from "./geo";
 import { isSupabaseConfigured } from "./supabase/env";
 import { unstable_cache } from "next/cache";
 import { createPublicClient } from "./supabase/public";
+import catalogue from "@/data/sp-cities.json";
 
 export type City = {
   id: string | null;
@@ -13,6 +14,7 @@ export type City = {
   center_lng: number;
   zoom: number;
   bbox: BBox;
+  ibge_code?:string|null;
 };
 
 /**
@@ -41,7 +43,7 @@ export async function getCity(slug: string): Promise<City | null> {
       // fall through to bootstrap values
     }
   }
-  return BOOTSTRAP_CITIES.find((c) => c.slug === slug) ?? null;
+  return BOOTSTRAP_CITIES.find((c) => c.slug === slug) ?? (catalogue.cities.find(c=>c.slug===slug) ? {...catalogue.cities.find(c=>c.slug===slug)!,id:null,bbox:catalogue.cities.find(c=>c.slug===slug)!.bbox as BBox} : null);
 }
 
 const cachedCity = unstable_cache(fetchCity, ["city-v1"], { revalidate: 3600, tags: ["cities"] });
@@ -49,15 +51,25 @@ const cachedCity = unstable_cache(fetchCity, ["city-v1"], { revalidate: 3600, ta
 async function fetchCity(slug: string): Promise<City | null> {
   const { data, error } = await createPublicClient()
     .from("cities")
-    .select("id, slug, name, state, center_lat, center_lng, zoom, bbox")
+    .select("id, slug, name, state, center_lat, center_lng, zoom, bbox,ibge_code")
     .eq("slug", slug)
     .maybeSingle();
   // Throwing (instead of returning bootstrap values) keeps failures out of the cache.
   if (error) throw error;
-  return data ? { ...data, zoom: Number(data.zoom), bbox: data.bbox as BBox } : null;
+  return data ? { ...data, zoom: Number(data.zoom), bbox: data.bbox as BBox } : (catalogue.cities.find(c=>c.slug===slug) ? {...catalogue.cities.find(c=>c.slug===slug)!,id:null,bbox:catalogue.cities.find(c=>c.slug===slug)!.bbox as BBox} : null);
 }
 
 export const defaultCitySlug = process.env.NEXT_PUBLIC_DEFAULT_CITY || "santos";
+
+export async function listMapCities():Promise<City[]> {
+ if(isSupabaseConfigured())try{return await cachedMapCities();}catch{/* offline catalogue */}
+ return catalogue.cities.map(c=>({...c,id:null,bbox:c.bbox as BBox}));
+}
+const cachedMapCities=unstable_cache(async()=>{
+ const {data,error}=await createPublicClient().from("cities").select("id,slug,name,state,center_lat,center_lng,zoom,bbox,ibge_code").order("name").limit(1000);
+ if(error)throw error;
+ return (data??[]).map(c=>({...c,zoom:Number(c.zoom),bbox:c.bbox as BBox}));
+},["map-cities-sp-v2"],{revalidate:3600,tags:["cities"]});
 
 /** All cities (name order) for pickers such as /espera. */
 export async function listCities(): Promise<Pick<City, "slug" | "name">[]> {

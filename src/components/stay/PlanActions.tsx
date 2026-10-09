@@ -1,0 +1,17 @@
+"use client";
+import { useActionState,useState,useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { arrivePlan,removePlan,type PlanState } from "@/app/estadias/actions";
+import type { DestinationPlan } from "@/lib/destinations";
+import { todayInBrasilia } from "@/lib/offers";
+import { defaultLeave } from "@/lib/stay";
+import { buttonPrimary,buttonSecondary,field,label } from "@/components/ui/styles";
+export function PlanActions({plan}:{plan:DestinationPlan}){
+ const router=useRouter(),today=todayInBrasilia();
+ const [deleting,startDelete]=useTransition(),[removeOpen,setRemoveOpen]=useState(false),[error,setError]=useState("");
+ const [state,action,pending]=useActionState<PlanState,FormData>(async(prev,fd)=>{const r=await arrivePlan(plan.id,prev,fd);if(r.status==="saved")router.push("/estadia");return r;},{status:"idle"});
+ const defaultArrive=plan.arrive_on&&plan.arrive_on<=today?plan.arrive_on:today;
+ const defaultEnd=plan.leave_on&&plan.leave_on>=today?plan.leave_on:plan.date_mode==="resident"?new Date(Date.parse(`${today}T12:00:00Z`)+365*86400000).toISOString().slice(0,10):defaultLeave(today);
+ return <div className="space-y-4">{plan.status!=="arrived"&&<details><summary className="flex min-h-12 cursor-pointer items-center font-semibold text-primary">Já cheguei em {plan.city.name}</summary><form action={action} className="mt-3 space-y-3"><p className="text-sm text-muted">Esta ação encerra sua estadia ativa anterior e abre uma nova rotina em {plan.city.name}. Os registros anteriores ficam preservados. Sua presença pública e a descoberta de pessoas começam desligadas.</p>{plan.date_mode==="resident"&&<p className="text-xs text-muted">Seu plano continua sem data de saída. Para organizar orçamento e tarefas, escolha um horizonte de rotina de até um ano, renovável em Minha estadia.</p>}<label className={`block ${label}`}>Cheguei em<input type="date" name="arrive_on" max={today} defaultValue={defaultArrive} required className={`${field} mt-1`}/></label><label className={`block ${label}`}>{plan.date_mode==="resident"?"Organizar rotina até":"Saída prevista"}<input type="date" name="leave_on" min={today} defaultValue={defaultEnd} required className={`${field} mt-1`}/></label><label className={`block ${label}`}>Perfil<select name="audience" className={`${field} mt-1`}><option value="br">Nômade brasileiro</option><option value="foreign">Nômade estrangeiro</option></select></label><label className="flex min-h-12 items-center gap-3 text-sm"><input type="checkbox" name="confirm_arrival" required className="size-5 accent-primary"/>Confirmo que já estou nesta cidade</label><button type="submit" disabled={pending} className={`${buttonPrimary} w-full`}>{pending?"Confirmando…":"Confirmar chegada e abrir minha rotina"}</button><p role="status" className="text-sm text-danger">{state.status==="error"?state.message:""}</p></form></details>}
+ <button type="button" className={`${buttonSecondary} text-sm`} onClick={()=>setRemoveOpen(s=>!s)}>Remover este planejamento</button>{removeOpen&&<div className="rounded-2xl bg-surface-2 p-4"><p className="mb-3 text-sm">Remover o plano de {plan.city.name}? Essa ação mantém suas estadias ativas, gastos e grupos.</p><button type="button" disabled={deleting} className={buttonSecondary} onClick={()=>startDelete(async()=>{const r=await removePlan(plan.id);if(r.ok)router.push("/estadias");else setError(r.message??"Não foi possível remover.");})}>Confirmar remoção</button></div>}<p role="status" className="text-sm text-danger empty:hidden">{error}</p></div>;
+}

@@ -6,7 +6,7 @@ import { report } from "@/app/atividade/[id]/actions";
 import { REPORT_REASONS } from "@/lib/membership";
 
 /** "Denunciar" (F5/F14): pick a reason, the report goes to the admin queue. */
-export function ReportButton({ targetType, targetId, label = "Denunciar" }: { targetType: "message" | "activity" | "profile" | "place"; targetId: string; label?: string }) {
+export function ReportButton({ targetType, targetId, label = "Denunciar" }: { targetType: "message" | "activity" | "profile" | "place" | "community" | "community_message"; targetId: string; label?: string }) {
   const [open, setOpen] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);

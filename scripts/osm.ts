@@ -43,12 +43,13 @@ const RULES: Rule[] = [
   { key: "shop", values: ["supermarket"], category: "service" },
   { key: "shop", values: ["mobile_phone"], category: "service", sub: () => "mobile" },
   { key: "amenity", values: ["bicycle_rental", "post_office"], category: "service", sub:v=>v==="bicycle_rental" ? "bike_rental" : v },
+  { key: "amenity", values: ["school", "kindergarten"], category: "service" },
 ];
 
 export function buildOverpassQuery(bbox: string): string {
   return `[out:json][timeout:90];
 (
-  nwr["amenity"~"^(cafe|restaurant|fast_food|bar|coworking_space|library|clinic|doctors|hospital|pharmacy|dentist|bicycle_rental|post_office)$"](${bbox});
+  nwr["amenity"~"^(cafe|restaurant|fast_food|bar|coworking_space|library|clinic|doctors|hospital|pharmacy|dentist|bicycle_rental|post_office|school|kindergarten)$"](${bbox});
   nwr["office"="coworking"](${bbox});
   nwr["tourism"~"^(hostel|guest_house|apartment|hotel|attraction|viewpoint|museum)$"](${bbox});
   nwr["leisure"="beach_resort"](${bbox});

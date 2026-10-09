@@ -9,10 +9,10 @@ import { ModerationButtons } from "./ModerationButtons";
 export const metadata: Metadata = { title: "Denúncias · SoloRota" };
 export const dynamic = "force-dynamic";
 
-type Report = { id: string; reporter_id: string; target_type: "activity" | "message" | "profile" | "place"; target_id: string; reason: string; resolved: boolean; created_at: string };
+type Report = { id: string; reporter_id: string; target_type: "activity" | "message" | "profile" | "place" | "community" | "community_message"; target_id: string; reason: string; resolved: boolean; created_at: string };
 type Target = { label: string; detail?: string; href?: string };
 
-const TYPE_LABEL: Record<Report["target_type"], string> = { activity: "Roda", message: "Mensagem", profile: "Perfil", place: "Lugar" };
+const TYPE_LABEL: Record<Report["target_type"], string> = { activity: "Roda", message: "Mensagem", profile: "Perfil", place: "Lugar",community:"Comunidade",community_message:"Mensagem da comunidade" };
 
 type Props = { searchParams: Promise<{ ver?: string }> };
 
@@ -44,13 +44,17 @@ export default async function AdminReportsPage({ searchParams }: Props) {
 
   // Resolve what was reported, one query per type.
   const ids = (t: Report["target_type"]) => [...new Set(reports.filter((r) => r.target_type === t).map((r) => r.target_id))];
-  const [acts, msgs, profs, places] = await Promise.all([
+  const [acts, msgs, profs, places,communities,communityMsgs] = await Promise.all([
     ids("activity").length ? supabase.from("activities").select("id, title, status").in("id", ids("activity")) : { data: [] },
     ids("message").length ? supabase.from("messages").select("id, body, activity_id, profiles(display_name)").in("id", ids("message")) : { data: [] },
     ids("profile").length ? supabase.from("profiles").select("id, display_name").in("id", ids("profile")) : { data: [] },
     ids("place").length ? supabase.from("places").select("id, name").in("id", ids("place")) : { data: [] },
+    ids("community").length ? supabase.from("city_communities").select("id,topic,cities(name)").in("id",ids("community")) : {data:[]},
+    ids("community_message").length ? supabase.from("community_messages").select("id,body,community_id").in("id",ids("community_message")) : {data:[]},
   ]);
   const targets = new Map<string, Target>();
+  for(const c of (communities.data??[]) as unknown as {id:string;topic:string;cities:{name:string}}[])targets.set(c.id,{label:`Comunidade ${c.topic} em ${c.cities.name}`,href:`/comunidade/${c.id}`});
+  for(const m of (communityMsgs.data??[]) as {id:string;body:string;community_id:string}[])targets.set(m.id,{label:m.body,href:`/comunidade/${m.community_id}`});
   for (const a of (acts.data ?? []) as { id: string; title: string; status: string }[]) {
     targets.set(a.id, { label: a.title, detail: a.status === "cancelled" ? "cancelada" : undefined, href: `/atividade/${a.id}` });
   }

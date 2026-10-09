@@ -67,7 +67,7 @@ export default async function StayPage({ searchParams }: Props) {
   }
   const supabase = await createClient();
   const [stay, profile, { data: cityRows }] = await Promise.all([getActiveStay(user.id), getMyProfile(), supabase.from("cities").select("id, name").order("name")]);
-  const cities = await Promise.all((cityRows ?? []).map(async (c) => ({ ...c, neighborhoods: await getCityNeighborhoods(c.id) })));
+  const cities = await Promise.all((cityRows ?? []).map(async (c) => ({ ...c, neighborhoods: c.id===(stay?.city_id??profile?.current_city_id) ? await getCityNeighborhoods(c.id) : [] })));
   const p = profile as unknown as Record<string, unknown> | null;
   const routine: RoutineValues = {
     work_rhythm: (p?.work_rhythm as RoutineValues["work_rhythm"]) ?? "flexible",
@@ -84,6 +84,7 @@ export default async function StayPage({ searchParams }: Props) {
     return (
       <PageShell title="Minha estadia">
         <p className="-mt-3 mb-5 text-muted">Diga quando você chega e sai. Montamos seu checklist de chegada e sua semana na cidade.</p>
+        <Link href="/estadias" className="mb-4 inline-flex min-h-11 items-center font-semibold text-primary">Planejar próximos destinos →</Link>
         <div className={`${card} p-5`}>
           <StaySetup cities={cities} defaultCityId={defaultCity?.id ?? null} routine={routine} />
         </div>
@@ -121,6 +122,7 @@ export default async function StayPage({ searchParams }: Props) {
 
   return (
     <PageShell title="Minha estadia">
+      <div className="mb-4 flex flex-wrap gap-x-4"><Link href="/estadias" className="inline-flex min-h-11 items-center text-sm font-semibold text-primary">Minhas estadias e próximos destinos</Link><Link href="/comunidades" className="inline-flex min-h-11 items-center text-sm font-semibold text-primary">Comunidades</Link></div>
       <section className={`${card} -mt-2 mb-5 space-y-2 p-5`} aria-label="Progresso da estadia">
         {profile?.display_name?.endsWith("(Demo)") && <p className="text-xs font-semibold text-muted">Dados de demonstração · {profile.display_name}</p>}
         <p className="font-display text-xl font-bold">

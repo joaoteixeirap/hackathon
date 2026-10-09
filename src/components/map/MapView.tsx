@@ -17,6 +17,7 @@ import { createPresenceMarker, type PresenceSpot } from "./presenceMarker";
 import { applyTheme, type MapTheme } from "./applyTheme";
 import { addPinImages, CATEGORY_HEX, pinIconKey } from "./pins";
 import { loadBaseStyle } from "./style";
+import type { BBox } from "@/lib/geo";
 
 
 const CATS: PlaceCategory[] = ["work", "eat", "health", "stay", "tour", "service"];
@@ -30,6 +31,7 @@ export type MapViewState = {
 export type MapViewHandle = {
   recenter: () => void;
   flyTo: (lat: number, lng: number, zoom?: number) => void;
+  goTo: (lat: number, lng: number, zoom: number) => void;
 };
 
 type Props = {
@@ -51,6 +53,9 @@ type Props = {
   presence?: PresenceSpot[];
   /** "Meus favoritos" layer (SPEC_V2 E3). */
   favorites?: FavoriteSpot[];
+  navigationBounds?: BBox;
+  cities?: City[];
+  onSelectCity?: (slug:string) => void;
 };
 
 function routeGeoJSON(stops: { lat: number; lng: number }[]): FeatureCollection {
@@ -281,9 +286,10 @@ function safely(fn: () => void) {
 const NO_STOPS: { lat: number; lng: number }[] = [];
 const NO_PRESENCE: PresenceSpot[] = [];
 const NO_FAVORITES: FavoriteSpot[] = [];
+const NO_CITIES:City[]=[];
 
 export const MapView = forwardRef<MapViewHandle, Props>(function MapView(
-  { city, theme, places, activities, selectedPlaceId, sheetFraction, leftInset, onSelectPlace, onSelectActivity, onViewChange, onReady, route = NO_STOPS, presence = NO_PRESENCE, favorites = NO_FAVORITES },
+  { city, theme, places, activities, selectedPlaceId, sheetFraction, leftInset, onSelectPlace, onSelectActivity, onViewChange, onReady, route = NO_STOPS, presence = NO_PRESENCE, favorites = NO_FAVORITES, navigationBounds, cities=NO_CITIES,onSelectCity },
   ref,
 ) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -300,13 +306,14 @@ export const MapView = forwardRef<MapViewHandle, Props>(function MapView(
   const [error, setError] = useState(false);
 
   // Latest values for map callbacks registered once.
-  const latest = useRef({ theme, places, route, selectedPlaceId, sheetFraction, leftInset, onSelectPlace, onSelectActivity, onViewChange, onReady });
-  latest.current = { theme, places, route, selectedPlaceId, sheetFraction, leftInset, onSelectPlace, onSelectActivity, onViewChange, onReady };
+  const latest = useRef({ theme, places, route, selectedPlaceId, sheetFraction, leftInset, onSelectPlace, onSelectActivity, onViewChange, onReady,cities,onSelectCity });
+  latest.current = { theme, places, route, selectedPlaceId, sheetFraction, leftInset, onSelectPlace, onSelectActivity, onViewChange, onReady,cities,onSelectCity };
 
   useImperativeHandle(ref, () => ({
     recenter() {
       mapRef.current?.flyTo({ center: [city.center_lng, city.center_lat], zoom: city.zoom, bearing: 0 });
     },
+    goTo(lat,lng,zoom){mapRef.current?.easeTo({center:[lng,lat],zoom,padding:{top:0,bottom:Math.round(window.innerHeight*latest.current.sheetFraction),left:latest.current.leftInset,right:0},duration:window.matchMedia("(prefers-reduced-motion: reduce)").matches?0:600});},
     flyTo(lat, lng, zoom) {
       const map = mapRef.current;
       if (!map) return;
@@ -337,7 +344,7 @@ export const MapView = forwardRef<MapViewHandle, Props>(function MapView(
       .then((style) => {
         if (cancelled || !containerRef.current) return;
         baseStyleRef.current = style;
-        const [west, south, east, north] = city.bbox;
+        const [west, south, east, north] = navigationBounds??city.bbox;
         const map = new maplibregl.Map({
           container: containerRef.current,
           style: applyTheme(style, latest.current.theme),
@@ -369,6 +376,11 @@ export const MapView = forwardRef<MapViewHandle, Props>(function MapView(
               const src = map.getSource("places") as GeoJSONSource | undefined;
               src?.setData(toGeoJSON(latest.current.places));
               installRouteLayers(map, styleTheme);
+              if(latest.current.cities.length&&!map.getSource("cities")){
+               map.addSource("cities",{type:"geojson",data:{type:"FeatureCollection",features:latest.current.cities.map(c=>({type:"Feature",geometry:{type:"Point",coordinates:[c.center_lng,c.center_lat]},properties:{slug:c.slug,name:c.name}}))}});
+               map.addLayer({id:"city-dot",type:"circle",source:"cities",maxzoom:12,paint:{"circle-color":styleTheme==="day"?"#0B3B4A":"#6CC3D1","circle-radius":5,"circle-stroke-width":2,"circle-stroke-color":styleTheme==="day"?"#FFFFFF":"#162027"}},"cluster-halo");
+               map.addLayer({id:"city-label",type:"symbol",source:"cities",maxzoom:12,layout:{"text-field":["get","name"],"text-size":12,"text-font":["Noto Sans Bold"],"text-anchor":"top","text-offset":[0,0.65]},paint:{"text-color":styleTheme==="day"?"#0F1F2A":"#EDF1F3","text-halo-width":2,"text-halo-color":styleTheme==="day"?"#FFFFFF":"#162027"}},"cluster-halo");
+              }
               (map.getSource("route") as GeoJSONSource | undefined)?.setData(routeGeoJSON(latest.current.route));
               map.setFilter("place-selected", ["==", ["get", "id"], latest.current.selectedPlaceId ?? ""]);
               setReady(true);
@@ -385,6 +397,11 @@ export const MapView = forwardRef<MapViewHandle, Props>(function MapView(
           const id = e.features?.[0]?.properties?.id as string | undefined;
           if (id) latest.current.onSelectPlace(id);
         });
+        if(cities.length){
+         map.on("click","city-dot",e=>{const slug=e.features?.[0]?.properties?.slug as string|undefined;if(slug)latest.current.onSelectCity?.(slug);});
+         map.on("click","city-label",e=>{const slug=e.features?.[0]?.properties?.slug as string|undefined;if(slug)latest.current.onSelectCity?.(slug);});
+         for(const layer of ["city-dot","city-label"]){map.on("mouseenter",layer,()=>map.getCanvas().style.cursor="pointer");map.on("mouseleave",layer,()=>map.getCanvas().style.cursor="");}
+        }
         map.on("click", "cluster-ring", async (e: MapLayerMouseEvent) => {
           const feature = e.features?.[0];
           if (!feature) return;
@@ -393,7 +410,7 @@ export const MapView = forwardRef<MapViewHandle, Props>(function MapView(
           map.easeTo({ center: (feature.geometry as Point).coordinates as [number, number], zoom });
         });
         map.on("click", (e) => {
-          const hits = map.queryRenderedFeatures(e.point, { layers: ["place-pin", "cluster-ring"] });
+          const hits = map.queryRenderedFeatures(e.point, { layers: ["place-pin", "cluster-ring",...(map.getLayer("city-dot")?["city-dot","city-label"]:[])] });
           if (hits.length === 0) latest.current.onSelectPlace(null);
         });
         for (const layer of ["place-pin", "cluster-ring"]) {
@@ -419,7 +436,7 @@ export const MapView = forwardRef<MapViewHandle, Props>(function MapView(
       mapRef.current?.remove();
       mapRef.current = null;
     };
-  }, [city]);
+  }, [city,navigationBounds,cities]);
 
   // Theme: swap the base style only when it differs from the one the map already uses
   // (the map is often created with the final theme already); layers are reinstalled on style.load.

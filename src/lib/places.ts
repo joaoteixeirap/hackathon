@@ -102,6 +102,8 @@ export const SUBCATEGORY_LABELS: Record<string, string> = {
   museum: "Museu",
   beach_resort: "Praia",
   laundry: "Lavanderia",
+  school: "Escola",
+  kindergarten: "Creche / educação infantil",
   bicycle_rental: "Aluguel de bike",
   post_office: "Correios",
 };

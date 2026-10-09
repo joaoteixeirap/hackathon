@@ -9,7 +9,7 @@ import { createClient } from "./supabase/server";
 /** Cache tag for public map data; revalidated when activities change. */
 export const MAP_DATA_TAG = "map-data";
 
-const PLACE_COLUMNS =
+export const PLACE_COLUMNS =
   "id, name, category, subcategory, lat, lng, neighborhood, address, opening_hours, stay_policy, emergency_fact:facts_meta->emergency, wifi_mbps, wifi_source, has_power_outlets, quiet_level, price_hint, accepts_without_plan, languages, wheelchair, seal_valid_until, call_ready_valid_until, last_verified_at, wifi_fact:facts_meta->wifi, featured_until, is_demo";
 
 type PlaceRow = Omit<PlaceSummary, "featured" | "offers" | "wifi_mbps"> & {
@@ -27,7 +27,7 @@ export function toPlaceSummary(row: PlaceRow, offerCount: number, now = Date.now
   };
 }
 
-type MapData = { places: PlaceSummary[]; activities: ActivitySummary[] };
+type MapData = { places: PlaceSummary[]; activities: ActivitySummary[];truncated?:boolean };
 
 /**
  * Everything the map needs for one city. Public data only, so it is cached on the server
@@ -51,7 +51,7 @@ async function fetchMapData(cityId: string): Promise<MapData> {
   const nowIso = new Date().toISOString();
 
   const [placesRes, offersRes, activitiesRes] = await Promise.all([
-    supabase.from("places").select(PLACE_COLUMNS).eq("city_id", cityId).limit(5000),
+    supabase.from("places").select(PLACE_COLUMNS).eq("city_id", cityId).order("id").range(0,999),
     supabase.from("offers").select("place_id, places!inner(city_id)").eq("places.city_id", cityId),
     supabase
       .from("activities")
@@ -65,15 +65,20 @@ async function fetchMapData(cityId: string): Promise<MapData> {
 
   const failed = placesRes.error ?? offersRes.error ?? activitiesRes.error;
   if (failed) throw failed;
+  const placeRows=[...(placesRes.data??[])];
+  // PostgREST caps each response at 1000, even when .limit(5000) is requested.
+  for(let offset=1000;placeRows.length===offset&&offset<10000;offset+=1000){
+   const r=await supabase.from("places").select(PLACE_COLUMNS).eq("city_id",cityId).order("id").range(offset,offset+999);
+   if(r.error)throw r.error;placeRows.push(...(r.data??[]));
+  }
 
   const offerCount = new Map<string, number>();
   for (const o of offersRes.data ?? []) offerCount.set(o.place_id, (offerCount.get(o.place_id) ?? 0) + 1);
 
-  const places = ((placesRes.data ?? []) as PlaceRow[]).map((r) => toPlaceSummary(r, offerCount.get(r.id) ?? 0));
+  const places = (placeRows as PlaceRow[]).map((r) => toPlaceSummary(r, offerCount.get(r.id) ?? 0));
   type ActivityRow = { id: string; title: string; category: ActivitySummary["category"]; starts_at: string; ends_at: string; meeting_lat: number; meeting_lng: number; meeting_label: string | null; capacity: number; status: "open" | "full"; is_demo: boolean; series_id: string | null; activity_series: { weekday: number; start_time: string; is_official: boolean } | null };
   // A weekly series shows only its next occurrence on the map (rows are ordered by start).
-  const seen = new Set<string>();
-  const rows = ((activitiesRes.data ?? []) as unknown as ActivityRow[]).filter((a) => !a.series_id || (!seen.has(a.series_id) && seen.add(a.series_id)));
+  const rows = ((activitiesRes.data ?? []) as unknown as ActivityRow[]);
   const activities: ActivitySummary[] = rows.map((a) => ({
     id: a.id,
     title: a.title,
@@ -88,7 +93,7 @@ async function fetchMapData(cityId: string): Promise<MapData> {
     is_demo: a.is_demo,
     series: a.series_id && a.activity_series ? { id: a.series_id, ...a.activity_series, start_time: a.activity_series.start_time.slice(0, 5) } : null,
   }));
-  return { places, activities };
+  return { places, activities,truncated:placeRows.length>=10000||(activitiesRes.data?.length??0)>=500 };
 }
 
 /** One place with its live offer count and full trust data (for /lugar/[id]). */

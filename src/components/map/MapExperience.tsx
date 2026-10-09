@@ -10,6 +10,7 @@ import { BottomSheet, type Snap } from "@/components/sheet/BottomSheet";
 import { PlaceDetail } from "@/components/sheet/PlaceDetail";
 import { ResultList } from "@/components/sheet/ResultList";
 import { AppNav, NAV_HEIGHT } from "@/components/ui/AppNav";
+import { rememberMapUrl } from "@/components/ui/MapLink";
 import { Logo, LogoMark } from "@/components/ui/Logo";
 import { buttonAccent } from "@/components/ui/styles";
 import type { City } from "@/lib/cities";
@@ -44,6 +45,11 @@ import type { FavoriteSpot } from "./favoriteMarker";
 import type { PresenceSpot } from "./presenceMarker";
 import { offersEmergencyOr24h } from "@/lib/essentialServices";
 import { useActivityCompats } from "@/components/activity/useActivityCompats";
+import { StateControls } from "./StateControls";
+import { SP_BOUNDS, eventWindow, eventsInWindow, type EventPeriod } from "@/lib/stateMap";
+import { locateCity } from "@/lib/locateCity";
+import { todayInBrasilia } from "@/lib/offers";
+import { takeLocation } from "@/lib/locationMemory";
 
 const LIST_LIMIT = 60;
 const DESKTOP_PANEL = 400;
@@ -195,9 +201,7 @@ function useLiveActivities(cityId: string | null, initial: ActivitySummary[]): A
               is_demo: row.is_demo,
               series: seriesRow ? { ...seriesRow, start_time:seriesRow.start_time.slice(0,5) } : null,
             };
-            const seen = new Set<string>();
-            return [...rest, next].sort((a, b) => a.starts_at.localeCompare(b.starts_at))
-              .filter(a=>!a.series || (!seen.has(a.series.id) && seen.add(a.series.id)));
+            return [...rest, next].sort((a, b) => a.starts_at.localeCompare(b.starts_at));
           });
         },
       )
@@ -212,11 +216,13 @@ function useLiveActivities(cityId: string | null, initial: ActivitySummary[]): A
 
 export function MapExperience({
   city,
-  places,
+  places: initialPlaces,
   activities: initialActivities,
   initialSelection = null,
   initialChip = null,
   initialEssential = null,
+  stateCities,
+  initialTruncated=false,
 }: {
   city: City;
   places: PlaceSummary[];
@@ -224,8 +230,13 @@ export function MapExperience({
   initialSelection?: Selection;
   initialChip?: ChipKey | null;
   initialEssential?: { sub: string; always: boolean; pass: boolean } | null;
+  stateCities?: City[];
+  initialTruncated?:boolean;
 }) {
-  const activities = useLiveActivities(city.id, initialActivities);
+  const statewide=Boolean(stateCities);
+  const [area,setArea]=useState<{places:PlaceSummary[];activities:ActivitySummary[];truncated:boolean}>({places:initialPlaces,activities:initialActivities,truncated:false});
+  const places=statewide?area.places:initialPlaces;
+  const activities = useLiveActivities(statewide?null:city.id, statewide?area.activities:initialActivities);
   const mapRef = useRef<MapViewHandle>(null);
   const isDesktop = useMedia("(min-width: 1024px)");
   const [themeChoice, setThemeChoice, theme] = useThemeChoice();
@@ -238,17 +249,58 @@ export function MapExperience({
   const [snap, setSnap] = useState<Snap>(initialSelection ? "half" : "collapsed");
   const [sheetPx, setSheetPx] = useState(92);
   const [view, setView] = useState<MapViewState | null>(null);
+  const [currentCity,setCurrentCity]=useState<City|null>(stateCities?.find(c=>c.slug===city.slug)??(statewide?null:city));
+  const [period,setPeriod]=useState<EventPeriod>("upcoming"),[from,setFrom]=useState(todayInBrasilia),[to,setTo]=useState(todayInBrasilia);
+  const [searching,setSearching]=useState(false),[areaStatus,setAreaStatus]=useState("");
+  const [fetchedBounds,setFetchedBounds]=useState("");
+  const controller=useRef<AbortController|null>(null),viewRef=useRef<MapViewState|null>(null);viewRef.current=view;
+  const citySearchPending=useRef(false);
+  const citySlug=currentCity?.slug??(city.slug==="sp"?"santos":city.slug);
   const [showPlaces, setShowPlaces] = useState(true);
   const [showActivities, setShowActivities] = useState(true);
   const [showPresence, setShowPresence] = useState(false);
   const presence = usePresence(city.id, showPresence);
   const [showFavorites, setShowFavorites] = useState(false);
   const favorites = useFavorites(showFavorites);
-  const dayRoute = useDayRoute(city.slug);
+  const dayRoute = useDayRoute(citySlug);
   const [mapReady, setMapReady] = useState(false);
   const [isOpen, setIsOpen] = useState<((p: PlaceSummary) => boolean | null) | undefined>(undefined);
 
   useEffect(() => track("view_map", { city: city.slug }), [city.slug]);
+  // Header "Mapa" links come back here (path + query only).
+  useEffect(() => {
+    const t = setTimeout(() => rememberMapUrl(window.location.pathname + window.location.search), 0);
+    return () => clearTimeout(t);
+  }, [city.slug]);
+  useEffect(()=>()=>controller.current?.abort(),[]);
+  const searchArea=useCallback(async()=>{
+   const v=viewRef.current;if(!statewide||!v)return;
+   if(!eventWindow(period,from,to)){setAreaStatus("Escolha um intervalo válido de até um ano.");return;}
+   controller.current?.abort();const abort=new AbortController();controller.current=abort;
+   setSearching(true);setAreaStatus("");
+   // Public viewport grid, ~1 km: it does not expose an exact GPS-centred rectangle.
+   const bbox=v.bounds.map((n,i)=>(i<2?Math.floor(n*100):Math.ceil(n*100))/100).join(",");
+   try{
+    const res=await fetch(`/api/mapa-area?${new URLSearchParams({bbox,period,from,to,category:chip??"",sub:essential?.sub??"",wifi:filters.wifiStrong?"1":"0",calls:filters.callMode?"1":"0",seal:filters.seal?"1":"0"})}`,{signal:abort.signal});
+    const data=await res.json();if(abort.signal.aborted)return;
+    if(!res.ok)throw new Error(data.message??"Não foi possível buscar esta área.");
+    setArea(data);setFetchedBounds(bbox);setSelection(null);
+    setAreaStatus(data.unavailable?"Dados indisponíveis agora. Você pode escolher outra cidade.":data.truncated?"Há mais resultados nesta área. Aproxime o mapa e busque novamente.":"Área atualizada.");
+    track("state_map_search",{period});
+   }catch(e){if(!abort.signal.aborted)setAreaStatus(e instanceof Error?e.message:"Não foi possível buscar esta área.");}
+   finally{if(!abort.signal.aborted)setSearching(false);}
+  },[statewide,period,from,to,chip,essential,filters.wifiStrong,filters.callMode,filters.seal]);
+  // First viewport and period changes fetch automatically; panning uses the explicit button.
+  const hasView=Boolean(view);
+  useEffect(()=>{if(statewide&&hasView)void searchArea();},[statewide,hasView,searchArea]);
+  const selectCity=(slug:string)=>{
+   const c=stateCities?.find(x=>x.slug===slug);if(!c)return;
+   setCurrentCity(c);setSelection(null);setSnap("half");citySearchPending.current=true;mapRef.current?.goTo(c.center_lat,c.center_lng,c.zoom);
+  };
+  const locate=(point:{lat:number;lng:number})=>{
+   return locateCity(point,stateCities??[]).then(c=>{if(!c){setAreaStatus("Escolha uma cidade de SP para explorar.");return;}
+   setCurrentCity(c as City);citySearchPending.current=true;mapRef.current?.goTo(point.lat,point.lng,14);setSnap("half");});
+  };
 
   useEffect(() => {
     if (filters.openNow && !isOpen) {
@@ -263,8 +315,10 @@ export function MapExperience({
 
   const shownActivities = useMemo(() => {
     if (!showActivities || (chip !== null && chip !== "activities")) return [];
-    return filterActivities(activities, query);
-  }, [activities, chip, query, showActivities]);
+    const window=eventWindow(period,from,to);if(!window)return [];
+    const seen=new Set<string>();
+    return eventsInWindow(filterActivities(activities, query),window).filter(a=>!a.series||(!seen.has(a.series.id)&&seen.add(a.series.id)));
+  }, [activities, chip, query, showActivities,period,from,to]);
 
   const center = useMemo(
     () => view?.center ?? { lat: city.center_lat, lng: city.center_lng },
@@ -366,10 +420,10 @@ export function MapExperience({
   const listHeader = (
     <div className="flex items-center justify-between gap-3 pt-1 pb-1">
       <div className="min-w-0">
-        <p className="font-display text-[17px] leading-tight font-bold">{selection ? "Detalhes" : `Explorar ${city.name}`}</p>
+        <p className="font-display text-[17px] leading-tight font-bold">{selection ? "Detalhes" : statewide ? "Explorar São Paulo" : `Explorar ${city.name}`}</p>
         <p className="truncate text-[13px] text-muted tabular-nums">{countLine}</p>
         {essential && <button type="button" className="min-h-11 text-sm font-semibold text-primary" onClick={() => setEssential(null)}>Limpar filtro de serviços essenciais</button>}
-        <div className={`${!isDesktop && snap === "collapsed" ? "hidden" : "flex"} flex-wrap gap-x-4`} data-no-drag><Link href={`/estadia?aba=pessoas`} className="inline-flex min-h-11 items-center text-xs font-semibold text-primary">Pessoas compatíveis</Link><Link href="/explorar" className="inline-flex min-h-11 items-center text-xs font-semibold text-primary">Cidades e ferramentas ↗</Link></div>
+        <div className={`${!isDesktop && snap === "collapsed" ? "hidden" : "flex"} flex-wrap gap-x-4`} data-no-drag><Link href={`/estadia?aba=pessoas`} className="inline-flex min-h-11 items-center text-xs font-semibold text-primary">Pessoas compatíveis</Link><Link href="/explorar" className="inline-flex min-h-11 items-center text-xs font-semibold text-primary">Cidades e ferramentas ↗</Link><Link href="/estadias" className="inline-flex min-h-11 items-center text-xs font-semibold text-primary">Minhas estadias</Link>{!statewide&&<Link href={`/mapa/sp?city=${city.slug}`} className="inline-flex min-h-11 items-center text-xs font-semibold text-primary">Explorar todo SP</Link>}</div>
       </div>
       {selection && (
         <button
@@ -385,6 +439,7 @@ export function MapExperience({
   );
 
   const bottomInset = isDesktop ? 0 : sheetPx + NAV_HEIGHT;
+  const controls=stateCities&&!selection?<StateControls cities={stateCities} current={currentCity} onCity={selectCity} onLocated={locate} period={period} onPeriod={setPeriod} from={from} to={to} onDates={(f,t)=>{setFrom(f);setTo(t);}} search={!isDesktop&&snap==="full"?{run:()=>void searchArea(),pending:searching,status:areaStatus}:undefined}/>:null;
   const chips = (
     <CategoryChips active={chip} onToggle={toggleChip} filters={filters} onFilter={toggleFilter} wrap={isDesktop} />
   );
@@ -405,11 +460,14 @@ export function MapExperience({
         leftInset={isDesktop ? DESKTOP_PANEL + 32 : 0}
         onSelectPlace={selectPlace}
         onSelectActivity={selectActivity}
-        onViewChange={setView}
-        onReady={() => setMapReady(true)}
+        onViewChange={v=>{setView(v);viewRef.current=v;if(citySearchPending.current){citySearchPending.current=false;void searchArea();}}}
+        onReady={() => {setMapReady(true);const point=statewide?takeLocation():null;if(point){citySearchPending.current=true;mapRef.current?.goTo(point.lat,point.lng,14);}}}
         route={dayRoute.stops}
         presence={presence}
         favorites={favorites}
+        navigationBounds={statewide?SP_BOUNDS:undefined}
+        cities={stateCities}
+        onSelectCity={selectCity}
       />
       {!mapReady && <MapLoading cityName={city.name} />}
 
@@ -428,10 +486,10 @@ export function MapExperience({
                 <Link href="/perfil" aria-label="Perfil" className="grid size-11 place-items-center rounded-full text-ink hover:bg-surface-2">
                   <User size={20} strokeWidth={2} />
                 </Link>
-                <Link href={`/radar/${city.slug}`} className="inline-flex min-h-10 items-center gap-1.5 rounded-full px-3 text-sm font-semibold hover:bg-surface-2">
+                <Link href={`/radar/${citySlug}`} className="inline-flex min-h-10 items-center gap-1.5 rounded-full px-3 text-sm font-semibold hover:bg-surface-2">
                   <Gauge size={16} aria-hidden /> Radar
                 </Link>
-                <Link href="/atividade/nova" className={`${buttonAccent} min-h-10 gap-1.5 px-4 text-sm`}>
+                <Link href={`/atividade/nova?cidade=${citySlug}`} className={`${buttonAccent} min-h-10 gap-1.5 px-4 text-sm`}>
                   <Plus size={16} strokeWidth={2.5} aria-hidden /> Criar roda
                 </Link>
               </div>
@@ -440,7 +498,7 @@ export function MapExperience({
             {chips}
           </div>
             <div className="px-5 pt-4">{listHeader}</div>
-          <div className="min-h-0 flex-1 overflow-y-auto px-5 pt-1 pb-6">{body}</div>
+          <div className="min-h-0 flex-1 overflow-y-auto px-5 pt-1 pb-6">{controls}{body}</div>
         </aside>
       ) : (
         <>
@@ -462,11 +520,11 @@ export function MapExperience({
             label={selection ? "Detalhes" : "Resultados"}
             scrollFrom={selection ? "half" : "full"}
           >
-            {body}
+            {initialTruncated&&<p className="my-2 text-xs text-muted">Cobertura parcial neste mapa. Explore SP e use Buscar nesta área para ver mais resultados.</p>}{controls}{body}
           </BottomSheet>
           <AppNav
             active="map"
-            citySlug={city.slug}
+            citySlug={citySlug}
             onMapClick={() => {
               setChip(null);
               setSelection(null);
@@ -490,7 +548,9 @@ export function MapExperience({
           onTheme={setThemeChoice}
         />
         <RecenterButton onClick={() => mapRef.current?.recenter()} />
+        {statewide&&<button type="button" onClick={()=>{setSnap("full");setSelection(null);}} className="min-h-11 rounded-full border border-line bg-surface px-3 text-xs font-semibold shadow-soft-md">Cidades e datas</button>}
       </div>
+      {statewide&&(isDesktop||snap!=="full")&&<div className={`absolute z-10 ${isDesktop?"left-[448px] top-4 max-w-sm":"inset-x-3 top-[140px] mr-[68px] max-w-xs"}`}><button type="button" onClick={()=>void searchArea()} disabled={searching} className="min-h-11 rounded-full border border-line bg-surface px-4 text-sm font-semibold text-primary shadow-soft-md">{searching?"Buscando…":"Buscar nesta área"}</button><p role="status" className="mt-1 rounded-xl bg-surface/95 px-3 py-1 text-xs text-muted">{areaStatus || (!fetchedBounds?"Explore uma cidade e busque os lugares por perto.":"Mova o mapa e busque novamente para atualizar.")}</p></div>}
 
       {dayRoute.stops.length > 0 && (
         <div

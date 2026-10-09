@@ -35,16 +35,16 @@ export function AppNav({ active, citySlug, onMapClick }: { active: NavTab; cityS
       </Link>
       <div className="flex flex-1 items-center justify-center">
         <Link
-          href="/atividade/nova"
+          href={`/atividade/nova?cidade=${citySlug}`}
           aria-label="Criar atividade"
           className="grid size-12 place-items-center rounded-2xl bg-accent text-[#0f1f2a] shadow-[0_6px_16px_rgb(255_91_58/0.4)] transition active:scale-95"
         >
           <Plus size={24} strokeWidth={2.5} aria-hidden />
         </Link>
       </div>
-      <Link href="/estadia" className={cls("stay")} aria-current={current("stay")}>
+      <Link href="/estadias" className={cls("stay")} aria-current={current("stay")}>
         <Luggage size={22} strokeWidth={stroke("stay")} aria-hidden />
-        Estadia
+        Estadias
       </Link>
       <Link href="/perfil" className={cls("profile")} aria-current={current("profile")}>
         <User size={22} strokeWidth={stroke("profile")} aria-hidden />

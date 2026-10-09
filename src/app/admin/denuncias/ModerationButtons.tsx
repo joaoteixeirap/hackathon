@@ -28,11 +28,12 @@ export function ModerationButtons({ reportId, targetType, targetId, resolved, ta
       <button type="button" disabled={pending} onClick={() => run("resolve")} className={`${btn} bg-primary text-on-fill`}>
         Resolver sem ação
       </button>
-      {targetType === "message" && !targetGone && (
-        <button type="button" disabled={pending} onClick={() => run("delete_message", true)} className={`${btn} border border-danger text-danger`}>
+      {(targetType === "message"||targetType==="community_message") && !targetGone && (
+        <button type="button" disabled={pending} onClick={() => run(targetType==="community_message"?"delete_community_message":"delete_message", true)} className={`${btn} border border-danger text-danger`}>
           Apagar mensagem
         </button>
       )}
+      {targetType==="community"&&!targetGone&&<button type="button" disabled={pending} onClick={()=>run("close_community",true)} className={`${btn} border border-danger text-danger`}>Fechar comunidade</button>}
       {targetType === "activity" && !targetGone && (
         <button type="button" disabled={pending} onClick={() => run("cancel_activity", true)} className={`${btn} border border-danger text-danger`}>
           Cancelar roda

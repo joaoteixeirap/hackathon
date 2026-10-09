@@ -20,7 +20,12 @@ test("database completion: real compatibility counts and emergency metadata reac
     expect(counts[activity].overlap).toBeGreaterThanOrEqual(2);
     const routine = `${counts[activity].same_rhythm} pessoas com a mesma rotina que você`;
     const overlap = `${counts[activity].overlap} estarão na cidade nas suas datas`;
+    // The map's data cache is stale-while-revalidate: the first visit may still serve the list
+    // from before `demo:refresh` re-dated this time-sensitive session; the second is fresh.
     await page.goto("/mapa/santos");
+    await expect(page.locator("[data-map-ready=true]")).toBeVisible({ timeout: 30_000 });
+    await page.waitForTimeout(1500);
+    await page.reload();
     await page.getByRole("button", { name: "Expandir painel" }).click();
     const card = page.getByRole("region", { name: "Atividades nesta área" }).getByRole("button").filter({ hasText: "Passe de grupo liberado" });
     await expect(card.getByText(routine, { exact: false })).toBeVisible();

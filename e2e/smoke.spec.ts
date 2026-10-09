@@ -1,8 +1,11 @@
 import { expect, test } from "@playwright/test";
 
-test("home redirects to the default city map and renders it", async ({ page }) => {
+test("home lets visitors choose a city and renders the state map", async ({ page }) => {
   await page.goto("/");
-  await expect(page).toHaveURL(/\/mapa\/santos$/);
+  await expect(page.getByRole("heading",{name:"Sua próxima cidade começa aqui"})).toBeVisible();
+  await page.getByLabel("Ou escolha sua cidade").fill("Santos");
+  await page.getByRole("link",{name:"Santos",exact:true}).click();
+  await expect(page).toHaveURL(/\/mapa\/sp\?city=santos$/);
   await expect(page.getByRole("region", { name: /Mapa de Santos/ })).toBeVisible();
   const map = page.locator("[data-map-ready=true]");
   await expect(map).toBeVisible({ timeout: 30_000 });

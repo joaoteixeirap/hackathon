@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "catalog:sp": "node scripts/catalog-sp.mjs",
+    "import:sp": "node scripts/import-sp.mjs",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",

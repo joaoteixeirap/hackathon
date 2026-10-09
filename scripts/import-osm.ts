@@ -8,6 +8,8 @@ import { createClient } from "@supabase/supabase-js";
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { bboxToOverpass, type BBox } from "../src/lib/geo";
 import { buildOverpassQuery, extractSuburbs, toPlace, type OsmElement, type OsmPlace } from "./osm";
+import { inMunicipality,type MunicipalGeometry } from "../src/lib/municipality";
+import catalogue from "../src/data/sp-cities.json";
 
 if (existsSync(".env.local")) process.loadEnvFile(".env.local");
 
@@ -56,11 +58,11 @@ async function fetchOverpass(query: string): Promise<OsmElement[]> {
 }
 
 async function main() {
-  const { data: city, error } = await db.from("cities").select("id, name, bbox").eq("slug", slug).single();
+  const { data: city, error } = await db.from("cities").select("id, name, bbox,ibge_code").eq("slug", slug).single();
   if (error || !city) throw new Error(`Cidade "${slug}" não encontrada na tabela cities.`);
 
   mkdirSync(".cache", { recursive: true });
-  const cacheFile = `.cache/osm-${slug}.json`;
+  const cacheFile = `.cache/osm-${slug}-schools-v1.json`;
   let elements: OsmElement[];
   if (!refresh && existsSync(cacheFile) && Date.now() - statSync(cacheFile).mtimeMs < CACHE_TTL_MS) {
     elements = JSON.parse(readFileSync(cacheFile, "utf8"));
@@ -72,16 +74,14 @@ async function main() {
   }
 
   const suburbs = extractSuburbs(elements);
-  const places = elements.map((e) => toPlace(e, suburbs)).filter((p): p is OsmPlace => p !== null);
+  const code=city.ibge_code??catalogue.cities.find(c=>c.slug===slug)?.ibge_code;
+  const geometry=code ? (JSON.parse(readFileSync("public/data/sp-municipalities.geojson","utf8")) as {features:{properties:{codarea:string};geometry:MunicipalGeometry}[]}).features.find(f=>String(f.properties.codarea)===code)?.geometry:null;
+  const places = elements.map((e) => toPlace(e, suburbs)).filter((p): p is OsmPlace => p !== null).filter(p=>!geometry||inMunicipality(p,geometry));
   const unique = [...new Map(places.map((p) => [p.osm_id, p])).values()];
 
   // Do not overwrite partner-claimed places or measured Wi-Fi.
-  const { data: existing, error: exErr } = await db
-    .from("places")
-    .select("osm_id, partner_id, wifi_source")
-    .eq("city_id", city.id)
-    .not("osm_id", "is", null);
-  if (exErr) throw exErr;
+  const existing:{osm_id:string|null;partner_id:string|null;wifi_source:string|null}[]=[];
+  for(let offset=0;;offset+=1000){const r=await db.from("places").select("osm_id,partner_id,wifi_source").eq("city_id",city.id).not("osm_id","is",null).order("id").range(offset,offset+999);if(r.error)throw r.error;existing.push(...(r.data??[]));if((r.data?.length??0)<1000)break;}
   const byOsm = new Map(existing.map((p) => [p.osm_id as string, p]));
 
   const full: object[] = [];
@@ -113,8 +113,8 @@ async function main() {
   }
 
   const emergencyRows=unique.filter(p=>p.category==="health"&&!byOsm.get(p.osm_id)?.partner_id).map(p=>({osm_id:p.osm_id,emergency:p.emergency}));
-  if(emergencyRows.length) {
-    const {error}=await db.rpc("import_osm_emergency",{p_city_id:city.id,p_rows:emergencyRows});
+  for(let i=0;i<emergencyRows.length;i+=500) {
+    const {error}=await db.rpc("import_osm_emergency",{p_city_id:city.id,p_rows:emergencyRows.slice(i,i+500)});
     if(error)throw error;
   }
 
