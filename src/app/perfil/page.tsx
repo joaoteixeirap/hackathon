@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { BadgeCheck, ChevronRight, Compass, Info, LogIn, LogOut, Luggage, Mail, Sparkles, Store, UserRound, Users } from "lucide-react";
+import { BadgeCheck, CheckCircle2, ChevronRight, Compass, Info, LogIn, LogOut, Luggage, Mail, Sparkles, Store, UserRound, Users } from "lucide-react";
 import Link from "next/link";
 import { RoutineForm, type RoutineValues } from "@/components/stay/RoutineForm";
 import { AppNav } from "@/components/ui/AppNav";
@@ -7,7 +7,7 @@ import { DemoLogin } from "@/components/ui/DemoLogin";
 import { PageShell } from "@/components/ui/PageShell";
 import { Rating } from "@/components/ui/Rating";
 import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
-import { buttonSecondary, card } from "@/components/ui/styles";
+import { buttonPrimary, buttonSecondary, card } from "@/components/ui/styles";
 import { getMyProfile, getUser } from "@/lib/auth";
 import { defaultCitySlug } from "@/lib/cities";
 import { demoLoginEnabled } from "@/lib/demoAccounts";
@@ -129,12 +129,28 @@ export default async function MyProfilePage() {
           </section>
 
           {user.is_anonymous && (
-            <section className={`${card} space-y-4 p-5 sm:p-6 lg:col-span-3 lg:row-start-1`} aria-label="Entrar">
-              <SectionHeader icon={<LogIn size={18} aria-hidden />} title="Guarde seu perfil numa conta" text="Como visitante, seus dados ficam só neste aparelho. Entre para usar em qualquer lugar." />
-              {demoLoginEnabled() && <DemoLogin next="/perfil" />}
-              <Link href="/entrar?next=/perfil" className={`${buttonSecondary} min-h-11 gap-2 text-sm`}>
-                <Mail size={16} aria-hidden /> Entrar com e-mail
-              </Link>
+            <section className={`${card} overflow-hidden lg:col-span-3 lg:row-start-1`} aria-label="Entrar">
+              <div className={`grid ${demoLoginEnabled() ? "md:grid-cols-[minmax(0,1fr)_minmax(0,420px)]" : ""}`}>
+                <div className="flex flex-col gap-5 p-5 sm:p-6">
+                  <SectionHeader icon={<LogIn size={18} aria-hidden />} title="Guarde seu perfil numa conta" text="Como visitante, seus dados ficam só neste aparelho. Entre para usar em qualquer lugar." />
+                  <ul className="space-y-2.5 text-sm">
+                    {["Use o mesmo perfil no celular e no computador", "Suas estadias, favoritos e grupos ficam guardados", "Seu nome e sua rotina continuam se você trocar de aparelho"].map((t) => (
+                      <li key={t} className="flex items-start gap-2.5">
+                        <CheckCircle2 size={18} className="mt-px shrink-0 text-primary" aria-hidden />
+                        {t}
+                      </li>
+                    ))}
+                  </ul>
+                  <Link href="/entrar?next=/perfil" className={`${buttonPrimary} mt-auto gap-2 self-start`}>
+                    <Mail size={17} aria-hidden /> Entrar com e-mail
+                  </Link>
+                </div>
+                {demoLoginEnabled() && (
+                  <div className="border-t border-line bg-surface-2/60 p-5 sm:p-6 md:border-t-0 md:border-l">
+                    <DemoLogin next="/perfil" variant="tiles" />
+                  </div>
+                )}
+              </div>
             </section>
           )}
 
