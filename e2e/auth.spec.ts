@@ -22,7 +22,8 @@ test.describe("guest session", () => {
 
     await page.getByLabel("Nome", { exact: true }).fill("Nômade E2E");
     await page.getByRole("button", { name: "Salvar perfil" }).click();
-    await expect(page.getByText("Perfil salvo.")).toBeVisible();
+    // The first save after a change compiles the server action on the dev server.
+    await expect(page.getByText("Perfil salvo.")).toBeVisible({ timeout: 20_000 });
     await page.reload();
     await expect(page.getByLabel("Nome", { exact: true })).toHaveValue("Nômade E2E");
   });

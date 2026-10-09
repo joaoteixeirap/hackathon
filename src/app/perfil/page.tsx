@@ -73,15 +73,15 @@ export default async function MyProfilePage() {
 
   return (
     <PageShell title="Meu perfil" wide>
-      <div className="space-y-5 lg:grid lg:grid-cols-[320px_minmax(0,1fr)] lg:items-start lg:gap-6 lg:space-y-0">
-        <aside className="space-y-5 lg:sticky lg:top-24">
-          <section className={`${card} overflow-hidden`} aria-label="Resumo">
+      {/* Desktop: identity · about you · shortcuts on one row (first two share the row height), routine full width below. */}
+      <div className="space-y-5 lg:grid lg:grid-cols-[300px_minmax(0,1fr)_280px] lg:gap-5 lg:space-y-0">
+          <section className={`${card} flex flex-col overflow-hidden`} aria-label="Resumo">
             <div
               className="h-24"
               style={{ background: "linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 45%, var(--accent)))" }}
               aria-hidden
             />
-            <div className="px-5 pb-5">
+            <div className="flex flex-1 flex-col items-start px-5 pb-5">
               {profile.avatar_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={profile.avatar_url} alt="" className="-mt-11 size-[88px] rounded-full border-4 border-surface object-cover" />
@@ -98,7 +98,7 @@ export default async function MyProfilePage() {
                 <span className="inline-flex items-center rounded-full bg-surface-2 px-2.5 py-1 text-xs font-semibold text-ink">{roleLabel}</span>
                 <VerifiedBadge verified={profile.verified} required={verification.required} />
               </div>
-              <dl className="mt-4 grid grid-cols-2 gap-3 border-t border-line pt-4 text-sm">
+              <dl className="mt-4 grid w-full grid-cols-2 gap-3 border-t border-line pt-4 text-sm">
                 <div>
                   <dt className="text-xs text-muted">Avaliações</dt>
                   <dd className="mt-0.5">
@@ -110,6 +110,8 @@ export default async function MyProfilePage() {
                   <dd className="mt-0.5 font-semibold">{since}</dd>
                 </div>
               </dl>
+              {/* Actions sit at the bottom when the card stretches to the row height. */}
+              <div className="flex-1" aria-hidden />
               {!profile.verified && (
                 <Link href="/verificar" className={`${buttonSecondary} mt-4 min-h-11 w-full gap-2 text-sm`}>
                   <BadgeCheck size={17} aria-hidden />
@@ -117,7 +119,7 @@ export default async function MyProfilePage() {
                 </Link>
               )}
               {!user.is_anonymous && (
-                <form action={signOut} className="mt-2">
+                <form action={signOut} className="mt-2 w-full">
                   <button type="submit" className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full text-sm font-semibold text-muted transition hover:bg-surface-2 hover:text-ink">
                     <LogOut size={16} aria-hidden /> Sair desta conta
                   </button>
@@ -125,11 +127,9 @@ export default async function MyProfilePage() {
               )}
             </div>
           </section>
-        </aside>
 
-        <div className="space-y-5">
           {user.is_anonymous && (
-            <section className={`${card} space-y-4 p-5 sm:p-6`} aria-label="Entrar">
+            <section className={`${card} space-y-4 p-5 sm:p-6 lg:col-span-3 lg:row-start-1`} aria-label="Entrar">
               <SectionHeader icon={<LogIn size={18} aria-hidden />} title="Guarde seu perfil numa conta" text="Como visitante, seus dados ficam só neste aparelho. Entre para usar em qualquer lugar." />
               {demoLoginEnabled() && <DemoLogin next="/perfil" />}
               <Link href="/entrar?next=/perfil" className={`${buttonSecondary} min-h-11 gap-2 text-sm`}>
@@ -138,15 +138,13 @@ export default async function MyProfilePage() {
             </section>
           )}
 
-          <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_288px] lg:items-start lg:gap-5">
             <section className={`${card} space-y-5 p-5 sm:p-6`} aria-label="Editar perfil">
               <SectionHeader icon={<UserRound size={18} aria-hidden />} title="Sobre você" text="É assim que as pessoas te veem nas rodas e nos grupos." />
               <ProfileForm profile={profile} />
             </section>
-            <QuickLinks className="hidden lg:block" />
-          </div>
+            <QuickLinks className="hidden lg:block lg:self-start" />
 
-          <section className={`${card} space-y-5 p-5 sm:p-6`} aria-labelledby="routine-title">
+          <section className={`${card} space-y-5 p-5 sm:p-6 lg:col-span-3`} aria-labelledby="routine-title">
             <SectionHeader
               id="routine-title"
               icon={<Sparkles size={18} aria-hidden />}
@@ -165,7 +163,6 @@ export default async function MyProfilePage() {
           </section>
 
           <QuickLinks className="lg:hidden" />
-        </div>
       </div>
 
       <AppNav active="profile" citySlug={defaultCitySlug} />
