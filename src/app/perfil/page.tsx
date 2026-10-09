@@ -1,14 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { DemoLogin } from "@/components/ui/DemoLogin";
 import { PageShell } from "@/components/ui/PageShell";
 import { Rating } from "@/components/ui/Rating";
 import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
 import { card } from "@/components/ui/styles";
 import { getMyProfile, getUser } from "@/lib/auth";
+import { demoLoginEnabled } from "@/lib/demoAccounts";
 import { getCityNeighborhoods } from "@/lib/neighborhoods";
 import { getProfileRating } from "@/lib/ratings";
 import { createClient } from "@/lib/supabase/server";
 import { getVerificationState } from "@/lib/verification";
+import { signOut } from "./actions";
 import { ProfileForm } from "./ProfileForm";
 
 export const metadata: Metadata = { title: "Meu perfil · SoloRota" };
@@ -52,6 +55,13 @@ export default async function MyProfilePage() {
             ? "Você está como visitante neste aparelho. Escolha um nome para o grupo te reconhecer."
             : user.email}
         </p>
+        {!user.is_anonymous && (
+          <form action={signOut}>
+            <button type="submit" className="inline-flex min-h-11 items-center text-sm font-semibold text-muted underline-offset-4 hover:underline">
+              Sair desta conta
+            </button>
+          </form>
+        )}
         <div className="flex flex-wrap items-center gap-3">
           <VerifiedBadge verified={profile.verified} required={verification.required} />
           <Rating avg={rating.avg} count={rating.count} />
@@ -62,6 +72,15 @@ export default async function MyProfilePage() {
           </Link>
         )}
       </section>
+
+      {user.is_anonymous && (
+        <section className={`${card} mb-6 space-y-3 p-5`} aria-label="Entrar">
+          {demoLoginEnabled() && <DemoLogin next="/perfil" />}
+          <Link href="/entrar?next=/perfil" className="inline-flex min-h-11 items-center text-sm font-bold text-primary underline-offset-4 hover:underline">
+            Entrar com e-mail
+          </Link>
+        </section>
+      )}
 
       <section className={`${card} p-5`} aria-label="Editar perfil">
         <ProfileForm profile={profile} cities={cities} />

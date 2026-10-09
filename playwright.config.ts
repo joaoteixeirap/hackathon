@@ -1,7 +1,9 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const PORT = Number(process.env.PORT ?? 3100);
-const baseURL = process.env.E2E_BASE_URL ?? `http://localhost:${PORT}`;
+// PLAYWRIGHT_BASE_URL (or E2E_BASE_URL) runs the suite against a deployed URL.
+const remoteURL = process.env.PLAYWRIGHT_BASE_URL ?? process.env.E2E_BASE_URL;
+const baseURL = remoteURL ?? `http://localhost:${PORT}`;
 
 export default defineConfig({
   testDir: "e2e",
@@ -13,7 +15,7 @@ export default defineConfig({
     { name: "desktop", use: { ...devices["Desktop Chrome"], viewport: { width: 1280, height: 800 } } },
   ],
   // Runs against a production build; set E2E_BASE_URL to test a deployed URL instead.
-  webServer: process.env.E2E_BASE_URL
+  webServer: remoteURL
     ? undefined
     : {
         // Separate dist dir so e2e builds never clobber a running `pnpm dev`.

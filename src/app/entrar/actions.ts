@@ -1,7 +1,9 @@
 "use server";
 
 import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { safeNext } from "@/lib/auth";
+import { DEMO_PERSONAS, demoLoginEnabled, isDemoPersona } from "@/lib/demoAccounts";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 
@@ -39,4 +41,21 @@ export async function sendMagicLink(_prev: SignInState, formData: FormData): Pro
     };
   }
   return { status: "sent", email };
+}
+
+export type DemoLoginState = { status: "idle" | "error"; message?: string };
+
+/**
+ * Demo login (SPEC_V2 V0): a safety net when e-mail delivery fails during the pitch.
+ * Only when NEXT_PUBLIC_DEMO_LOGIN=true; the password stays on the server; no demo account is admin.
+ */
+export async function signInAsDemo(persona: string, next: string): Promise<DemoLoginState> {
+  const password = process.env.DEMO_LOGIN_PASSWORD;
+  if (!demoLoginEnabled() || !password || !isDemoPersona(persona)) {
+    return { status: "error", message: "Login de demonstração desativado." };
+  }
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signInWithPassword({ email: DEMO_PERSONAS[persona].email, password });
+  if (error) return { status: "error", message: "Conta de demonstração indisponível. Rode `pnpm seed:demo`." };
+  redirect(safeNext(next, "/perfil"));
 }

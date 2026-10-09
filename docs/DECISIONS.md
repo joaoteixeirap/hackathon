@@ -97,3 +97,14 @@ Uma linha por decisão: data, decisão, motivo.
 - M0 previa deploy na Vercel; o app ainda não foi publicado (pedido da equipe: só local por enquanto).
 - DESIGN: o SPEC_V2 cita DM Mono e tokens `mata`/`sol`/`grafite`/`tinta-suave` da identidade v1 (carta náutica); na v2 atual mapeamos para `success`/`accent-strong`/`muted`/`line` e números em `tabular-nums` da fonte da interface, sem nova fonte.
 - I1/I4 (09/10): removidos "Oferta(s) exclusiva(s)" da ficha e do `/espera` e a assinatura de R$ 19,90 do `docs/PITCH.md`.
+
+## V2 (SPEC_V2_NOMADE.md)
+
+- 2026-10-09 — V0 feito só na parte local, a pedido da equipe (sem push nem deploy até liberação); acesso à Vercel será por `npx vercel login` do usuário.
+- 2026-10-09 — `pnpm db:reset` recusa qualquer `SUPABASE_DB_URL` que não seja local (`scripts/db-guard.mjs`, testado); `pnpm db:push` aplica migrações pendentes no banco da nuvem. Os scripts chamam o CLI do Supabase pelo `node`, sem shell, para a URL passar intacta no Windows.
+- 2026-10-09 — `pnpm seed:demo` usa a Admin API (ids fixos do seed) para dar senha às contas Ana, Bruno e Parceiro (Demo); nenhuma é admin. Os dados demo continuam no `seed.sql` e o `demo:refresh` os re-data.
+- 2026-10-09 — Login de demonstração com `NEXT_PUBLIC_DEMO_LOGIN=true`: botões em `/entrar` e no perfil de visitante; senha só no servidor (`DEMO_LOGIN_PASSWORD`).
+- 2026-10-09 — "Sair" com `signOut({ scope: "local" })`: o padrão global derrubaria todos os aparelhos usando a mesma conta demo. Redireciona direto para `/mapa/<cidade>`, porque redirecionar uma server action para `/` (página estática que redireciona) quebra em produção.
+- 2026-10-09 — `/entrar` não redireciona mais o visitante anônimo (antes, quem tinha sessão de visitante nunca via o formulário).
+- 2026-10-09 — Bucket público `avatars` (pasta por usuário) criado na migração `0007_avatars.sql`; upload de foto fica para quando houver tela de perfil com foto. `vercel.json` com região `gru1`.
+- 2026-10-09 — Playwright aceita `PLAYWRIGHT_BASE_URL` (nome do SPEC_V2) além de `E2E_BASE_URL`.

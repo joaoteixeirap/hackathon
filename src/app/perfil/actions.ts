@@ -1,7 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { ensureUser } from "@/lib/auth";
+import { defaultCitySlug } from "@/lib/cities";
 import { getCityNeighborhoods } from "@/lib/neighborhoods";
 import { parseProfileForm, type ProfileErrors } from "@/lib/profile";
 import { createClient } from "@/lib/supabase/server";
@@ -30,4 +32,12 @@ export async function updateProfile(_prev: ProfileFormState, formData: FormData)
 
   revalidatePath("/perfil");
   return { status: "saved" };
+}
+
+/** Ends the session (demo accounts included); the next visit starts a fresh guest session. */
+export async function signOut(): Promise<void> {
+  const supabase = await createClient();
+  // Local scope: shared demo accounts must not log out every other device.
+  await supabase.auth.signOut({ scope: "local" });
+  redirect(`/mapa/${defaultCitySlug}`); // not "/": its static redirect breaks action redirects in production
 }
