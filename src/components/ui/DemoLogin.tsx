@@ -29,7 +29,7 @@ export function DemoLogin({ next = "/perfil" }: { next?: string }) {
                 if (res?.status === "error") setError(res.message ?? "Erro");
               })
             }
-            className={`${buttonSecondary} w-full`}
+            className={`${buttonSecondary} w-full px-4 text-sm whitespace-nowrap`}
           >
             Entrar como {DEMO_PERSONAS[p].label}
           </button>
